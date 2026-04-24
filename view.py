@@ -2,301 +2,414 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext
 import re
 
+class ToolTip:
+    """Small Hover-Widget to show tooltips for buttons."""
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip_window = None
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event=None):
+        x, y, cx, cy = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+        
+        self.tooltip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True) # Entfernt den Fensterrahmen
+        tw.wm_geometry(f"+{x}+{y}")
+        
+        label = tk.Label(tw, text=self.text, justify='left',
+                         background="#ffffe0", relief='solid', borderwidth=1,
+                         font=("Arial", 9, "normal"), padx=3, pady=1)
+        label.pack(ipadx=1)
+
+    def hide_tooltip(self, event=None):
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
+
 class RobotView:
-    """
-    Handles all visual components (Tkinter).
-    No application logic resides here, only UI setup and update mechanisms.
-    """
     def __init__(self, root):
         self.root = root
-        self.root.title("Robot Teach-In Controller")
-        self.root.geometry("1280x900")
+        self.root.title("Robot Teach-In Controller (Dashboard)")
+        self.root.geometry("1450x900") 
         
-        self.mode_var = tk.StringVar(value="TEACH")
+        # UI Styling aufwerten
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure("TButton", font=("Arial", 10))
+        style.configure("Treeview.Heading", font=("Arial", 10, "bold"))
+        style.configure("TNotebook.Tab", font=("Arial", 10, "bold"), padding=[10, 5])
+
         self.setup_ui()
 
     def setup_ui(self):
-        # --- 1. Status Bar ---
-        status_frame = tk.Frame(self.root, bg="#333333", padx=10, pady=5)
+        # --- HEADER ---
+        status_frame = tk.Frame(self.root, bg="#2d2d2d", padx=10, pady=5)
         status_frame.pack(fill="x")
-        self.lbl_status = tk.Label(status_frame, text="Status: Initializing...", font=("Arial", 11, "bold"), bg="#333333", fg="white")
+        self.lbl_status = tk.Label(status_frame, text="Status: Initializing...", font=("Arial", 11, "bold"), bg="#2d2d2d", fg="white")
         self.lbl_status.pack(side="left")
-        self.btn_reconnect = tk.Button(status_frame, text="🔄 Reconnect")
-        self.btn_reconnect.pack(side="right")
+        
+        btn_frame = tk.Frame(status_frame, bg="#2d2d2d")
+        btn_frame.pack(side="right")
+        self.btn_reconnect = tk.Button(btn_frame, text="🔄 Reconnect")
+        self.btn_reconnect.pack(side="left", padx=5)
+        self.btn_clear_faults = tk.Button(btn_frame, text="🧹 Clear Faults", bg="#ffcc99")
+        self.btn_clear_faults.pack(side="left", padx=5)
 
-        # --- 2. Main Content (Two Columns) ---
+        # --- 3-COLUMN LAYOUT ---
         content_frame = tk.Frame(self.root)
         content_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # LEFT COLUMN: Joint Control
-        left_col = tk.LabelFrame(content_frame, text="1. Joint Control (The 'Now')", padx=15, pady=15)
-        left_col.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        self.paned = ttk.PanedWindow(content_frame, orient=tk.HORIZONTAL)
+        self.paned.pack(fill="both", expand=True)
 
-        # Mode Selection
-        mode_frame = tk.Frame(left_col)
-        mode_frame.pack(fill="x", pady=(0, 15))
-        self.rb_teach = tk.Radiobutton(mode_frame, text="TEACH MODE (Live Sensor Data)", variable=self.mode_var, value="TEACH", font=("Arial", 11, "bold"), fg="#0066cc")
-        self.rb_teach.pack(anchor="w")
-        self.rb_edit = tk.Radiobutton(mode_frame, text="EDIT MODE (Manual Input / Fine Tuning)", variable=self.mode_var, value="EDIT", font=("Arial", 11, "bold"), fg="#800080")
-        self.rb_edit.pack(anchor="w")
+        col1_live = tk.LabelFrame(self.paned, text="1. Live State (Read Only)", font=("Arial", 11, "bold"), padx=10, pady=10)
+        col2_seq = tk.LabelFrame(self.paned, text="2. Sequence Timeline", font=("Arial", 11, "bold"), padx=10, pady=10)
+        col3_insp = tk.LabelFrame(self.paned, text="3. Waypoint Inspector (Edit)", font=("Arial", 11, "bold"), padx=10, pady=10)
 
-        # Joints Display
-        self.joint_entries = []
-        self.joint_frames = []
-        self.joint_toggles = [] 
-        
-        joints_frame = tk.Frame(left_col)
-        joints_frame.pack(fill="x", pady=10)
-        
-        for i in range(7):
-            frame = tk.Frame(joints_frame)
-            frame.pack(fill="x", pady=4)
-            
-            tk.Label(frame, text=f"Joint {i+1}:", width=8, font=("Arial", 11, "bold"), anchor="w").pack(side="left")
-            entry_val = tk.Entry(frame, width=12, font=("Courier", 12))
-            entry_val.insert(0, "0.00")
-            entry_val.pack(side="left", padx=5)
-            tk.Label(frame, text="°", font=("Courier", 12, "bold")).pack(side="left")
-            
-            toggle_var = tk.BooleanVar(value=False)
-            chk = tk.Checkbutton(frame, text="Unlock", variable=toggle_var, fg="#FF8C00", font=("Arial", 9, "bold"))
-            chk.pack(side="left", padx=10)
-            
-            self.joint_entries.append(entry_val)
-            self.joint_frames.append(frame)
-            self.joint_toggles.append(toggle_var)
+        self.paned.add(col1_live, weight=1)
+        self.paned.add(col2_seq, weight=3)
+        self.paned.add(col3_insp, weight=1)
 
-        # Action Buttons for Poses
-        tk.Label(left_col, text="Actions:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(15, 5))
-        
-        self.btn_teach_custom = tk.Button(left_col, text="✋ START TEACH (Unlocked Joints)", bg="#FFA500", font=("Arial", 11, "bold"), height=2)
-        self.btn_teach_custom.pack(fill="x", pady=2)
+        # ==========================================
+        # COLUMN 1: LIVE STATE
+        # ==========================================
+        self.notebook = ttk.Notebook(col1_live)
+        self.notebook.pack(fill="both", expand=True, pady=(0, 10))
 
-        # --- Teach Parameters (Gain & Deadzone) ---
-        param_frame = tk.LabelFrame(left_col, text="Teach Parameters", padx=5, pady=5)
-        param_frame.pack(fill="x", pady=10)
+        # Tab 1: Joints
+        tab_joints = tk.Frame(self.notebook, bg="white")
+        self.notebook.add(tab_joints, text="Joints")
+        self.live_joint_vars = []
+        for i in range(6):
+            f = tk.Frame(tab_joints, bg="white")
+            f.pack(fill="x", pady=5, padx=10)
+            tk.Label(f, text=f"J{i+1}:", font=("Arial", 11, "bold"), bg="white", width=5, anchor="w").pack(side="left")
+            var = tk.StringVar(value="0.00 °")
+            tk.Entry(f, textvariable=var, font=("Courier", 12), state="readonly", width=12).pack(side="right")
+            self.live_joint_vars.append(var)
 
-        tk.Label(param_frame, text="Gain (Strength):", font=("Arial", 9)).grid(row=0, column=0, sticky="w")
-        self.ent_gain = tk.Entry(param_frame, width=8)
-        self.ent_gain.insert(0, "1.0") 
-        self.ent_gain.grid(row=0, column=1, padx=5, pady=2)
+        # Tab 2: Cartesian
+        tab_cart = tk.Frame(self.notebook, bg="white")
+        self.notebook.add(tab_cart, text="Cartesian")
+        self.live_cart_vars = {}
+        for axis in ["X", "Y", "Z", "Rx", "Ry", "Rz"]:
+            f = tk.Frame(tab_cart, bg="white")
+            f.pack(fill="x", pady=5, padx=10)
+            tk.Label(f, text=f"{axis}:", font=("Arial", 11, "bold"), bg="white", width=5, anchor="w").pack(side="left")
+            var = tk.StringVar(value="0.00")
+            tk.Entry(f, textvariable=var, font=("Courier", 12), state="readonly", width=12).pack(side="right")
+            self.live_cart_vars[axis] = var
 
-        tk.Label(param_frame, text="Deadzone (Tolerance):", font=("Arial", 9)).grid(row=1, column=0, sticky="w")
-        self.ent_deadzone = tk.Entry(param_frame, width=8)
-        self.ent_deadzone.insert(0, "1.5") 
-        self.ent_deadzone.grid(row=1, column=1, padx=5, pady=2)
-        
-        # More Actions
-        self.btn_save_ui = tk.Button(left_col, text="➕ Add Current Pose to Sequence", bg="lightblue", font=("Arial", 11, "bold"), height=2)
-        self.btn_save_ui.pack(fill="x", pady=2)
-        self.btn_overwrite = tk.Button(left_col, text="💾 Overwrite Selected Waypoint", bg="#e6e6fa", height=2)
-        self.btn_overwrite.pack(fill="x", pady=2)
-        self.btn_apply_ui = tk.Button(left_col, text="📤 Apply Editable Poses to Robot", bg="#f0e68c", height=2)
-        self.btn_apply_ui.pack(fill="x", pady=2)
+        # Tab 3: Diagnostics
+        tab_diag = tk.Frame(self.notebook, bg="white")
+        self.notebook.add(tab_diag, text="Diag")
+        self.lbl_diag = tk.Label(tab_diag, text="Waiting for telemetry...", bg="white", justify="left", font=("Courier", 9))
+        self.lbl_diag.pack(anchor="nw", padx=10, pady=10)
 
-        # RIGHT COLUMN: Sequence Management
-        right_col = tk.LabelFrame(content_frame, text="2. Sequence Management (The 'Future')", padx=15, pady=15)
-        right_col.pack(side="right", fill="both", expand=True, padx=(5, 0))
+        # Capture Button
+        self.btn_capture = tk.Button(col1_live, text="➕ Capture Current Pose", bg="#008CBA", fg="white", font=("Arial", 12, "bold"), height=2)
+        self.btn_capture.pack(fill="x", side="bottom", pady=5)
+
+        # ==========================================
+        # COLUMN 2: SEQUENCE TIMELINE
+        # ==========================================
+        # Toolbar Top
+        toolbar_top = tk.Frame(col2_seq)
+        toolbar_top.pack(fill="x", pady=(0, 5))
+        self.btn_load_json = tk.Button(toolbar_top, text="📂", font=("Arial", 12), width=4)
+        self.btn_load_json.pack(side="left", padx=2)
+        ToolTip(self.btn_load_json, "Load Sequence List")
+        self.btn_save_json = tk.Button(toolbar_top, text="💾", font=("Arial", 12), width=4)
+        self.btn_save_json.pack(side="left", padx=2)
+        ToolTip(self.btn_save_json, "Save Sequence List")
+        self.btn_clear_list = tk.Button(toolbar_top, text="🧹", font=("Arial", 12), width=4)
+        self.btn_clear_list.pack(side="left", padx=2)
+        ToolTip(self.btn_clear_list, "Clear Sequence List")
+        self.lbl_active_file = tk.Label(toolbar_top, text="Active File: None", font=("Arial", 10, "italic"), fg="gray")
+        self.lbl_active_file.pack(side="right", padx=10)
 
         # Treeview
-        tree_frame = tk.Frame(right_col)
+        tree_frame = tk.Frame(col2_seq)
         tree_frame.pack(fill="both", expand=True)
-        self.tree = ttk.Treeview(tree_frame, columns=("id", "position", "speed"), show="headings")
+        self.tree = ttk.Treeview(tree_frame, columns=("id", "type", "position", "params"), show="headings")
         self.tree.heading("id", text="ID")
+        self.tree.heading("type", text="Type")
         self.tree.heading("position", text="Position (°)")
-        self.tree.heading("speed", text="Speed (°/s)")
-        self.tree.column("id", width=40, anchor="center")
-        self.tree.column("position", width=350, anchor="center")
-        self.tree.column("speed", width=80, anchor="center")
-        self.tree.pack(fill="both", expand=True, side="left")
-        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
+        self.tree.heading("params", text="Parameters")
+        self.tree.column("id", width=30, anchor="center")
+        self.tree.column("type", width=100, anchor="center")
+        self.tree.column("position", width=250, anchor="center")
+        self.tree.column("params", width=200, anchor="w")
+        self.tree.pack(side="left", fill="both", expand=True)
+        scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
+        scroll.pack(side="right", fill="y")
+        self.tree.configure(yscrollcommand=scroll.set)
 
-        # List Actions
-        list_action_frame = tk.Frame(right_col, pady=10)
-        list_action_frame.pack(fill="x")
-        self.btn_move_up = tk.Button(list_action_frame, text="⬆ Move Up")
-        self.btn_move_up.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-        self.btn_move_down = tk.Button(list_action_frame, text="⬇ Move Down")
-        self.btn_move_down.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
-        self.btn_delete = tk.Button(list_action_frame, text="🗑 Delete Selected", bg="#ffb6c1")
-        self.btn_delete.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
-        self.btn_move_to = tk.Button(list_action_frame, text="▶ Move Robot to Selected", bg="lightyellow")
-        self.btn_move_to.grid(row=0, column=3, padx=2, pady=2, sticky="ew")
+        # Toolbar Middle (List Ops)
+        list_ops = tk.Frame(col2_seq)
+        list_ops.pack(fill="x", pady=5)
+        self.btn_move_up = tk.Button(list_ops, text="⬆", font=("Arial", 12), width=4)
+        self.btn_move_up.pack(side="left", padx=2)
+        ToolTip(self.btn_move_up, "Move Entry Up")
+        self.btn_move_down = tk.Button(list_ops, text="⬇", font=("Arial", 12), width=4)
+        self.btn_move_down.pack(side="left", padx=2)
+        ToolTip(self.btn_move_down, "Move Entry Down")
+        self.btn_delete = tk.Button(list_ops, text="🗑", font=("Arial", 12), width=4, fg="red")
+        self.btn_delete.pack(side="left", padx=(15, 2))
+        ToolTip(self.btn_delete, "Remove Marked Entries")
+        self.btn_undo = tk.Button(list_ops, text="⤺", font=("Arial", 12), width=4)
+        self.btn_undo.pack(side="right", padx=2)
+        ToolTip(self.btn_undo, "Undo")
+        self.btn_redo = tk.Button(list_ops, text="⤻", font=("Arial", 12), width=4)
+        self.btn_redo.pack(side="right", padx=2)
+        ToolTip(self.btn_redo, "Redo")
 
-        # Speed Actions
-        speed_frame = tk.Frame(right_col)
-        speed_frame.pack(fill="x", pady=5)
-        tk.Label(speed_frame, text="Speed for selected (°/s):").pack(side="left")
-        self.ent_speed = tk.Entry(speed_frame, width=8)
-        self.ent_speed.insert(0, "20") 
-        self.ent_speed.pack(side="left", padx=5)
-        self.btn_apply_speed = tk.Button(speed_frame, text="Apply Speed")
-        self.btn_apply_speed.pack(side="left")
+        # Media Controls Bottom
+        media_frame = tk.Frame(col2_seq, bg="#e6e6e6", pady=10, padx=10)
+        media_frame.pack(fill="x", pady=(10, 0))
+        self.btn_replay = tk.Button(media_frame, text="▶ START REPLAY", bg="#4CAF50", fg="white", font=("Arial", 11, "bold"), height=2, width=18)
+        self.btn_replay.pack(side="left", padx=5)
+        self.btn_pause_media = tk.Button(media_frame, text="⏸", font=("Arial", 14), width=3)
+        self.btn_pause_media.pack(side="left", padx=5)
+        ToolTip(self.btn_pause_media, "Pause/Resume current Action")
+        self.btn_stop_media = tk.Button(media_frame, text="⏹", font=("Arial", 14), width=3)
+        self.btn_stop_media.pack(side="left", padx=5)
+        ToolTip(self.btn_stop_media, "Stop Sequence")
+        self.btn_estop = tk.Button(media_frame, text="🛑 E-STOP", bg="#f44336", fg="white", font=("Arial", 11, "bold"), height=2)
+        self.btn_estop.pack(side="right", fill="x", expand=True, padx=(20, 0))
 
-        # --- 3. Execution & Global Controls ---
-        global_frame = tk.Frame(self.root, padx=10, pady=5)
-        global_frame.pack(fill="x")
+        # ==========================================
+        # COLUMN 3: INSPECTOR
+        # ==========================================
+        self.lbl_inspector_title = tk.Label(col3_insp, text="No Waypoint Selected", font=("Arial", 10, "italic"), fg="gray")
+        self.lbl_inspector_title.pack(pady=(0, 10))
+
+        tk.Label(col3_insp, text="Type:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
         
-        file_frame = tk.Frame(global_frame)
-        file_frame.pack(side="left")
-        self.btn_save_json = tk.Button(file_frame, text="💾 Save JSON", width=15)
-        self.btn_save_json.grid(row=0, column=0, padx=2)
-        self.btn_load_json = tk.Button(file_frame, text="📂 Load JSON", width=15)
-        self.btn_load_json.grid(row=0, column=1, padx=2)
-        self.btn_clear_list = tk.Button(file_frame, text="🧹 Clear List", width=15)
-        self.btn_clear_list.grid(row=0, column=2, padx=2)
-        self.btn_clear_faults = tk.Button(file_frame, text="🔄 Clear Faults", bg="#ffcc99", width=15)
-        self.btn_clear_faults.grid(row=0, column=3, padx=2)
+        self.wp_type_var = tk.StringVar(value="action")
+        
+        type_frame = tk.Frame(col3_insp, bg="#cccccc", padx=1, pady=1) 
+        type_frame.pack(fill="x", pady=(0, 10))
 
-        self.lbl_active_file = tk.Label(file_frame, text="Active File: None", font=("Arial", 10, "italic"), fg="gray")
-        self.lbl_active_file.grid(row=1, column=0, columnspan=4, sticky="w", pady=(2,0), padx=2)
+        # Toggle Style
+        toggle_opts = {
+            "variable": self.wp_type_var,
+            "indicatoron": 0,               
+            "relief": "flat",               
+            "bg": "#f8f9fa",                
+            "selectcolor": "#b3e5fc",       
+            "activebackground": "#e9ecef",  
+            "font": ("Arial", 9, "bold"),
+            "pady": 6,
+            "command": self.toggle_wp_settings
+        }
 
-        exec_frame = tk.Frame(global_frame)
-        exec_frame.pack(side="right")
-        self.btn_replay = tk.Button(exec_frame, text="▶ REPLAY SEQUENCE", bg="lightgreen", font=("Arial", 11, "bold"), width=20, height=2)
-        self.btn_replay.grid(row=0, column=0, padx=10)
-        self.btn_estop = tk.Button(exec_frame, text="🛑 EMERGENCY STOP", bg="red", fg="white", font=("Arial", 11, "bold"), width=20, height=2)
-        self.btn_estop.grid(row=0, column=1, padx=10)
+        tk.Radiobutton(type_frame, text="ACTION", value="action", **toggle_opts).pack(side="left", fill="x", expand=True, padx=1)
+        tk.Radiobutton(type_frame, text="WAYPOINT", value="angularwaypoint", **toggle_opts).pack(side="left", fill="x", expand=True, padx=1)
+        tk.Radiobutton(type_frame, text="PAUSE", value="pause", **toggle_opts).pack(side="left", fill="x", expand=True, padx=1)
 
-        # --- 4. Logs ---
+        tk.Label(col3_insp, text="Duration / Wait Time (s):").pack(anchor="w", pady=(10, 0))
+        self.ent_duration = tk.Entry(col3_insp, width=15, font=("Courier", 11))
+        self.ent_duration.pack(anchor="w")
+
+        self.frame_wp_vels = tk.Frame(col3_insp)
+        tk.Label(self.frame_wp_vels, text="Max Velocities (°/s):").pack(anchor="w", pady=(10, 0))
+        self.ent_wp_vels = []
+        vel_grid = tk.Frame(self.frame_wp_vels)
+        vel_grid.pack(fill="x")
+        for i in range(6):
+            tk.Label(vel_grid, text=f"J{i+1}:").grid(row=i//2, column=(i%2)*2, sticky="w", padx=(0,2))
+            ent = tk.Entry(vel_grid, width=6)
+            ent.grid(row=i//2, column=(i%2)*2+1, sticky="w", padx=(0,10), pady=2)
+            self.ent_wp_vels.append(ent)
+
+        tk.Label(col3_insp, text="Joint Angles (°):", font=("Arial", 10, "bold")).pack(anchor="w", pady=(15, 5))
+        self.insp_joint_vars = []
+        insp_joint_grid = tk.Frame(col3_insp)
+        insp_joint_grid.pack(fill="x")
+        for i in range(6):
+            tk.Label(insp_joint_grid, text=f"J{i+1}:").grid(row=i, column=0, sticky="w", pady=2)
+            var = tk.StringVar(value="0.0")
+            tk.Entry(insp_joint_grid, textvariable=var, width=15, font=("Courier", 11)).grid(row=i, column=1, sticky="w", padx=5, pady=2)
+            self.insp_joint_vars.append(var)
+
+        self.btn_preview = tk.Button(col3_insp, text="▶ Preview this Pose", bg="#fff9c4", font=("Arial", 10))
+        self.btn_preview.pack(fill="x", side="bottom", pady=5)
+        
+        self.btn_save_settings = tk.Button(col3_insp, text="💾 Apply & Save to Selected", bg="#c8e6c9", font=("Arial", 10, "bold"))
+        self.btn_save_settings.pack(fill="x", side="bottom", pady=5)
+
+        self.toggle_wp_settings()
+        self._set_inspector_state("disabled")
+
+        # --- FOOTER (Logs) ---
         log_frame = tk.LabelFrame(self.root, text="System Logs", padx=5, pady=5)
-        log_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        self.log_area = scrolledtext.ScrolledText(log_frame, height=6, state='disabled', font=("Courier", 10))
+        log_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.log_area = scrolledtext.ScrolledText(log_frame, height=5, state='disabled', font=("Courier", 10))
         self.log_area.pack(fill="both", expand=True)
         self.log_area.tag_config('INFO', foreground='black')
-        self.log_area.tag_config('ERROR', foreground='red', font=("Courier", 10, "bold"))
         self.log_area.tag_config('WARNING', foreground='#FF8C00')
-        self.log_area.tag_config('CRITICAL', foreground='white', background='red', font=("Courier", 10, "bold"))
+        self.log_area.tag_config('ERROR', foreground='red', font=("Courier", 10, "bold"))
 
-    def bind_controller(self, controller):
-        """Binds UI button clicks and events to Controller methods."""
-        # --- Hardware & Poses ---
-        self.btn_reconnect.config(command=controller.handle_reconnect)
-        self.btn_apply_ui.config(command=controller.handle_apply_ui_poses)
-        self.btn_save_ui.config(command=controller.handle_append_pose)
-        self.btn_overwrite.config(command=controller.handle_overwrite_selected)
-        
-        # --- List Actions ---
-        self.btn_move_up.config(command=controller.handle_move_up)
-        self.btn_move_down.config(command=controller.handle_move_down)
-        self.btn_delete.config(command=controller.handle_delete_poses)
-        self.btn_move_to.config(command=controller.handle_move_to_selected)
-        self.btn_apply_speed.config(command=controller.handle_change_speed)
-        
-        # --- File & Global ---
-        self.btn_save_json.config(command=controller.handle_save_json)
-        self.btn_load_json.config(command=controller.handle_load_json)
-        self.btn_clear_list.config(command=controller.handle_clear_list)
-        self.btn_clear_faults.config(command=controller.handle_clear_faults)
-        self.btn_replay.config(command=controller.handle_start_replay)
-        self.btn_estop.config(command=controller.handle_emergency_stop)
-        
-        # --- Traces & Events ---
-        self.mode_var.trace_add("write", controller.handle_mode_change)
-        self.tree.bind("<<TreeviewSelect>>", controller.handle_tree_select)
-        
-        # --- Custom Teach ---
-        self.btn_teach_custom.config(command=controller.handle_teach_toggle)
+    # ================= UI LOGIC =================
+    def _set_inspector_state(self, state):
+        widgets = [self.ent_duration] + self.ent_wp_vels + [self.btn_save_settings, self.btn_preview]
+        for w in widgets: w.config(state=state)
+        for rb in self.wp_type_var.trace_info(): pass # Radiobuttons
+        for i in range(6): 
+            self.insp_joint_vars[i].set("0.0" if state == "disabled" else self.insp_joint_vars[i].get())
 
-    # ---> MVC UPDATE: View evaluates state to UI text/colors! <---
-    def update_connection_status(self, is_connected, has_fault, dof, ip):
-        """Updates the status bar text and color based on robot state variables."""
-        dof_str = f"{dof}-DOF" if dof > 0 else "Unknown DOF"
-        
-        if is_connected:
-            if has_fault:
-                self.lbl_status.config(text=f"🔴 FAULT ERROR ({dof_str}) - Clear Faults! - IP: {ip}", fg="red")
-            else:
-                self.lbl_status.config(text=f"🟢 Connected ({dof_str}) - IP: {ip}", fg="#00ff00")
+    def toggle_wp_settings(self):
+        wp_type = self.wp_type_var.get()
+        if wp_type == "angularwaypoint":
+            self.frame_wp_vels.pack(anchor="w", after=self.ent_duration, pady=5)
         else:
-            self.lbl_status.config(text=f"🔴 Disconnected - (Target: {ip})", fg="#ff3333")
+            self.frame_wp_vels.pack_forget()
 
-    def set_active_file_label(self, filename):
-        """Displays the currently open JSON file path."""
-        if filename:
-            self.lbl_active_file.config(text=f"Active File: {filename}", fg="blue")
-        else:
-            self.lbl_active_file.config(text="Active File: None", fg="gray")
+    def update_live_state(self, state):
+        """Updates Column 1 with telemetry."""
+        if not state.is_connected: return
+        
+        # Update Joints
+        for i, val in enumerate(state.joint_angles_deg):
+            if i < len(self.live_joint_vars):
+                self.live_joint_vars[i].set(f"{val:.2f} °")
+                
+        # Update Cartesian
+        if len(state.tcp_position) >= 3 and len(state.tcp_orientation) >= 3:
+            vals = state.tcp_position + state.tcp_orientation
+            keys = ["X", "Y", "Z", "Rx", "Ry", "Rz"]
+            for k, v in zip(keys, vals):
+                self.live_cart_vars[k].set(f"{v:.3f}")
+                
+        # Update Diag
+        diag_text = (
+            f"Control Mode: {state.control_mode}\n"
+            f"Active State: {state.active_state}\n"
+            f"Avg Temp: {sum(state.joint_temperatures)/max(1, len(state.joint_temperatures)):.1f}°C\n"
+            f"Faults: {'YES' if state.has_fault else 'None'}"
+        )
+        self.lbl_diag.config(text=diag_text)
+
+    def load_inspector_data(self, data, index):
+        """Populates Column 3 when a tree item is clicked."""
+        self.lbl_inspector_title.config(text=f"Selected Waypoint: #{index}", fg="#0066cc", font=("Arial", 10, "bold"))
+        self._set_inspector_state("normal")
+        
+        self.wp_type_var.set(data.get("type", "action"))
+        self.toggle_wp_settings()
+        
+        self.ent_duration.delete(0, tk.END)
+        self.ent_duration.insert(0, str(data.get("duration_s", 3.0)))
+        
+        vels = data.get("max_velocities", [0.0]*6)
+        for i, ent in enumerate(self.ent_wp_vels):
+            ent.delete(0, tk.END)
+            val = vels[i] if i < len(vels) else 0.0
+            ent.insert(0, "" if val == 0.0 else str(val))
+            
+        pos = data.get("pos", [0.0]*6)
+        for i, val in enumerate(pos):
+            if i < len(self.insp_joint_vars):
+                self.insp_joint_vars[i].set(str(val))
+
+    def get_waypoint_params(self):
+        wp_type = self.wp_type_var.get()
+        max_vels = [0.0] * 6
+        try: dur_s = float(self.ent_duration.get() or 3.0)
+        except: dur_s = 3.0
+
+        if wp_type == "angularwaypoint":
+            for i, ent in enumerate(self.ent_wp_vels):
+                try: max_vels[i] = float(ent.get() or 0.0)
+                except: pass
+
+        return {"type": wp_type, "duration_s": dur_s, "max_velocities": max_vels, "pause_s": 0.0}
+
+    def get_inspector_poses(self):
+        try: return [float(var.get()) for var in self.insp_joint_vars]
+        except ValueError: return None
+        
+    def get_live_poses(self):
+        try: return [float(var.get().replace(" °", "")) for var in self.live_joint_vars]
+        except ValueError: return None
 
     def update_treeview(self, sequence_data, select_index=None):
-        """Refreshes the data table containing all waypoints."""
         for item in self.tree.get_children():
             self.tree.delete(item)
+            
         for idx, step in enumerate(sequence_data):
-            pos_str = [f"{v:.3f}" for v in step["pos"]]
-            item = self.tree.insert("", "end", values=(idx, str(pos_str), step["speed"]))
+            type_str = step.get("type", "action").upper()
+            dur = step.get('duration_s', 3.0)
+            
+            if type_str == "PAUSE":
+                pos_str = "--- (WAITING) ---"
+                param_str = f"Wait: {dur}s"
+            else:
+                pos_str = [f"{v:.1f}" for v in step["pos"]]
+                param_str = f"Duration: {dur}s"
+                
+            item = self.tree.insert("", "end", values=(idx, type_str, str(pos_str), param_str))
             if select_index is not None and idx == select_index:
                 self.tree.selection_set(item)
 
-    def update_joint_entries(self, current_rad, force=False):
-        """Updates the UI input fields with telemetry data."""
-        # Hide unneeded frames (e.g. joint 7 on a 6-DOF bot)
-        for i, frame in enumerate(self.joint_frames):
-            if i < len(current_rad):
-                if not frame.winfo_ismapped():
-                    frame.pack(fill="x", pady=4)
-            else:
-                if frame.winfo_ismapped():
-                    frame.pack_forget() 
+    def bind_controller(self, controller):
+        self.btn_reconnect.config(command=controller.handle_reconnect)
+        self.btn_clear_faults.config(command=controller.handle_clear_faults)
+        
+        # Core
+        self.btn_capture.config(command=controller.handle_append_pose)
+        self.btn_save_settings.config(command=controller.handle_save_waypoint_changes)
+        self.btn_preview.config(command=controller.handle_preview_inspector_pose)
+        
+        # Sequence List
+        self.btn_move_up.config(command=controller.handle_move_up)
+        self.btn_move_down.config(command=controller.handle_move_down)
+        self.btn_delete.config(command=controller.handle_delete_poses)
+        self.btn_undo.config(command=controller.handle_undo)
+        self.btn_redo.config(command=controller.handle_redo)
+        self.tree.bind("<<TreeviewSelect>>", controller.handle_tree_select)
+        
+        # File
+        self.btn_save_json.config(command=controller.handle_save_json)
+        self.btn_load_json.config(command=controller.handle_load_json)
+        self.btn_clear_list.config(command=controller.handle_clear_list)
+        
+        # Media
+        self.btn_replay.config(command=controller.handle_start_replay)
+        self.btn_estop.config(command=controller.handle_emergency_stop)
+        self.btn_stop_media.config(command=controller.handle_media_stop)
+        self.btn_pause_media.config(command=controller.handle_media_pause)
+        
+        # Hotkeys
+        self.root.bind("<Control-Up>", controller.handle_move_up)
+        self.root.bind("<Control-Down>", controller.handle_move_down)
+        self.root.bind("<Delete>", controller.handle_delete_poses)
+        self.root.bind("<Control-z>", controller.handle_undo)
+        self.root.bind("<Control-y>", controller.handle_redo)
 
-        for i, val in enumerate(current_rad):
-            if force or self.root.focus_get() != self.joint_entries[i]:
-                self.joint_entries[i].config(state="normal")
-                self.joint_entries[i].delete(0, tk.END)
-                self.joint_entries[i].insert(0, f"{val:.2f}")
-                if self.mode_var.get() == "TEACH":
-                    self.joint_entries[i].config(state="readonly")
+    def update_connection_status(self, is_connected, has_fault, dof, ip):
+        if is_connected:
+            if has_fault: self.lbl_status.config(text=f"🔴 FAULT ERROR - IP: {ip}", fg="#ff3333")
+            else: self.lbl_status.config(text=f"🟢 Connected - IP: {ip} ({dof}-DOF)", fg="#00ff00")
+        else: self.lbl_status.config(text=f"⚪ Disconnected - Target: {ip}", fg="#a0a0a0")
 
-    def toggle_entry_states(self, state):
-        """Locks or unlocks the joint text fields based on current mode."""
-        visible_entries = [e for e, f in zip(self.joint_entries, self.joint_frames) if f.winfo_ismapped()]
-        for entry in visible_entries:
-            entry.config(state=state)
-
-    def get_entry_poses(self):
-        """Extracts float values from the joint text fields."""
-        try:
-            visible_entries = [e for e, f in zip(self.joint_entries, self.joint_frames) if f.winfo_ismapped()]
-            return [float(entry.get()) for entry in visible_entries]
-        except ValueError:
-            return None
+    def set_active_file_label(self, filename):
+        if filename: 
+            name = filename.split("/")[-1].split("\\")[-1] # Only show filename, not full path
+            self.lbl_active_file.config(text=f"Active File: {name}", fg="#0066cc")
+        else: 
+            self.lbl_active_file.config(text="Active File: None", fg="gray")
 
     def get_selected_indices(self):
-        """Returns indices of selected waypoints in the table."""
-        selected = self.tree.selection()
-        return [self.tree.index(item) for item in selected]
-
-    def get_speed_input(self):
-        """Validates and returns the user's speed input."""
-        try:
-            speed = int(self.ent_speed.get())
-            return speed if 1 <= speed <= 100 else None
-        except ValueError:
-            return None
-        
-    def update_speed_entry(self, speed):
-        """Populates the speed text field with a specific value."""
-        self.ent_speed.delete(0, tk.END)
-        self.ent_speed.insert(0, str(speed))
-
-    def get_unlocked_joints(self):
-        """Returns a list of indices representing the ticked 'Unlock' checkboxes."""
-        visible_toggles = [t for t, f in zip(self.joint_toggles, self.joint_frames) if f.winfo_ismapped()]
-        return [i for i, var in enumerate(visible_toggles) if var.get()]
-        
-    def get_admittance_params(self):
-        """Reads Admittance Teach parameters from UI."""
-        try:
-            gain = float(self.ent_gain.get())
-            deadzone = float(self.ent_deadzone.get())
-            return gain, deadzone
-        except ValueError:
-            return None, None
+        return [self.tree.index(item) for item in self.tree.selection()]
 
 class ConnectionDialog(tk.Toplevel):
-    """A blocking dialog that asks for IP, Username, and Password."""
+    """Blocking popup dialog that requests IP and Credentials on startup."""
     def __init__(self, parent, default_ip="", default_user="", default_pass=""):
         super().__init__(parent)
         self.title("Robot Connection")
@@ -345,6 +458,7 @@ class ConnectionDialog(tk.Toplevel):
         self.grab_set()
 
     def validate_inputs(self, *args):
+        """Enables the Connect button only if inputs match valid IP format."""
         ip = self.ip_var.get().strip()
         user = self.user_var.get().strip()
         pwd = self.pass_var.get().strip()
@@ -362,8 +476,10 @@ class ConnectionDialog(tk.Toplevel):
             self.btn_connect.config(state=tk.DISABLED)
 
     def on_connect(self):
+        """Commits the user input and closes the dialog."""
         self.result = (self.ip_var.get().strip(), self.user_var.get().strip(), self.pass_var.get().strip())
         self.destroy()
 
     def on_cancel(self):
+        """Destroys the dialog upon cancellation."""
         self.destroy()
