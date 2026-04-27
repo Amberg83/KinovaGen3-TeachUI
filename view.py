@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, filedialog
 import re
 
 class ToolTip:
@@ -36,7 +36,9 @@ class RobotView:
         self.root.title("Robot Teach-In Controller (Dashboard)")
         self.root.geometry("1450x900") 
         
-        # UI Styling aufwerten
+        self.commands = {}
+        self.is_dialog_open = False
+        
         style = ttk.Style()
         style.theme_use('clam')
         style.configure("TButton", font=("Arial", 10))
@@ -243,6 +245,9 @@ class RobotView:
         self.btn_save_settings = tk.Button(col3_insp, text="💾 Apply & Save to Selected", bg="#c8e6c9", font=("Arial", 10, "bold"))
         self.btn_save_settings.pack(fill="x", side="bottom", pady=5)
 
+        self.btn_append_new = tk.Button(col3_insp, text="➕ Append as New Waypoint", bg="#b3e5fc", font=("Arial", 10, "bold"))
+        self.btn_append_new.pack(fill="x", side="bottom", pady=5)
+
         self.toggle_wp_settings()
         self._set_inspector_state("disabled")
 
@@ -255,25 +260,158 @@ class RobotView:
         self.log_area.tag_config('WARNING', foreground='#FF8C00')
         self.log_area.tag_config('ERROR', foreground='red', font=("Courier", 10, "bold"))
 
-    # ================= UI LOGIC =================
-    def _set_inspector_state(self, state):
-        widgets = [self.ent_duration] + self.ent_wp_vels + [self.btn_save_settings, self.btn_preview]
-        for w in widgets: w.config(state=state)
-        for rb in self.wp_type_var.trace_info(): pass # Radiobuttons
-        for i in range(6): 
-            self.insp_joint_vars[i].set("0.0" if state == "disabled" else self.insp_joint_vars[i].get())
-
-    def toggle_wp_settings(self):
-        wp_type = self.wp_type_var.get()
-        if wp_type == "angularwaypoint":
-            self.frame_wp_vels.pack(anchor="w", after=self.ent_duration, pady=5)
-        else:
-            self.frame_wp_vels.pack_forget()
-
-    def update_live_state(self, state):
-        """Updates Column 1 with telemetry."""
-        if not state.is_connected: return
+    def bind_commands(self, commands):
+        """Binds abstract intent callbacks from the Controller."""
+        self.commands = commands
         
+        self.btn_reconnect.config(command=self.commands.get("reconnect"))
+        self.btn_clear_faults.config(command=self.commands.get("clear_faults"))
+        
+        # Wrapping UI data extraction before calling controller
+        self.btn_capture.config(command=self.on_capture_pose)
+        self.btn_save_settings.config(command=self.on_save_waypoint)
+        self.btn_preview.config(command=self.on_preview_pose)
+        self.btn_append_new.config(command=self.on_append_inspector_pose)
+        
+        self.btn_move_up.config(command=self.on_move_up)
+        self.btn_move_down.config(command=self.on_move_down)
+        self.btn_delete.config(command=self.on_delete_poses)
+        self.btn_undo.config(command=self.commands.get("undo"))
+        self.btn_redo.config(command=self.commands.get("redo"))
+        
+        self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+        
+        self.btn_save_json.config(command=self.commands.get("save_json"))
+        self.btn_load_json.config(command=self.prompt_load_json)
+        self.btn_clear_list.config(command=self.commands.get("clear_list"))
+        
+        self.btn_replay.config(command=self.commands.get("replay"))
+        self.btn_estop.config(command=self.commands.get("estop"))
+        self.btn_stop_media.config(command=self.commands.get("stop_media"))
+        self.btn_pause_media.config(command=self.on_pause_media)
+
+        # Hotkeys
+        self.root.bind("<Control-Up>", self.on_move_up)
+        self.root.bind("<Control-Down>", self.on_move_down)
+        self.root.bind("<Delete>", self.on_delete_poses)
+        self.root.bind("<Control-z>", lambda e: self.commands.get("undo")())
+        self.root.bind("<Control-y>", lambda e: self.commands.get("redo")())
+
+    # ================= VIEW -> CONTROLLER INTENTS =================
+    
+    def on_capture_pose(self):
+        poses = self.get_live_poses()
+        if poses and "capture_pose" in self.commands:
+            self.commands["capture_pose"](poses)
+
+    def on_save_waypoint(self):
+        indices = self.get_selected_indices()
+        if not indices: return
+        idx = indices[0]
+        params = self.get_waypoint_params()
+        poses = self.get_inspector_poses()
+        if "save_waypoint" in self.commands:
+            self.commands["save_waypoint"](idx, params, poses)
+
+    def on_preview_pose(self):
+        poses = self.get_inspector_poses()
+        if poses and "preview_pose" in self.commands:
+            self.commands["preview_pose"](poses)
+
+    def on_append_inspector_pose(self) -> None:
+        params = self.get_waypoint_params()
+        poses = self.get_inspector_poses()
+        
+        if poses and "append_inspector_pose" in self.commands:
+            self.commands["append_inspector_pose"](params, poses)
+
+    def on_tree_select(self, event):
+        indices = self.get_selected_indices()
+        if indices and "tree_select" in self.commands:
+            self.commands["tree_select"](indices[0])
+
+    def on_move_up(self, event=None):
+        indices = self.get_selected_indices()
+        if indices and "move_up" in self.commands:
+            self.commands["move_up"](indices[0])
+
+    def on_move_down(self, event=None):
+        indices = self.get_selected_indices()
+        if indices and "move_down" in self.commands:
+            self.commands["move_down"](indices[0])
+
+    def on_delete_poses(self, event=None):
+        indices = self.get_selected_indices()
+        if indices and "delete_poses" in self.commands:
+            self.commands["delete_poses"](indices)
+
+    def on_pause_media(self):
+        is_paused = self.commands.get("pause_media")() if "pause_media" in self.commands else False
+        self.btn_pause_media.config(fg="orange" if is_paused else "black")
+
+    def prompt_load_json(self):
+        self.is_dialog_open = True 
+        try:
+            path = filedialog.askopenfilename(filetypes=[("JSON Files", "*.json")])
+            if path and "load_json" in self.commands:
+                self.commands["load_json"](path)
+        finally:
+            self.is_dialog_open = False 
+
+    # ================= OBSERVER CALLBACKS (MODEL -> VIEW) =================
+
+    def on_sequence_changed(self, sequence, filepath, select_index=None):
+        """Triggered automatically when the Model changes."""
+        # Update File Label
+        if filepath:
+            name = filepath.split("/")[-1].split("\\")[-1]
+            self.lbl_active_file.config(text=f"Active File: {name}", fg="#0066cc")
+        else:
+            self.lbl_active_file.config(text="Active File: None", fg="gray")
+
+        # Update Treeview
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        for idx, step in enumerate(sequence):
+            type_str = step.get("type", "action").upper()
+            dur = step.get('duration_s', 3.0)
+            
+            if type_str == "PAUSE":
+                pos_str = "--- (WAITING) ---"
+                param_str = f"Wait: {dur}s"
+            else:
+                pos_str = [f"{v:.1f}" for v in step["pos"]]
+                param_str = f"Duration: {dur}s"
+                
+            item = self.tree.insert("", "end", values=(idx, type_str, str(pos_str), param_str))
+            if select_index is not None and idx == select_index:
+                self.tree.selection_set(item)
+
+        # Handle Inspector clearing if list is empty
+        if not sequence:
+            self._set_inspector_state("disabled")
+            self.lbl_inspector_title.config(text="No Waypoint Selected")
+
+    # ================= OBSERVER CALLBACKS (HARDWARE -> VIEW) =================
+    
+    def on_hardware_state_changed(self, state):
+        """Triggered automatically by hardware telemetry. Handles Tkinter thread safety."""
+        if self.is_dialog_open: return 
+        self.root.after(0, self._update_live_ui, state)
+
+    def _update_live_ui(self, state):
+        # Connection Status
+        if state.is_connected:
+            if state.has_fault: 
+                self.lbl_status.config(text=f"🔴 FAULT ERROR - IP: {getattr(state, 'ip', 'Unknown')}", fg="#ff3333")
+            else: 
+                self.lbl_status.config(text=f"🟢 Connected - IP: {getattr(state, 'ip', 'Unknown')} ({state.dof}-DOF)", fg="#00ff00")
+        else: 
+            self.lbl_status.config(text="⚪ Disconnected", fg="#a0a0a0")
+
+        if not state.is_connected: return
+
         # Update Joints
         for i, val in enumerate(state.joint_angles_deg):
             if i < len(self.live_joint_vars):
@@ -287,13 +425,56 @@ class RobotView:
                 self.live_cart_vars[k].set(f"{v:.3f}")
                 
         # Update Diag
+        ctrl_modes = {
+            0: "Normal/Disabled", 1: "Ang. Joystick", 2: "Cart. Joystick",
+            4: "Ang. Trajectory", 5: "Cart. Trajectory",
+            6: "CARTESIAN ADMITTANCE", 7: "JOINT ADMITTANCE",
+            8: "NULL-SPACE ADMITTANCE", 9: "Force Control"
+        }
+        mode_str = ctrl_modes.get(state.control_mode, f"Unknown ({state.control_mode})")
+
+        #States Mapping
+        active_states = {
+            0: "Unknown", 1: "Ready (Idle)", 2: "In Fault", 3: "Maintenance",
+            4: "Paused", 5: "Executing Action", 6: "Initialization"
+        }
+        state_str = active_states.get(state.active_state, f"Code {state.active_state}")
+
+        #Metrics Mapping
+        temps_str = "|".join([f"{t:.1f}" for t in state.joint_temperatures]) if state.joint_temperatures else "N/A"
+        currents_str = "|".join([f"{c:.2f}" for c in state.joint_currents]) if state.joint_currents else "N/A"
+        torques_str = "|".join([f"{t:.1f}" for t in state.joint_torques]) if state.joint_torques else "N/A"
+        
+        #Fault State
+        if state.has_fault:
+            fault_str = f"{state.has_fault} (Bank A:{state.fault_bank_a} | Bank B:{state.fault_bank_b})"
+        else:
+            fault_str = f"{state.has_fault}"
+
         diag_text = (
-            f"Control Mode: {state.control_mode}\n"
-            f"Active State: {state.active_state}\n"
-            f"Avg Temp: {sum(state.joint_temperatures)/max(1, len(state.joint_temperatures)):.1f}°C\n"
-            f"Faults: {'YES' if state.has_fault else 'None'}"
+            f"Control Mode: {mode_str}\n"
+            f"Active State: {state_str}\n"
+            f"Joint Temperatures (°C):\n{temps_str}\n"
+            f"Joint Currents (A):\n{currents_str}\n"
+            f"Joint Torques (Nm):\n{torques_str}\n"
+            f"Faults:\n{fault_str}"
         )
         self.lbl_diag.config(text=diag_text)
+
+    # ================= UI LOGIC =================
+    def _set_inspector_state(self, state):
+        widgets = [self.ent_duration] + self.ent_wp_vels + [self.btn_save_settings, self.btn_preview, self.btn_append_new]
+        for w in widgets: w.config(state=state)
+        for rb in self.wp_type_var.trace_info(): pass # Radiobuttons
+        for i in range(6): 
+            self.insp_joint_vars[i].set("0.0" if state == "disabled" else self.insp_joint_vars[i].get())
+
+    def toggle_wp_settings(self):
+        wp_type = self.wp_type_var.get()
+        if wp_type == "angularwaypoint":
+            self.frame_wp_vels.pack(anchor="w", after=self.ent_duration, pady=5)
+        else:
+            self.frame_wp_vels.pack_forget()
 
     def load_inspector_data(self, data, index):
         """Populates Column 3 when a tree item is clicked."""
@@ -356,54 +537,6 @@ class RobotView:
             item = self.tree.insert("", "end", values=(idx, type_str, str(pos_str), param_str))
             if select_index is not None and idx == select_index:
                 self.tree.selection_set(item)
-
-    def bind_controller(self, controller):
-        self.btn_reconnect.config(command=controller.handle_reconnect)
-        self.btn_clear_faults.config(command=controller.handle_clear_faults)
-        
-        # Core
-        self.btn_capture.config(command=controller.handle_append_pose)
-        self.btn_save_settings.config(command=controller.handle_save_waypoint_changes)
-        self.btn_preview.config(command=controller.handle_preview_inspector_pose)
-        
-        # Sequence List
-        self.btn_move_up.config(command=controller.handle_move_up)
-        self.btn_move_down.config(command=controller.handle_move_down)
-        self.btn_delete.config(command=controller.handle_delete_poses)
-        self.btn_undo.config(command=controller.handle_undo)
-        self.btn_redo.config(command=controller.handle_redo)
-        self.tree.bind("<<TreeviewSelect>>", controller.handle_tree_select)
-        
-        # File
-        self.btn_save_json.config(command=controller.handle_save_json)
-        self.btn_load_json.config(command=controller.handle_load_json)
-        self.btn_clear_list.config(command=controller.handle_clear_list)
-        
-        # Media
-        self.btn_replay.config(command=controller.handle_start_replay)
-        self.btn_estop.config(command=controller.handle_emergency_stop)
-        self.btn_stop_media.config(command=controller.handle_media_stop)
-        self.btn_pause_media.config(command=controller.handle_media_pause)
-        
-        # Hotkeys
-        self.root.bind("<Control-Up>", controller.handle_move_up)
-        self.root.bind("<Control-Down>", controller.handle_move_down)
-        self.root.bind("<Delete>", controller.handle_delete_poses)
-        self.root.bind("<Control-z>", controller.handle_undo)
-        self.root.bind("<Control-y>", controller.handle_redo)
-
-    def update_connection_status(self, is_connected, has_fault, dof, ip):
-        if is_connected:
-            if has_fault: self.lbl_status.config(text=f"🔴 FAULT ERROR - IP: {ip}", fg="#ff3333")
-            else: self.lbl_status.config(text=f"🟢 Connected - IP: {ip} ({dof}-DOF)", fg="#00ff00")
-        else: self.lbl_status.config(text=f"⚪ Disconnected - Target: {ip}", fg="#a0a0a0")
-
-    def set_active_file_label(self, filename):
-        if filename: 
-            name = filename.split("/")[-1].split("\\")[-1] # Only show filename, not full path
-            self.lbl_active_file.config(text=f"Active File: {name}", fg="#0066cc")
-        else: 
-            self.lbl_active_file.config(text="Active File: None", fg="gray")
 
     def get_selected_indices(self):
         return [self.tree.index(item) for item in self.tree.selection()]

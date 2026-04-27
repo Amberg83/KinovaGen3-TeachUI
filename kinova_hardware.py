@@ -77,6 +77,7 @@ class KinovaHardware:
             self.base_cyclic = BaseCyclicClient(router_udp)
             
             self.state.is_connected = True
+            self.state.ip = self.ip
             self.notify_observers()
             
             self._start_internal_polling()

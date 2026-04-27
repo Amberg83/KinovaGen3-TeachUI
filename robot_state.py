@@ -7,6 +7,7 @@ class RobotState:
     
     # General Connection Status
     is_connected: bool = False
+    ip: str = ""
     dof: int = 0
     
     # Base (Controller) Status
