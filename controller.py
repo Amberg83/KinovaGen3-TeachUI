@@ -30,6 +30,7 @@ class RobotController:
         self.view.bind_commands({
             "reconnect": self.handle_reconnect,
             "clear_faults": self.handle_clear_faults,
+            "set_admittance": self.handle_set_admittance,
             "capture_pose": self.handle_append_pose,
             "save_waypoint": self.handle_save_waypoint_changes,
             "preview_pose": self.handle_preview_inspector_pose,
@@ -66,6 +67,12 @@ class RobotController:
     def handle_clear_faults(self):
         if self.hardware.state.is_connected:
             threading.Thread(target=self.hardware.clear_faults, daemon=True).start()
+
+    def handle_set_admittance(self, mode):
+        """Dispatches the admittance mode change to the hardware thread."""
+        if self.hardware.state.is_connected:
+            self.logger.info(f"Applying Admittance Mode: {mode}...")
+            threading.Thread(target=self.hardware.set_admittance, args=(mode,), daemon=True).start()
 
     def handle_emergency_stop(self):
         self.stop_requested = True

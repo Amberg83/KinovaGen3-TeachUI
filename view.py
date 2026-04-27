@@ -112,6 +112,17 @@ class RobotView:
         self.lbl_diag = tk.Label(tab_diag, text="Waiting for telemetry...", bg="white", justify="left", font=("Courier", 9))
         self.lbl_diag.pack(anchor="nw", padx=10, pady=10)
 
+        # Admittance Control
+        adm_frame = tk.LabelFrame(col1_live, text="Admittance Control", font=("Arial", 10, "bold"), padx=10, pady=5)
+        adm_frame.pack(fill="x", pady=(5, 10))
+
+        self.cb_admittance = ttk.Combobox(adm_frame, values=["Disabled", "Cartesian", "Joint", "Null-Space"], state="readonly", font=("Arial", 10))
+        self.cb_admittance.set("Disabled")
+        self.cb_admittance.pack(side="left", fill="x", expand=True, padx=(0, 10))
+
+        self.btn_apply_admittance = tk.Button(adm_frame, text="Apply Mode", bg="#ffeb3b", font=("Arial", 10, "bold"))
+        self.btn_apply_admittance.pack(side="right")
+
         # Capture Button
         self.btn_capture = tk.Button(col1_live, text="➕ Capture Current Pose", bg="#008CBA", fg="white", font=("Arial", 12, "bold"), height=2)
         self.btn_capture.pack(fill="x", side="bottom", pady=5)
@@ -272,6 +283,7 @@ class RobotView:
         self.btn_save_settings.config(command=self.on_save_waypoint)
         self.btn_preview.config(command=self.on_preview_pose)
         self.btn_append_new.config(command=self.on_append_inspector_pose)
+        self.btn_apply_admittance.config(command=self.on_apply_admittance)
         
         self.btn_move_up.config(command=self.on_move_up)
         self.btn_move_down.config(command=self.on_move_down)
@@ -324,6 +336,11 @@ class RobotView:
         
         if poses and "append_inspector_pose" in self.commands:
             self.commands["append_inspector_pose"](params, poses)
+    
+    def on_apply_admittance(self):
+        mode = self.cb_admittance.get()
+        if mode and "set_admittance" in self.commands:
+            self.commands["set_admittance"](mode)
 
     def on_tree_select(self, event):
         indices = self.get_selected_indices()

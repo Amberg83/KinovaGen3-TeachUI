@@ -380,6 +380,33 @@ class KinovaHardware:
                 self.logger.info("Clear Faults command dispatched to robot controller.")
             except Exception as e:
                 self.logger.error(f"Failed to clear faults: {e}")
+
+    def set_admittance(self, mode_str):
+        """Sets the admittance control mode on the robot arm."""
+        if not self.state.is_connected or not self.base:
+            self.logger.warning("Cannot set admittance: Robot disconnected.")
+            return False
+
+        try:
+            mode_map = {
+                "Cartesian": getattr(Base_pb2, 'CARTESIAN', 1),
+                "Joint": getattr(Base_pb2, 'JOINT', 2),
+                "Null-Space": getattr(Base_pb2, 'NULL_SPACE', 3),
+                "Disabled": getattr(Base_pb2, 'DISABLED', 4)
+            }
+            
+            target_enum = mode_map.get(mode_str, 0)
+            
+            admittance = Base_pb2.Admittance()
+            admittance.admittance_mode = target_enum
+            
+            self.base.SetAdmittance(admittance)
+            self.logger.info(f"Successfully set Admittance Mode to: {mode_str}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to set admittance mode '{mode_str}': {e}")
+            return False
     
     def validate_waypoint_list(self, waypoint_list):
         """Validates a WaypointList against the robot's kinematic and safety limits. Currently not in use."""
@@ -394,3 +421,4 @@ class KinovaHardware:
             return True, "Validation successful."
         except Exception as e:
             return False, f"API Exception during validation: {e}"
+        
