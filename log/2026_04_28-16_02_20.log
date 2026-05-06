@@ -1,0 +1,445 @@
+[2026-04-28 16:02:20] [INFO] [Controller]: Application initialized. Dashboard active.
+[2026-04-28 16:02:20] [INFO] [Hardware]: Attempting connection to robot at 10.163.65.187 as user 'admin'...
+[2026-04-28 16:02:21] [INFO] [Hardware]: Starting event subscribers (ActionEvent, ArmState)...
+[2026-04-28 16:02:21] [INFO] [Hardware]: Connection successful! Hardware detected as a 6-DOF robotic arm.
+[2026-04-28 16:02:21] [INFO] [Hardware]: Skipping 'Origin': Destination already reached.
+[2026-04-28 16:03:24] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-04-28 16:03:24] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-04-28 16:03:24] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-04-28 16:03:43] [INFO] [Controller]: Applying Admittance Mode: Cartesian...
+[2026-04-28 16:03:43] [INFO] [Hardware]: Successfully set Admittance Mode to: Cartesian
+[2026-04-28 16:03:43] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-04-28 16:04:25] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-04-28 16:04:25] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-04-28 16:04:25] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-04-28 16:07:02] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-04-28 16:07:02] [INFO] [Controller]: Initiated new auto-save context: expressions/2026_04_28-16_07_02.json
+[2026-04-28 16:07:02] [INFO] [Model]: Successfully saved 1 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:07:02] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:07:12] [INFO] [Model]: Appended new waypoint. Total waypoints: 2.
+[2026-04-28 16:07:12] [INFO] [Model]: Successfully saved 2 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:07:12] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:07:42] [INFO] [Model]: Appended new waypoint. Total waypoints: 3.
+[2026-04-28 16:07:42] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:07:42] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:07:53] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:07:53] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:07:53] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:08:01] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:08:01] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:08:01] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:08:26] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:08:26] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:08:26] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:08:28] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:08:28] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:08:28] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:08:31] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:08:31] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:08:31] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:08:37] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:08:37] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:08:37] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:08:39] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:08:57] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:08:57] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:09:04] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:09:04] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:09:04] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:09:06] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:09:24] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:09:24] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:09:39] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:09:39] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:09:39] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:09:42] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:09:42] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:09:42] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:09:42] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:09:42] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:10:00] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:10:00] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:10:00] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:10:02] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:10:02] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:10:02] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:10:02] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:10:02] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:10:29] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:10:29] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:10:29] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:10:30] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:10:30] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:10:30] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:10:32] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:10:49] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:10:49] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:11:10] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:11:10] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:11:10] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:11:11] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:11:11] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:11:11] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:11:14] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:11:49] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:11:49] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:12:13] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:12:13] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:12:13] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:12:17] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:12:17] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:12:17] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:12:20] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:12:20] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_07_02.json'.
+[2026-04-28 16:12:20] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:12:25] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:12:25] [INFO] [Controller]: [STEP 0] Send action to hardware...
+[2026-04-28 16:12:25] [INFO] [Hardware]: Action 'Step_0' sent to robot (Time to complete: 5.0s).
+[2026-04-28 16:12:25] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:12:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:12:30] [INFO] [Controller]: [STEP 1] Send action to hardware...
+[2026-04-28 16:12:30] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time to complete: 20.0s).
+[2026-04-28 16:12:31] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:12:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:12:51] [INFO] [Controller]: [STEP 2] Send action to hardware...
+[2026-04-28 16:12:51] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:12:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:13:01] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:13:01] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:13:49] [INFO] [Model]: Cleared model sequence. Removed 3 item(s).
+[2026-04-28 16:14:15] [INFO] [Model]: Successfully loaded 11 waypoints from '/home/roman/KortexPythonAPI/expressions/2026_04_23-14_26_10.json'.
+[2026-04-28 16:14:46] [INFO] [Hardware]: Disconnecting from robot and closing network sessions...
+[2026-04-28 16:14:46] [INFO] [Hardware]: Closed all event subscribers.
+[2026-04-28 16:14:47] [INFO] [Hardware]: Attempting connection to robot at 10.163.65.187 as user 'admin'...
+[2026-04-28 16:14:48] [INFO] [Hardware]: Starting event subscribers (ActionEvent, ArmState)...
+[2026-04-28 16:14:48] [INFO] [Hardware]: Connection successful! Hardware detected as a 6-DOF robotic arm.
+[2026-04-28 16:14:48] [INFO] [Hardware]: Action 'Origin' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:14:48] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:14:58] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:15:12] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:15:12] [INFO] [Controller]: [STEP 0] Send action to hardware...
+[2026-04-28 16:15:12] [INFO] [Hardware]: Action 'Step_0' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:15:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:15:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:15:15] [INFO] [Controller]: [STEP 1] Send action to hardware...
+[2026-04-28 16:15:15] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:15:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:15:17] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:15:17] [INFO] [Controller]: [BATCH] Send 3 Waypoints to hardware...
+[2026-04-28 16:15:17] [INFO] [Hardware]: WaypointList (3 Points) sent to robot.
+[2026-04-28 16:15:18] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:15:36] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:15:36] [INFO] [Controller]: [STEP 5] PAUSE: 2.0s
+[2026-04-28 16:15:38] [INFO] [Controller]: [STEP 6] Send action to hardware...
+[2026-04-28 16:15:38] [INFO] [Hardware]: Action 'Step_6' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:15:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:15:40] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:15:40] [INFO] [Controller]: [STEP 7] PAUSE: 5.0s
+[2026-04-28 16:15:45] [INFO] [Controller]: [BATCH] Send 2 Waypoints to hardware...
+[2026-04-28 16:15:45] [INFO] [Hardware]: WaypointList (2 Points) sent to robot.
+[2026-04-28 16:15:46] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:15:52] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:15:52] [INFO] [Controller]: [STEP 10] Send action to hardware...
+[2026-04-28 16:15:52] [INFO] [Hardware]: Action 'Step_10' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:15:52] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:15:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:15:54] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:16:03] [INFO] [Model]: Cleared model sequence. Removed 11 item(s).
+[2026-04-28 16:16:05] [INFO] [Hardware]: Disconnecting from robot and closing network sessions...
+[2026-04-28 16:16:05] [INFO] [Hardware]: Closed all event subscribers.
+[2026-04-28 16:16:06] [INFO] [Hardware]: Attempting connection to robot at 10.163.65.187 as user 'admin'...
+[2026-04-28 16:16:07] [INFO] [Hardware]: Starting event subscribers (ActionEvent, ArmState)...
+[2026-04-28 16:16:07] [INFO] [Hardware]: Connection successful! Hardware detected as a 6-DOF robotic arm.
+[2026-04-28 16:16:07] [INFO] [Hardware]: Action 'Origin' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:16:08] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:16:18] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:16:53] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-04-28 16:16:53] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-04-28 16:16:53] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-04-28 16:17:01] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-04-28 16:17:01] [INFO] [Controller]: Initiated new auto-save context: expressions/2026_04_28-16_17_01.json
+[2026-04-28 16:17:01] [INFO] [Model]: Successfully saved 1 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:17:01] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:17:13] [INFO] [Model]: Appended new waypoint. Total waypoints: 2.
+[2026-04-28 16:17:13] [INFO] [Model]: Successfully saved 2 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:17:13] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:17:29] [INFO] [Model]: Appended new waypoint. Total waypoints: 3.
+[2026-04-28 16:17:29] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:17:29] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:17:38] [INFO] [Model]: Appended new waypoint. Total waypoints: 4.
+[2026-04-28 16:17:38] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:17:38] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:17:47] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:17:47] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:17:47] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:17:55] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:17:55] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:17:55] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:18:02] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:18:02] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:18:02] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:18:10] [INFO] [Model]: Updated waypoint at index 3.
+[2026-04-28 16:18:10] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:18:10] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-04-28 16:18:18] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:18:18] [INFO] [Controller]: [STEP 0] Send action to hardware...
+[2026-04-28 16:18:18] [INFO] [Hardware]: Action 'Step_0' sent to robot (Time to complete: 5.0s).
+[2026-04-28 16:18:18] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:18:23] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:18:23] [INFO] [Controller]: [STEP 1] Send action to hardware...
+[2026-04-28 16:18:23] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:18:23] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:18:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:18:26] [INFO] [Controller]: [STEP 2] Send action to hardware...
+[2026-04-28 16:18:26] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time to complete: 5.0s).
+[2026-04-28 16:18:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:18:31] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:18:31] [INFO] [Controller]: [STEP 3] Send action to hardware...
+[2026-04-28 16:18:31] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:18:32] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:18:42] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:18:42] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:18:57] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:18:57] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:18:57] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:18:59] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:18:59] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:18:59] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:19:07] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:19:07] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:19:07] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:19:10] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:19:10] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:19:10] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:19:13] [INFO] [Model]: Updated waypoint at index 3.
+[2026-04-28 16:19:13] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_17_01.json'.
+[2026-04-28 16:19:13] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-04-28 16:19:22] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:19:22] [INFO] [Controller]: [BATCH] Send 4 Waypoints to hardware...
+[2026-04-28 16:19:22] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-04-28 16:19:24] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:19:46] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:19:46] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:20:36] [INFO] [Model]: Cleared model sequence. Removed 4 item(s).
+[2026-04-28 16:20:41] [INFO] [Hardware]: Disconnecting from robot and closing network sessions...
+[2026-04-28 16:20:41] [INFO] [Hardware]: Closed all event subscribers.
+[2026-04-28 16:20:42] [INFO] [Hardware]: Attempting connection to robot at 10.163.65.187 as user 'admin'...
+[2026-04-28 16:20:43] [INFO] [Hardware]: Starting event subscribers (ActionEvent, ArmState)...
+[2026-04-28 16:20:43] [INFO] [Hardware]: Connection successful! Hardware detected as a 6-DOF robotic arm.
+[2026-04-28 16:20:43] [INFO] [Hardware]: Action 'Origin' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:20:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:20:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:21:29] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-04-28 16:21:29] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-04-28 16:21:29] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-04-28 16:21:33] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-04-28 16:21:33] [INFO] [Controller]: Initiated new auto-save context: expressions/2026_04_28-16_21_33.json
+[2026-04-28 16:21:33] [INFO] [Model]: Successfully saved 1 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:21:33] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:21:40] [INFO] [Model]: Appended new waypoint. Total waypoints: 2.
+[2026-04-28 16:21:40] [INFO] [Model]: Successfully saved 2 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:21:40] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:21:44] [INFO] [Model]: Appended new waypoint. Total waypoints: 3.
+[2026-04-28 16:21:44] [INFO] [Model]: Successfully saved 3 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:21:44] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:22:41] [INFO] [Model]: Appended new waypoint. Total waypoints: 4.
+[2026-04-28 16:22:41] [INFO] [Model]: Successfully saved 4 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:22:41] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:22:46] [INFO] [Model]: Appended new waypoint. Total waypoints: 5.
+[2026-04-28 16:22:46] [INFO] [Model]: Successfully saved 5 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:22:46] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:22:49] [INFO] [Model]: Appended new waypoint. Total waypoints: 6.
+[2026-04-28 16:22:49] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:22:49] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:22:54] [INFO] [Model]: Appended new waypoint. Total waypoints: 7.
+[2026-04-28 16:22:54] [INFO] [Model]: Successfully saved 7 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:22:54] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:23:24] [INFO] [Model]: Appended new waypoint. Total waypoints: 8.
+[2026-04-28 16:23:24] [INFO] [Model]: Successfully saved 8 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:23:24] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:23:27] [INFO] [Model]: Appended new waypoint. Total waypoints: 9.
+[2026-04-28 16:23:27] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:23:27] [INFO] [Controller]: Captured current live pose to new entry.
+[2026-04-28 16:24:14] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:24:14] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:14] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:24:19] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:24:19] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:19] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:24:24] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:24:24] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:24] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:24:28] [INFO] [Model]: Updated waypoint at index 3.
+[2026-04-28 16:24:28] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:28] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-04-28 16:24:31] [INFO] [Model]: Updated waypoint at index 4.
+[2026-04-28 16:24:31] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:31] [INFO] [Controller]: Overwrote WP #4 with data from Inspector.
+[2026-04-28 16:24:36] [INFO] [Model]: Updated waypoint at index 5.
+[2026-04-28 16:24:36] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:36] [INFO] [Controller]: Overwrote WP #5 with data from Inspector.
+[2026-04-28 16:24:41] [INFO] [Model]: Updated waypoint at index 6.
+[2026-04-28 16:24:41] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:41] [INFO] [Controller]: Overwrote WP #6 with data from Inspector.
+[2026-04-28 16:24:45] [INFO] [Model]: Updated waypoint at index 7.
+[2026-04-28 16:24:45] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:45] [INFO] [Controller]: Overwrote WP #7 with data from Inspector.
+[2026-04-28 16:24:50] [INFO] [Model]: Updated waypoint at index 8.
+[2026-04-28 16:24:50] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:24:50] [INFO] [Controller]: Overwrote WP #8 with data from Inspector.
+[2026-04-28 16:24:54] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:24:54] [INFO] [Controller]: [STEP 0] Send action to hardware...
+[2026-04-28 16:24:54] [INFO] [Hardware]: Action 'Step_0' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:24:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:24:56] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:24:56] [INFO] [Controller]: [STEP 1] Send action to hardware...
+[2026-04-28 16:24:56] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:24:57] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:24:59] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:24:59] [INFO] [Controller]: [STEP 2] Send action to hardware...
+[2026-04-28 16:24:59] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:24:59] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:02] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:02] [INFO] [Controller]: [STEP 3] Send action to hardware...
+[2026-04-28 16:25:02] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:25:02] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:06] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:06] [INFO] [Controller]: [STEP 4] Send action to hardware...
+[2026-04-28 16:25:06] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:25:06] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:09] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:09] [INFO] [Controller]: [STEP 5] Send action to hardware...
+[2026-04-28 16:25:09] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:25:09] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:13] [INFO] [Controller]: [STEP 6] Send action to hardware...
+[2026-04-28 16:25:13] [INFO] [Hardware]: Action 'Step_6' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:25:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:17] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:17] [INFO] [Controller]: [STEP 7] Send action to hardware...
+[2026-04-28 16:25:17] [INFO] [Hardware]: Action 'Step_7' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:25:17] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:21] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:21] [INFO] [Controller]: [STEP 8] Send action to hardware...
+[2026-04-28 16:25:21] [INFO] [Hardware]: Action 'Step_8' sent to robot (Time to complete: 2.0s).
+[2026-04-28 16:25:21] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:25:23] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:25:23] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:25:36] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:25:36] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:25:36] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:25:39] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:25:39] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:25:39] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:25:42] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:25:42] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:25:42] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:26:13] [INFO] [Model]: Updated waypoint at index 3.
+[2026-04-28 16:26:13] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:13] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-04-28 16:26:23] [INFO] [Model]: Updated waypoint at index 4.
+[2026-04-28 16:26:23] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:23] [INFO] [Controller]: Overwrote WP #4 with data from Inspector.
+[2026-04-28 16:26:27] [INFO] [Model]: Updated waypoint at index 4.
+[2026-04-28 16:26:27] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:27] [INFO] [Controller]: Overwrote WP #4 with data from Inspector.
+[2026-04-28 16:26:29] [INFO] [Model]: Updated waypoint at index 5.
+[2026-04-28 16:26:29] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:29] [INFO] [Controller]: Overwrote WP #5 with data from Inspector.
+[2026-04-28 16:26:32] [INFO] [Model]: Updated waypoint at index 6.
+[2026-04-28 16:26:32] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:32] [INFO] [Controller]: Overwrote WP #6 with data from Inspector.
+[2026-04-28 16:26:35] [INFO] [Model]: Updated waypoint at index 7.
+[2026-04-28 16:26:35] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:35] [INFO] [Controller]: Overwrote WP #7 with data from Inspector.
+[2026-04-28 16:26:38] [INFO] [Model]: Updated waypoint at index 8.
+[2026-04-28 16:26:38] [INFO] [Model]: Successfully saved 9 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:26:38] [INFO] [Controller]: Overwrote WP #8 with data from Inspector.
+[2026-04-28 16:26:43] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:26:43] [INFO] [Controller]: [BATCH] Send 9 Waypoints to hardware...
+[2026-04-28 16:26:43] [INFO] [Hardware]: WaypointList (9 Points) sent to robot.
+[2026-04-28 16:26:43] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:26:43] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:27:08] [INFO] [Controller]: Previewing pose from Inspector...
+[2026-04-28 16:27:08] [INFO] [Hardware]: Action 'Preview Pose' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:27:08] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:27:18] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 16:27:37] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:27:37] [INFO] [Controller]: [BATCH] Send 9 Waypoints to hardware...
+[2026-04-28 16:27:37] [INFO] [Hardware]: WaypointList (9 Points) sent to robot.
+[2026-04-28 16:27:37] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:27:37] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:28:13] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:28:13] [INFO] [Controller]: [BATCH] Send 9 Waypoints to hardware...
+[2026-04-28 16:28:13] [INFO] [Hardware]: WaypointList (9 Points) sent to robot.
+[2026-04-28 16:28:13] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:28:13] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:28:26] [INFO] [Model]: Deleted waypoints at indices: [0].
+[2026-04-28 16:28:26] [INFO] [Model]: Successfully saved 8 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:28:29] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:28:29] [INFO] [Controller]: [BATCH] Send 8 Waypoints to hardware...
+[2026-04-28 16:28:29] [INFO] [Hardware]: WaypointList (8 Points) sent to robot.
+[2026-04-28 16:28:29] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:28:29] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:28:41] [INFO] [Model]: Deleted waypoints at indices: [0].
+[2026-04-28 16:28:41] [INFO] [Model]: Successfully saved 7 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:28:44] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:28:44] [INFO] [Controller]: [BATCH] Send 7 Waypoints to hardware...
+[2026-04-28 16:28:44] [INFO] [Hardware]: WaypointList (7 Points) sent to robot.
+[2026-04-28 16:28:44] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:28:44] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:28:48] [INFO] [Model]: Deleted waypoints at indices: [0].
+[2026-04-28 16:28:48] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:28:48] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:28:48] [INFO] [Controller]: [BATCH] Send 6 Waypoints to hardware...
+[2026-04-28 16:28:48] [INFO] [Hardware]: WaypointList (6 Points) sent to robot.
+[2026-04-28 16:28:48] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-04-28 16:28:48] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:29:03] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:29:03] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:03] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:29:07] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:29:07] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:07] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:29:13] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:29:13] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:13] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:29:25] [INFO] [Model]: Updated waypoint at index 0.
+[2026-04-28 16:29:25] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:25] [INFO] [Controller]: Overwrote WP #0 with data from Inspector.
+[2026-04-28 16:29:30] [INFO] [Model]: Updated waypoint at index 1.
+[2026-04-28 16:29:30] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:30] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-04-28 16:29:34] [INFO] [Model]: Updated waypoint at index 2.
+[2026-04-28 16:29:34] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:34] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-04-28 16:29:42] [INFO] [Model]: Updated waypoint at index 3.
+[2026-04-28 16:29:42] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:42] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-04-28 16:29:46] [INFO] [Model]: Updated waypoint at index 4.
+[2026-04-28 16:29:46] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:46] [INFO] [Controller]: Overwrote WP #4 with data from Inspector.
+[2026-04-28 16:29:50] [INFO] [Model]: Updated waypoint at index 5.
+[2026-04-28 16:29:50] [INFO] [Model]: Successfully saved 6 waypoints to 'expressions/2026_04_28-16_21_33.json'.
+[2026-04-28 16:29:50] [INFO] [Controller]: Overwrote WP #5 with data from Inspector.
+[2026-04-28 16:29:51] [INFO] [Controller]: === START SEQUENCE-REPLAY ===
+[2026-04-28 16:29:51] [INFO] [Controller]: [BATCH] Send 6 Waypoints to hardware...
+[2026-04-28 16:29:51] [INFO] [Hardware]: WaypointList (6 Points) sent to robot.
+[2026-04-28 16:29:53] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-04-28 16:30:17] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-04-28 16:30:17] [INFO] [Controller]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-04-28 16:33:30] [INFO] [Controller]: Previewing pose from Inspector...
+[2026-04-28 16:33:30] [INFO] [Hardware]: Action 'Preview Pose' sent to robot (Time to complete: 10.0s).
+[2026-04-28 16:33:31] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-04-28 16:33:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-04-28 19:17:25] [INFO] [Main]: Closing application...
+[2026-04-28 19:17:25] [INFO] [Hardware]: Disconnecting from robot and closing network sessions...
+[2026-04-28 19:17:25] [INFO] [Hardware]: Closed all event subscribers.
