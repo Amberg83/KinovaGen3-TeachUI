@@ -6,7 +6,7 @@ import logging
 import queue
 import tkinter as tk
 from tkinter import scrolledtext
-from kinova_hardware import KinovaHardware
+from hardware import KinovaHardware
 from model import SequenceModel
 from view import RobotView, ConnectionDialog
 from controller import RobotController
@@ -117,7 +117,7 @@ def main():
         root.destroy()
         sys.exit(0)
         
-    ip, username, password = dialog.result
+    ip, username, password, participant_id = dialog.result
     save_config(ip, username, password)
     root.deiconify() 
 
@@ -127,7 +127,7 @@ def main():
     view = RobotView(root)
     setup_global_logging(view)
     
-    controller = RobotController(root, view, model, hardware)
+    controller = RobotController(root, view, model, hardware, participant_id=participant_id)
     
     def on_closing():
         logging.getLogger("Main").info("Closing application...")

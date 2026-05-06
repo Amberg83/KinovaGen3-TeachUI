@@ -48,12 +48,36 @@ class SequenceModel:
         self.logger.info(f"Appended new waypoint. Total waypoints: {len(self.sequence)}.")
         self._notify_observers(select_index=len(self.sequence) - 1)
 
+    def insert_pose(self, pose_data, index):
+        self._save_state()
+        self.sequence.insert(index + 1, pose_data)
+        self.logger.info(f"Inserted new waypoint at index {index + 1}. Total waypoints: {len(self.sequence)}.")
+        self._notify_observers(select_index=index + 1)
+
     def update_pose(self, index, pose_data):
         if 0 <= index < len(self.sequence):
             self._save_state()
+            existing = self.sequence[index]
+            # Merge target_angles if present and containing None values (selective copy)
+            if "pos" in pose_data and "pos" in existing:
+                merged_angles = []
+                for target, orig in zip(pose_data["pos"], existing["pos"]):
+                    merged_angles.append(orig if target is None else target)
+                pose_data["pos"] = merged_angles
+            
             self.sequence[index] = pose_data
             self.logger.info(f"Updated waypoint at index {index}.")
             self._notify_observers(select_index=index)
+
+    def bulk_update_durations(self, indices, duration_s):
+        if not indices:
+            return
+        self._save_state()
+        for index in indices:
+            if 0 <= index < len(self.sequence):
+                self.sequence[index]["duration_s"] = float(duration_s)
+        self.logger.info(f"Bulk updated durations of waypoints {indices} to {duration_s}s.")
+        self._notify_observers(select_index=indices)
 
     def delete_poses(self, indices):
         self._save_state()

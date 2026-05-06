@@ -9,7 +9,7 @@ from kortex_api.SessionManager import SessionManager
 from kortex_api.TCPTransport import TCPTransport
 from kortex_api.UDPTransport import UDPTransport
 
-from robot_state import RobotState 
+from .robot_state import RobotState 
 
 class KinovaHardware:
     """Handles direct communication with the Kinova Gen3 Robot via the Kortex API."""
@@ -154,6 +154,7 @@ class KinovaHardware:
             if active_state == Base_pb2.ARMSTATE_IN_FAULT:
                 self.logger.critical("Robot in Faulty State!")
                 self.state.has_fault = True
+                self.play_chime("fault")
                 
                 if self._active_movement_pager:
                     self._active_movement_pager.set()
@@ -402,6 +403,7 @@ class KinovaHardware:
             
             self.base.SetAdmittance(admittance)
             self.logger.info(f"Successfully set Admittance Mode to: {mode_str}")
+            self.play_chime("admittance")
             return True
             
         except Exception as e:
@@ -421,4 +423,29 @@ class KinovaHardware:
             return True, "Validation successful."
         except Exception as e:
             return False, f"API Exception during validation: {e}"
-        
+
+    def play_chime(self, event_type):
+        """Asynchronously triggers sound notifications across Windows and Linux fallback platforms."""
+        def beep_worker():
+            import sys
+            if sys.platform.startswith("win"):
+                try:
+                    import winsound
+                    if event_type == "captured":
+                        winsound.Beep(1200, 80)
+                        time.sleep(0.04)
+                        winsound.Beep(1500, 120)
+                    elif event_type == "fault":
+                        winsound.Beep(600, 200)
+                        time.sleep(0.04)
+                        winsound.Beep(400, 200)
+                    elif event_type == "admittance":
+                        winsound.Beep(800, 150)
+                except Exception as e:
+                    self.logger.debug(f"Winsound play failed: {e}")
+            else:
+                # Linux terminal bell fallback
+                sys.stdout.write("\a")
+                sys.stdout.flush()
+
+        threading.Thread(target=beep_worker, daemon=True).start()

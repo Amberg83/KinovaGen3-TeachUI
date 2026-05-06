@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "Winken (Wave)",
+    "instructions": "Bringe den Roboter dazu, mit seiner Hand eine winkende Geste auszuführen.\nBewege dazu den Roboter von links nach rechts."
+  },
+  {
+    "id": 2,
+    "name": "Zeigen (Point)",
+    "instructions": "Bringe den Roboter dazu, auf die Tür zu zeigen.\nHalte den Arm für mindestens 2 Sekunden still."
+  },
+  {
+    "id": 3,
+    "name": "Objekt greifen (Pick Object)",
+    "instructions": "Bewege den Arm so, dass er das Objekt greifen kann.\nPositioniere den Greifer über dem Becher."
+  },
+  {
+    "id": 4,
+    "name": "Objekt ablegen (Place Object)",
+    "instructions": "Bewege den Arm so, dass er das gegriffene Objekt auf dem Tisch ablegt.\nFahre danach in eine sichere Warteposition."
+  }
+]

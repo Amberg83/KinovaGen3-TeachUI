@@ -1,0 +1,6 @@
+# Kinova Gen3 TeachUI Dependencies
+# Note: kortex_api is not hosted on public PyPI. 
+# It must be installed from a local wheel (.whl) file downloaded from Kinova.
+# Example: pip install C:\path\to\kortex_api-2.X.X-py3-none-any.whl
+
+# No other external packages are required (uses standard library and tkinter).
