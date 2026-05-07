@@ -7,7 +7,7 @@ class RobotView:
     def __init__(self, root):
         self.root = root
         self.root.title("Robot Teach-In Controller (Dashboard)")
-        self.root.geometry("1450x900") 
+        self.root.geometry("1450x820") 
         self.root.configure(bg=theme.BG_MAIN)
         
         self.commands = {}
@@ -15,21 +15,27 @@ class RobotView:
         self._last_hardware_state = None
         self._last_status_text = ""
         self._last_status_fg = ""
+        self._last_fault_state = None
         
         # Configure our visual design system (TTK styling)
         theme.configure_flat_styles()
-
+ 
         self.setup_ui()
         self.root.after(50, self._tick_live_ui)
-
+ 
     def setup_ui(self):
         # --- HEADER (Connection Status & Header Operations) ---
         status_frame = tk.Frame(self.root, bg=theme.BG_HEADER, padx=15, pady=8,
                                 highlightbackground=theme.BORDER_COLOR, highlightthickness=1)
         status_frame.pack(fill="x")
         
-        self.lbl_status = tk.Label(status_frame, text="Status: Initializing...", font=theme.FONT_TITLE, bg=theme.BG_HEADER, fg=theme.TEXT_MUTED)
-        self.lbl_status.pack(side="left")
+        # Premium custom flat fault indicator pill badge (Left-aligned)
+        self.lbl_fault_badge = tk.Label(status_frame, text="OFFLINE", font=theme.FONT_BOLD, bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, padx=12, pady=3, relief="flat")
+        self.lbl_fault_badge.pack(side="left")
+
+        # Connection status badge (Center-aligned using geometric placement)
+        self.lbl_status = tk.Label(status_frame, text="🔌 DISCONNECTED", font=theme.FONT_BOLD, bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, padx=15, pady=3, relief="flat")
+        self.lbl_status.place(relx=0.5, rely=0.5, anchor="center")
         
         btn_frame = tk.Frame(status_frame, bg=theme.BG_HEADER)
         btn_frame.pack(side="right")
@@ -65,22 +71,8 @@ class RobotView:
         self.paned.add(self.panel_seq, weight=3)
         self.paned.add(self.panel_insp, weight=1)
 
-        # --- FOOTER (System Logs Console) ---
-        log_frame = ttk.LabelFrame(self.root, text="System Logs", style="TLabelframe", padding=8)
-        log_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-        
-        # Styled as a dark modern log terminal
-        self.log_area = scrolledtext.ScrolledText(
-            log_frame, height=5, state='disabled', font=theme.FONT_MONO,
-            bg="#09090b", fg=theme.TEXT_PRIMARY, insertbackground=theme.TEXT_PRIMARY,
-            relief="flat", bd=0, highlightthickness=0
-        )
-        self.log_area.pack(fill="both", expand=True)
-        
-        # Beautiful contrasting tag colors for logs output
-        self.log_area.tag_config('INFO', foreground='#94a3b8')      # Clean slate gray
-        self.log_area.tag_config('WARNING', foreground=theme.ACCENT_YELLOW) # Bright gold
-        self.log_area.tag_config('ERROR', foreground=theme.ACCENT_RED, font=(theme.FONT_MONO[0], theme.FONT_MONO[1], "bold")) # Strong red
+        # Expose the System Logs Console from Column 2 to the global logger
+        self.log_area = self.panel_seq.log_area
 
     def bind_commands(self, commands):
         """Binds abstract intent callbacks from the Controller to View/Panel nodes."""
@@ -225,23 +217,42 @@ class RobotView:
         self.root.after(50, self._tick_live_ui)
 
     def _update_live_ui(self, state):
-        # Determine status text and color
-        if state.is_connected:
-            if state.has_fault: 
-                text = f"🔴 FAULT ERROR - IP: {getattr(state, 'ip', 'Unknown')}"
-                fg = theme.ACCENT_RED
-            else: 
-                text = f"🟢 Connected - IP: {getattr(state, 'ip', 'Unknown')} ({state.dof}-DOF)"
-                fg = theme.ACCENT_GREEN
-        else: 
-            text = "⚪ Disconnected"
-            fg = theme.TEXT_MUTED
+        # 1. Update Connection Status Label (Symmetric pill style centered)
+        current_conn_state = (state.is_connected, getattr(state, "ip", "Unknown"), getattr(state, "dof", 0))
+        if current_conn_state != self._last_status_text:
+            self._last_status_text = current_conn_state
+            if state.is_connected:
+                self.lbl_status.config(
+                    text=f"🔌 CONNECTED: {current_conn_state[1]} ({current_conn_state[2]}-DOF)",
+                    bg="#172554",   # Deep dark navy-blue background
+                    fg="#93c5fd"    # Bright sky-blue text
+                )
+            else:
+                self.lbl_status.config(
+                    text="🔌 DISCONNECTED",
+                    bg=theme.BG_INPUT,
+                    fg=theme.TEXT_MUTED
+                )
 
-        # Only update the widget configuration if the state changed
-        if text != self._last_status_text or fg != self._last_status_fg:
-            self.lbl_status.config(text=text, fg=fg)
-            self._last_status_text = text
-            self._last_status_fg = fg
+        # 2. Update Fault Status Badge (Separate & highly prominent)
+        current_fault_state = (state.is_connected, getattr(state, "has_fault", False))
+        if current_fault_state != self._last_fault_state:
+            self._last_fault_state = current_fault_state
+            if not state.is_connected:
+                self.lbl_fault_badge.config(text="OFFLINE", bg=theme.BG_INPUT, fg=theme.TEXT_MUTED)
+            else:
+                if state.has_fault:
+                    self.lbl_fault_badge.config(
+                        text="⚠️ ARM FAULT ACTIVE", 
+                        bg="#7f1d1d",   # Rich dark warning red background
+                        fg="#fecaca"    # Soft rose red foreground
+                    )
+                else:
+                    self.lbl_fault_badge.config(
+                        text="✅ SYSTEM HEALTHY", 
+                        bg="#064e3b",   # Rich dark emerald background
+                        fg="#a7f3d0"    # Soft mint green foreground
+                    )
 
         if not state.is_connected: return
 

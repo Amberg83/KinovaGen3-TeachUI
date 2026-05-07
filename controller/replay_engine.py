@@ -34,6 +34,31 @@ class ReplayEngine:
     def _replay_worker(self, sequence, on_finished_callback):
         try:
             self.logger.info("=== START SEQUENCE-REPLAY ===")
+            
+            # 1. Move back to default position before starting replay
+            self.logger.info("Moving back to default position before starting replay...")
+            completion_event = self.hardware.move_to_default()
+            if completion_event:
+                completion_event.wait(timeout=15.0)
+                
+            if self.stop_requested:
+                self.logger.info("Replay aborted before sequence start.")
+                return
+                
+            # 2. Pause there for 2.0 seconds
+            self.logger.info("Pausing at default position for 2.0s...")
+            slept = 0.0
+            while slept < 2.0:
+                if self.stop_requested:
+                    self.logger.info("Replay aborted during pre-run pause.")
+                    return
+                time.sleep(0.1)
+                slept += 0.1
+                
+            # 3. Play start chime and begin sequence
+            self.hardware.play_chime("replay_start")
+            self.logger.info("Replay sequence starting...")
+
             batch_waypoints = []
             batch_duration = 0.0
 
@@ -97,7 +122,11 @@ class ReplayEngine:
                         slept += 0.1
 
             flush_waypoints()
-            self.logger.info("=== REPLAY COMPLETED ===")
+            if not self.stop_requested:
+                self.logger.info("=== REPLAY COMPLETED SUCCESSFULLY ===")
+                self.hardware.play_chime("replay_finished")
+            else:
+                self.logger.info("=== REPLAY COMPLETED WITH MANUAL ABORT ===")
 
         except Exception as e:
             self.logger.error(f"Exception occurred during Replay: {e}")

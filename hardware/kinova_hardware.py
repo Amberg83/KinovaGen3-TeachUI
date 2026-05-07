@@ -96,7 +96,7 @@ class KinovaHardware:
             return False, str(e)
 
     def move_to_default(self):
-        self.execute_action_pose([0.0,0.0,0.0,0.0,0.0,0.0], 10.0, "Origin")
+        return self.execute_action_pose([0.0,0.0,0.0,0.0,0.0,0.0], 10.0, "Origin")
 
     def disconnect(self):
         """Stops polling threads and closes all API sessions."""
@@ -446,6 +446,10 @@ class KinovaHardware:
                         winsound.Beep(400, 200)
                     elif event_type == "admittance":
                         winsound.Beep(800, 150)
+                    elif event_type == "replay_start":
+                        winsound.Beep(800, 120)
+                    elif event_type == "replay_finished":
+                        winsound.Beep(1000, 150)
                 except Exception as e:
                     self.logger.debug(f"Winsound play failed: {e}")
             else:

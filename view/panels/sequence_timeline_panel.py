@@ -11,16 +11,27 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         self.setup_ui()
 
     def setup_ui(self):
+        # Vertical split container inside Column 2 to hold Timeline and System Logs
+        self.v_paned = ttk.PanedWindow(self, orient=tk.VERTICAL, style="TPanedwindow")
+        self.v_paned.pack(fill="both", expand=True)
+        
+        timeline_sub_frame = tk.Frame(self.v_paned, bg=theme.BG_CARD)
+        logs_sub_frame = ttk.LabelFrame(self.v_paned, text="System Logs", style="TLabelframe", padding=5)
+        
+        # Add panes with reasonable default heights
+        self.v_paned.add(timeline_sub_frame, weight=4)
+        self.v_paned.add(logs_sub_frame, weight=1)
+
         # Toolbar Top
-        toolbar_top = tk.Frame(self, bg=theme.BG_CARD)
-        toolbar_top.pack(fill="x", pady=(0, 8))
+        toolbar_top = tk.Frame(timeline_sub_frame, bg=theme.BG_CARD)
+        toolbar_top.pack(fill="x", pady=(0, 6))
         
         # Tool button styling helper
         def make_tool_btn(parent, text, hover_text, width=4):
             btn = theme.make_flat_button(
                 parent, text=text, bg_color=theme.BG_INPUT, 
                 fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-                font_style=theme.FONT_EMOJI_LARGE, width=width, pady=5
+                font_style=theme.FONT_EMOJI_LARGE, width=width, pady=3
             )
             ToolTip(btn, hover_text)
             return btn
@@ -38,7 +49,7 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         self.lbl_active_file.pack(side="right", padx=10)
 
         # Treeview Container
-        tree_frame = tk.Frame(self, bg=theme.BG_CARD)
+        tree_frame = tk.Frame(timeline_sub_frame, bg=theme.BG_CARD)
         tree_frame.pack(fill="both", expand=True)
         
         # Using standard TTK Treeview (custom styled via style maps) with extended multi-selection
@@ -59,8 +70,8 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         self.tree.configure(yscrollcommand=scroll.set)
 
         # Toolbar Middle (List Ops)
-        list_ops = tk.Frame(self, bg=theme.BG_CARD)
-        list_ops.pack(fill="x", pady=8)
+        list_ops = tk.Frame(timeline_sub_frame, bg=theme.BG_CARD)
+        list_ops.pack(fill="x", pady=6)
         
         self.btn_move_up = make_tool_btn(list_ops, "⬆", "Move Entry Up", width=4)
         self.btn_move_up.pack(side="left", padx=2)
@@ -71,7 +82,7 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         self.btn_delete = theme.make_flat_button(
             list_ops, text="🗑", bg_color=theme.ACCENT_RED, 
             fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", 
-            font_style=theme.FONT_EMOJI_LARGE, width=4, pady=5
+            font_style=theme.FONT_EMOJI_LARGE, width=4, pady=3
         )
         ToolTip(self.btn_delete, "Remove Marked Entries")
         self.btn_delete.pack(side="left", padx=(15, 2))
@@ -83,46 +94,59 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         self.btn_undo.pack(side="right", padx=2)
 
         # Media Controls Bottom Frame
-        media_frame = tk.Frame(self, bg=theme.BG_HEADER, pady=12, padx=12,
+        media_frame = tk.Frame(timeline_sub_frame, bg=theme.BG_HEADER, pady=6, padx=10,
                                highlightbackground=theme.BORDER_COLOR, highlightthickness=1)
-        media_frame.pack(fill="x", pady=(10, 0))
+        media_frame.pack(fill="x", pady=(6, 0))
         
         self.btn_replay = theme.make_flat_button(
             media_frame, text="▶ Full Replay", bg_color=theme.ACCENT_GREEN, 
             fg_color=theme.BG_MAIN, hover_bg="#059669", 
-            font_style=theme.FONT_EMOJI_LARGE, height=2, width=14
+            font_style=theme.FONT_EMOJI_LARGE, height=1, width=12, pady=5
         )
-        self.btn_replay.pack(side="left", padx=5)
+        self.btn_replay.pack(side="left", padx=3)
         
         self.btn_replay_sel = theme.make_flat_button(
             media_frame, text="▶ Selection", bg_color=theme.BG_INPUT, 
             fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-            font_style=theme.FONT_EMOJI_LARGE, height=2, width=14
+            font_style=theme.FONT_EMOJI_LARGE, height=1, width=12, pady=5
         )
-        self.btn_replay_sel.pack(side="left", padx=5)
+        self.btn_replay_sel.pack(side="left", padx=3)
         
         # Helper to build playback media control flat toggles
         def make_media_btn(parent, text, hover_text, width=4):
             btn = theme.make_flat_button(
                 parent, text=text, bg_color=theme.BG_INPUT, 
                 fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-                font_style=theme.FONT_EMOJI_LARGE, width=width, pady=8
+                font_style=theme.FONT_EMOJI_LARGE, width=width, pady=5
             )
             ToolTip(btn, hover_text)
             return btn
 
         self.btn_pause_media = make_media_btn(media_frame, "⏸", "Pause/Resume current Action", width=4)
-        self.btn_pause_media.pack(side="left", padx=5)
+        self.btn_pause_media.pack(side="left", padx=3)
         
         self.btn_stop_media = make_media_btn(media_frame, "⏹", "Stop Sequence", width=4)
-        self.btn_stop_media.pack(side="left", padx=5)
+        self.btn_stop_media.pack(side="left", padx=3)
         
         self.btn_estop = theme.make_flat_button(
             media_frame, text="🛑 E-STOP", bg_color=theme.ACCENT_RED, 
             fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", 
-            font_style=theme.FONT_EMOJI_LARGE, height=2
+            font_style=theme.FONT_EMOJI_LARGE, height=1, pady=5
         )
-        self.btn_estop.pack(side="right", fill="x", expand=True, padx=(20, 0))
+        self.btn_estop.pack(side="right", fill="x", expand=True, padx=(15, 0))
+
+        # Build System Logs ScrolledText Terminal console inside logs_sub_frame
+        from tkinter import scrolledtext
+        self.log_area = scrolledtext.ScrolledText(
+            logs_sub_frame, height=4, state='disabled', font=theme.FONT_MONO,
+            bg="#09090b", fg=theme.TEXT_PRIMARY, insertbackground=theme.TEXT_PRIMARY,
+            relief="flat", bd=0, highlightthickness=0
+        )
+        self.log_area.pack(fill="both", expand=True)
+        
+        self.log_area.tag_config('INFO', foreground='#94a3b8')
+        self.log_area.tag_config('WARNING', foreground=theme.ACCENT_YELLOW)
+        self.log_area.tag_config('ERROR', foreground=theme.ACCENT_RED, font=(theme.FONT_MONO[0], theme.FONT_MONO[1], "bold"))
 
     def bind_commands(self, commands):
         """Binds commands relating to Column 2 interactions and buttons."""
