@@ -12,11 +12,15 @@ class RobotView:
         
         self.commands = {}
         self.is_dialog_open = False
+        self._last_hardware_state = None
+        self._last_status_text = ""
+        self._last_status_fg = ""
         
         # Configure our visual design system (TTK styling)
         theme.configure_flat_styles()
 
         self.setup_ui()
+        self.root.after(50, self._tick_live_ui)
 
     def setup_ui(self):
         # --- HEADER (Connection Status & Header Operations) ---
@@ -210,19 +214,34 @@ class RobotView:
     # ================= OBSERVER CALLBACKS (HARDWARE -> VIEW) =================
     
     def on_hardware_state_changed(self, state):
-        """Forwards cyclic hardware telemetry down to Panel 1 (and handles Tkinter thread-safety)."""
-        if self.is_dialog_open: return 
-        self.root.after(0, self._update_live_ui, state)
+        """Caches the latest hardware telemetry state (thread-safe reference copy)."""
+        self._last_hardware_state = state
+
+    def _tick_live_ui(self):
+        """Periodic tick pulling the latest state updates to avoid event queue flooding."""
+        if not self.is_dialog_open and self._last_hardware_state is not None:
+            self._update_live_ui(self._last_hardware_state)
+        # Schedule next tick (50ms corresponds to a stable 20Hz redraw)
+        self.root.after(50, self._tick_live_ui)
 
     def _update_live_ui(self, state):
-        # Update Connection Status Label in the Header
+        # Determine status text and color
         if state.is_connected:
             if state.has_fault: 
-                self.lbl_status.config(text=f"🔴 FAULT ERROR - IP: {getattr(state, 'ip', 'Unknown')}", fg=theme.ACCENT_RED)
+                text = f"🔴 FAULT ERROR - IP: {getattr(state, 'ip', 'Unknown')}"
+                fg = theme.ACCENT_RED
             else: 
-                self.lbl_status.config(text=f"🟢 Connected - IP: {getattr(state, 'ip', 'Unknown')} ({state.dof}-DOF)", fg=theme.ACCENT_GREEN)
+                text = f"🟢 Connected - IP: {getattr(state, 'ip', 'Unknown')} ({state.dof}-DOF)"
+                fg = theme.ACCENT_GREEN
         else: 
-            self.lbl_status.config(text="⚪ Disconnected", fg=theme.TEXT_MUTED)
+            text = "⚪ Disconnected"
+            fg = theme.TEXT_MUTED
+
+        # Only update the widget configuration if the state changed
+        if text != self._last_status_text or fg != self._last_status_fg:
+            self.lbl_status.config(text=text, fg=fg)
+            self._last_status_text = text
+            self._last_status_fg = fg
 
         if not state.is_connected: return
 

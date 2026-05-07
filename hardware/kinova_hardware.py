@@ -4,7 +4,7 @@ import logging
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, Session_pb2
-from kortex_api.RouterClient import RouterClient
+from kortex_api.RouterClient import RouterClient, RouterClientSendOptions
 from kortex_api.SessionManager import SessionManager
 from kortex_api.TCPTransport import TCPTransport
 from kortex_api.UDPTransport import UDPTransport
@@ -206,14 +206,14 @@ class KinovaHardware:
             self._polling_thread = None
 
     def _hardware_polling_worker(self):
-        """Autonomous thread continuously fetching telemetry data (10Hz Polling, faster polling lags out the robot)."""
+        """Autonomous thread continuously fetching telemetry data (20Hz Polling, faster polling yields smoother rendering)."""
         while self._is_polling:
             try:
                 if self.state.is_connected:
                     self.refresh_state_from_robot()
             except Exception as e:
                 self.logger.debug(f"Hardware polling missed a cycle: {e}")
-            time.sleep(0.1) 
+            time.sleep(0.05) 
 
     def refresh_state_from_robot(self):
         """Fetches telemetry data and profiles network latency."""
@@ -221,11 +221,16 @@ class KinovaHardware:
             return False
 
         try:
-            feedback = self.base_cyclic.RefreshFeedback()
+            # Set a strict 35ms RPC timeout options block.
+            # Running at 20Hz leaves a tight 50ms total cycle time.
+            # Limiting to 35ms ensures we never overflow the 50ms loop budget if a packet drops!
+            options = RouterClientSendOptions()
+            options.timeout_ms = 35
+            feedback = self.base_cyclic.RefreshFeedback(options=options)
             self.missed_feedback_count = 0 
         except Exception as e:
             self.missed_feedback_count += 1
-            if self.missed_feedback_count > 5:
+            if self.missed_feedback_count > 60: # Support up to 3 seconds of transient UDP jitter (60 cycles @ 20Hz)
                 self.logger.error(f"Connection lost: Exceeded UDP timeout limit. Error: {e}")
                 self.state.is_connected = False
                 self.notify_observers()
