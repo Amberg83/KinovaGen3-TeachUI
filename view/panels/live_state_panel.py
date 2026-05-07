@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from view import theme
+from view.widgets import ToolTip
 
 class LiveStatePanel(ttk.LabelFrame):
     """Encapsulates Column 1: Live State displays, telemetry updates, and admittance controls in responsive dark flat style."""
@@ -64,6 +65,7 @@ class LiveStatePanel(ttk.LabelFrame):
             font_style=theme.FONT_EMOJI_LARGE, height=1, pady=6
         )
         self.btn_capture.pack(fill="x", side="bottom")
+        ToolTip(self.btn_capture, "Capture current joint & cartesian positions (Ctrl+Space)")
 
         # ---------------- SCROLLABLE TOP CONTAINER ----------------
         self.top_frame = tk.Frame(self, bg=theme.BG_CARD)

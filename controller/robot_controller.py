@@ -18,6 +18,7 @@ class RobotController:
         
         self.logger = logging.getLogger("Controller")
         self.replay_engine = ReplayEngine(self.hardware)
+        self.clipboard = []
 
         os.makedirs("expressions", exist_ok=True)
         os.makedirs("log", exist_ok=True)
@@ -48,7 +49,11 @@ class RobotController:
             "replay_selection": self.handle_start_replay_selection,
             "estop": self.handle_emergency_stop,
             "stop_media": self.handle_media_stop,
-            "pause_media": self.handle_media_pause
+            "pause_media": self.handle_media_pause,
+            "copy": self.handle_copy_poses,
+            "paste": self.handle_paste_poses,
+            "duplicate": self.handle_duplicate_poses,
+            "move_entry": self.handle_move_entry
         })
 
         # Study Mode Setup
@@ -122,6 +127,25 @@ class RobotController:
 
     def handle_move_down(self, idx):
         self.model.move_down(idx)
+        self._auto_save()
+
+    def handle_copy_poses(self, indices):
+        self.clipboard = self.model.copy_poses(indices)
+        self.logger.info(f"Copied {len(self.clipboard)} waypoint(s) to clipboard.")
+
+    def handle_paste_poses(self, after_index):
+        if self.clipboard:
+            self.model.paste_poses(self.clipboard, after_index)
+            self._auto_save()
+
+    def handle_duplicate_poses(self, indices):
+        copied = self.model.copy_poses(indices)
+        if copied:
+            self.model.paste_poses(copied, indices[-1])
+            self._auto_save()
+
+    def handle_move_entry(self, from_idx, to_idx):
+        self.model.move_pose(from_idx, to_idx)
         self._auto_save()
 
     def handle_delete_poses(self, indices):

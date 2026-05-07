@@ -99,6 +99,45 @@ class SequenceModel:
             self.sequence[index], self.sequence[index+1] = self.sequence[index+1], self.sequence[index]
             self._notify_observers(select_index=index + 1)
 
+    def move_pose(self, from_index, to_index):
+        if 0 <= from_index < len(self.sequence) and 0 <= to_index < len(self.sequence):
+            if from_index == to_index:
+                return
+            self._save_state()
+            pose = self.sequence.pop(from_index)
+            self.sequence.insert(to_index, pose)
+            self.logger.info(f"Moved waypoint from index {from_index} to index {to_index}.")
+            self._notify_observers(select_index=to_index)
+
+    def copy_poses(self, indices):
+        """Returns deep-copied sequence elements of specified indices."""
+        copied = []
+        for idx in sorted(indices):
+            if 0 <= idx < len(self.sequence):
+                copied.append(copy.deepcopy(self.sequence[idx]))
+        return copied
+
+    def paste_poses(self, poses, after_index):
+        """Pastes a list of poses behind the specified index. If index is None, appends to the end."""
+        if not poses:
+            return
+        self._save_state()
+        if after_index is None or after_index < 0 or after_index >= len(self.sequence):
+            # Append to the end
+            start_idx = len(self.sequence)
+            self.sequence.extend(copy.deepcopy(poses))
+            new_selection = list(range(start_idx, len(self.sequence)))
+        else:
+            # Insert behind after_index
+            new_selection = []
+            for i, p in enumerate(poses):
+                insert_idx = after_index + 1 + i
+                self.sequence.insert(insert_idx, copy.deepcopy(p))
+                new_selection.append(insert_idx)
+        
+        self.logger.info(f"Pasted {len(poses)} waypoint(s). Total waypoints: {len(self.sequence)}.")
+        self._notify_observers(select_index=new_selection)
+
     def clear(self):
         self._save_state()
         count = len(self.sequence)

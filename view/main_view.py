@@ -96,6 +96,10 @@ class RobotView:
             "move_up": self.on_move_up,
             "move_down": self.on_move_down,
             "delete_poses": self.on_delete_poses,
+            "copy": self.on_copy,
+            "paste": self.on_paste,
+            "duplicate": self.on_duplicate,
+            "move_entry": self.commands.get("move_entry"),
             "undo": self.commands.get("undo"),
             "redo": self.commands.get("redo"),
             "replay": self.commands.get("replay"),
@@ -117,8 +121,36 @@ class RobotView:
         self.root.bind("<Control-Up>", self.on_move_up)
         self.root.bind("<Control-Down>", self.on_move_down)
         self.root.bind("<Delete>", self.on_delete_poses)
-        self.root.bind("<Control-z>", lambda e: self.commands.get("undo")())
-        self.root.bind("<Control-y>", lambda e: self.commands.get("redo")())
+        
+        self.root.bind("<Control-z>", lambda e: self.commands.get("undo")() if self.commands.get("undo") else None)
+        self.root.bind("<Control-y>", lambda e: self.commands.get("redo")() if self.commands.get("redo") else None)
+        self.root.bind("<Control-Z>", lambda e: self.commands.get("undo")() if self.commands.get("undo") else None)
+        self.root.bind("<Control-Y>", lambda e: self.commands.get("redo")() if self.commands.get("redo") else None)
+        
+        self.root.bind("<Control-c>", self.on_copy)
+        self.root.bind("<Control-v>", self.on_paste)
+        self.root.bind("<Control-d>", self.on_duplicate)
+        self.root.bind("<Control-C>", self.on_copy)
+        self.root.bind("<Control-V>", self.on_paste)
+        self.root.bind("<Control-D>", self.on_duplicate)
+
+        # File Operations
+        self.root.bind("<Control-s>", lambda e: self.commands.get("save_json")() if self.commands.get("save_json") else None)
+        self.root.bind("<Control-S>", lambda e: self.commands.get("save_json")() if self.commands.get("save_json") else None)
+        self.root.bind("<Control-o>", lambda e: self.prompt_load_json())
+        self.root.bind("<Control-O>", lambda e: self.prompt_load_json())
+        self.root.bind("<Control-n>", lambda e: self.commands.get("clear_list")() if self.commands.get("clear_list") else None)
+        self.root.bind("<Control-N>", lambda e: self.commands.get("clear_list")() if self.commands.get("clear_list") else None)
+
+        # Capture Pose
+        self.root.bind("<Control-space>", lambda e: self.on_capture_pose())
+
+        # Playback Controls
+        self.root.bind("<F5>", lambda e: self.commands.get("replay")() if self.commands.get("replay") else None)
+        self.root.bind("<F6>", lambda e: self.commands.get("replay_selection")() if self.commands.get("replay_selection") else None)
+        self.root.bind("<F7>", lambda e: self.on_pause_media())
+        self.root.bind("<F8>", lambda e: self.commands.get("stop_media")() if self.commands.get("stop_media") else None)
+        self.root.bind("<Escape>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
 
     # ================= VIEW -> CONTROLLER INTERFACES =================
     
@@ -179,6 +211,22 @@ class RobotView:
         indices = self.panel_seq.get_selected_indices()
         if indices and "delete_poses" in self.commands:
             self.commands["delete_poses"](indices)
+
+    def on_copy(self, event=None):
+        indices = self.panel_seq.get_selected_indices()
+        if indices and "copy" in self.commands:
+            self.commands["copy"](indices)
+
+    def on_paste(self, event=None):
+        indices = self.panel_seq.get_selected_indices()
+        after_index = indices[-1] if indices else None
+        if "paste" in self.commands:
+            self.commands["paste"](after_index)
+
+    def on_duplicate(self, event=None):
+        indices = self.panel_seq.get_selected_indices()
+        if indices and "duplicate" in self.commands:
+            self.commands["duplicate"](indices)
 
     def on_pause_media(self):
         is_paused = self.commands.get("pause_media")() if "pause_media" in self.commands else False

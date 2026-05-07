@@ -20,11 +20,11 @@ ACCENT_ORANGE = "#f59e0b"    # Active Warning Gold
 ACCENT_YELLOW = "#facc15"    # Active Warning Gold
 
 # --- FONTS ---
-FONT_TITLE = ("Segoe UI", 11, "bold")
-FONT_NORMAL = ("Segoe UI", 10, "normal")
-FONT_BOLD = ("Segoe UI", 10, "bold")
-FONT_MONO = ("Consolas", 11, "normal")
-FONT_MONO_SMALL = ("Consolas", 9, "normal")
+FONT_TITLE = (("Segoe UI", "DejaVu Sans", "Helvetica", "Arial"), 11, "bold")
+FONT_NORMAL = (("Segoe UI", "DejaVu Sans", "Helvetica", "Arial"), 10, "normal")
+FONT_BOLD = (("Segoe UI", "DejaVu Sans", "Helvetica", "Arial"), 10, "bold")
+FONT_MONO = (("Consolas", "DejaVu Sans Mono", "Courier New", "monospace"), 11, "normal")
+FONT_MONO_SMALL = (("Consolas", "DejaVu Sans Mono", "Courier New", "monospace"), 9, "normal")
 
 # Emoji specific fonts for cross-system display compatibility
 FONT_EMOJI = ("Segoe UI Emoji", 10) if os.name == "nt" else ("Arial", 10, "bold")
