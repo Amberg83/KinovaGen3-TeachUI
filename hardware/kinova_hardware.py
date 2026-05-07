@@ -3,6 +3,7 @@ import threading
 import logging
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
+from kortex_api.autogen.client_stubs.ControlConfigClientRpc import ControlConfigClient
 from kortex_api.autogen.messages import Base_pb2, Session_pb2
 from kortex_api.RouterClient import RouterClient, RouterClientSendOptions
 from kortex_api.SessionManager import SessionManager
@@ -21,6 +22,7 @@ class KinovaHardware:
         
         self.base = None
         self.base_cyclic = None
+        self.control_config = None
         self._transports = []
         self._sessions = []
 
@@ -30,6 +32,7 @@ class KinovaHardware:
 
         self._global_notification_handle = None
         self._global_armstate_handle = None
+        self._global_control_mode_handle = None
         self._active_movement_pager = None
         
         self._is_polling = False
@@ -75,6 +78,13 @@ class KinovaHardware:
 
             self.base = BaseClient(router_tcp)
             self.base_cyclic = BaseCyclicClient(router_udp)
+            self.control_config = ControlConfigClient(router_tcp)
+            
+            try:
+                mode_info = self.control_config.GetControlMode()
+                self.state.control_mode = mode_info.control_mode
+            except Exception as e:
+                self.logger.warning(f"Could not fetch initial control mode: {e}")
             
             self.state.is_connected = True
             self.state.ip = self.ip
@@ -109,6 +119,7 @@ class KinovaHardware:
         self.state.is_connected = False
         self.notify_observers()
         
+        self.control_config = None
         for session in self._sessions:
             try: session.CloseSession()
             except: pass
@@ -163,11 +174,19 @@ class KinovaHardware:
             elif active_state == Base_pb2.ARMSTATE_IDLE:
                 self.state.has_fault = False
 
+        # --- Control_Mode Subscriber ---
+        def control_mode_callback(notification):
+            self.state.control_mode = notification.control_mode
+            self.logger.debug(f"Control Mode updated via notification: {notification.control_mode}")
+            self.notify_observers()
+
         # --- Register Subscribers ---
         try:
-            self.logger.info("Starting event subscribers (ActionEvent, ArmState)...")
+            self.logger.info("Starting event subscribers (ActionEvent, ArmState, ControlMode)...")
             self._global_notification_handle = self.base.OnNotificationActionTopic(action_callback, Base_pb2.NotificationOptions())
             self._global_armstate_handle = self.base.OnNotificationArmStateTopic(arm_state_callback, Base_pb2.NotificationOptions())
+            if self.control_config:
+                self._global_control_mode_handle = self.control_config.OnNotificationControlModeTopic(control_mode_callback, Base_pb2.NotificationOptions())
         except Exception as e:
             self.logger.error(f"Could not start all event subscribers: {e}")
 
@@ -176,17 +195,19 @@ class KinovaHardware:
         if not self.base: return
         
         handles = [
-            self._global_notification_handle,
-            self._global_armstate_handle
+            (self.base, self._global_notification_handle),
+            (self.base, self._global_armstate_handle),
+            (self.control_config, self._global_control_mode_handle)
         ]
         
-        for handle in handles:
-            if handle:
-                try: self.base.Unsubscribe(handle)
+        for client, handle in handles:
+            if client and handle:
+                try: client.Unsubscribe(handle)
                 except Exception: pass
                 
         self._global_notification_handle = None
         self._global_armstate_handle = None
+        self._global_control_mode_handle = None
         self._global_robotevent_handle = None
         self.logger.info("Closed all event subscribers.")
 
@@ -242,8 +263,6 @@ class KinovaHardware:
             self.state.fault_bank_b = getattr(feedback.base, 'fault_bank_b', 0)
             self.state.has_fault = (self.state.fault_bank_a != 0) or (self.state.fault_bank_b != 0)
             
-            self.state.control_mode = getattr(feedback.base, 'control_mode', 0)
-            self.state.command_mode = getattr(feedback.base, 'command_mode', 0)
             self.state.active_state = getattr(feedback.base, 'active_state', 0)
             
             self.state.tcp_position = [
