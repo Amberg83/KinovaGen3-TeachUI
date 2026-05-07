@@ -82,7 +82,8 @@ class ConnectionDialog(tk.Toplevel):
         notice_frame.pack(fill="x", pady=(15, 0))
         
         tk.Label(
-            notice_frame, text="💡 Leave Participant ID empty to launch in Expert Mode.",
+            notice_frame, text=" Leave Participant ID empty to launch in Expert Mode.",
+            image=theme.get_icon("lightbulb"), compound="left",
             font=(theme.FONT_NORMAL[0], 8, "normal"), bg=theme.BG_INPUT, fg=theme.TEXT_MUTED,
             wraplength=220, justify="left"
         ).pack(fill="x")

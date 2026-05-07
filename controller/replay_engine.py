@@ -111,7 +111,7 @@ class ReplayEngine:
                 elif stype == "pause":
                     flush_waypoints()
                     p_time = step["duration_s"]
-                    self.logger.info(f"[STEP {idx}] ⏱️ PAUSE: {p_time}s")
+                    self.logger.info(f"[STEP {idx}] PAUSE: {p_time}s")
                     
                     # Sleep in increments so stop requests are responsive during long pauses
                     slept = 0.0

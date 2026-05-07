@@ -18,7 +18,7 @@ Replay einer Teilsequenz der Liste soll möglich sein.
 Bei Bewegung des Roboters an einen bestimmten Punkt in der Liste sollte ein ab da neu hinzugefügter Punkte hinter genau diesen Punkt in die Liste eingefügt werden.
 Bei Abschluss eines Referenten muss der gesamte aktuelle UI State mit gepsiechert werden
 Benötigte Logik für die Studie: 
-1. csv mit Studieninfos (timestamps, wann ein neuer Referent begonnen wurde zusammen mit der PID des Teilnehmers und der Reihenfolge der Referenten. PID, ReferentID1,Timestamp1,ReferentID2,Timestamp2,...)
+1. `study_results/study_logs.csv` mit präzisen Studieninfos für jeden Referenten: `PID,PresentationOrder,ReferentID,ReferentName,StartTime,EndTime,BackupFile`. Zudem werden die aufgezeichneten Trajektorien (JSONs) in separaten PID-Ordnern (`study_results/<PID>/`) abgelegt und das aktive Programm-Log (`teach_ui.log`) wird beim finalen Knopfdruck am Ende des letzten Referenten vollautomatisch in diesen Teilnehmer-Ordner kopiert.
 2. Programm soll die Eingabe der PID ermöglichen und basierend darauf (Latin Square) errechnen, in welcher Reihenfolge der Teilnehmer die Referenten angezeigt bekommt. Die UI soll auch wiedergeben, welcher Referent aktuell bearbeitet wird.
 3. Visuelles Feedback? (Also Screen auf dem der Referent nachlesbar ist während der Aufgabe?)
 

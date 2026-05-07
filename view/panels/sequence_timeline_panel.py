@@ -33,23 +33,24 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         toolbar_top = tk.Frame(timeline_sub_frame, bg=theme.BG_CARD)
         toolbar_top.pack(fill="x", pady=(0, 6))
         
-        # Tool button styling helper
-        def make_tool_btn(parent, text, hover_text, width=4):
+        # Tool button styling helper (using cached PNG PhotoImage)
+        def make_tool_btn(parent, icon_name, hover_text):
+            img = theme.get_icon(icon_name)
             btn = theme.make_flat_button(
-                parent, text=text, bg_color=theme.BG_INPUT, 
+                parent, text="", image=img, bg_color=theme.BG_INPUT, 
                 fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-                font_style=theme.FONT_EMOJI_LARGE, width=width, pady=3
+                width=36, height=36, padx=0, pady=0
             )
             ToolTip(btn, hover_text)
             return btn
             
-        self.btn_load_json = make_tool_btn(toolbar_top, "📂", "Load Sequence List (Ctrl+O)", width=4)
+        self.btn_load_json = make_tool_btn(toolbar_top, "load", "Load Sequence List (Ctrl+O)")
         self.btn_load_json.pack(side="left", padx=2)
         
-        self.btn_save_json = make_tool_btn(toolbar_top, "💾", "Save Sequence List (Ctrl+S)", width=4)
+        self.btn_save_json = make_tool_btn(toolbar_top, "save", "Save Sequence List (Ctrl+S)")
         self.btn_save_json.pack(side="left", padx=2)
         
-        self.btn_clear_list = make_tool_btn(toolbar_top, "🧹", "Clear Sequence List (Ctrl+N)", width=4)
+        self.btn_clear_list = make_tool_btn(toolbar_top, "clear", "Clear Sequence List (Ctrl+N)")
         self.btn_clear_list.pack(side="left", padx=2)
         
         self.lbl_active_file = tk.Label(toolbar_top, text="Active File: None", font=theme.FONT_NORMAL, bg=theme.BG_CARD, fg=theme.TEXT_MUTED)
@@ -80,33 +81,33 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         list_ops = tk.Frame(timeline_sub_frame, bg=theme.BG_CARD)
         list_ops.pack(fill="x", pady=6)
         
-        self.btn_move_up = make_tool_btn(list_ops, "⬆", "Move Entry Up (Ctrl+Up)", width=4)
+        self.btn_move_up = make_tool_btn(list_ops, "arrow_up", "Move Entry Up (Ctrl+Up)")
         self.btn_move_up.pack(side="left", padx=2)
         
-        self.btn_move_down = make_tool_btn(list_ops, "⬇", "Move Entry Down (Ctrl+Down)", width=4)
+        self.btn_move_down = make_tool_btn(list_ops, "arrow_down", "Move Entry Down (Ctrl+Down)")
         self.btn_move_down.pack(side="left", padx=2)
         
         self.btn_delete = theme.make_flat_button(
-            list_ops, text="🗑", bg_color=theme.ACCENT_RED, 
+            list_ops, text="", image=theme.get_icon("delete"), bg_color=theme.ACCENT_RED, 
             fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", 
-            font_style=theme.FONT_EMOJI_LARGE, width=4, pady=3
+            width=36, height=36, padx=0, pady=0
         )
         ToolTip(self.btn_delete, "Remove Marked Entries (Delete)")
         self.btn_delete.pack(side="left", padx=(15, 2))
         
-        self.btn_copy = make_tool_btn(list_ops, "📋", "Copy Selected Entries (Ctrl+C)", width=4)
+        self.btn_copy = make_tool_btn(list_ops, "copy", "Copy Selected Entries (Ctrl+C)")
         self.btn_copy.pack(side="left", padx=2)
         
-        self.btn_paste = make_tool_btn(list_ops, "📥", "Paste Entries Behind Selection (Ctrl+V)", width=4)
+        self.btn_paste = make_tool_btn(list_ops, "paste", "Paste Entries Behind Selection (Ctrl+V)")
         self.btn_paste.pack(side="left", padx=2)
         
-        self.btn_duplicate = make_tool_btn(list_ops, "⧉", "Duplicate Selected Entries (Ctrl+D)", width=4)
+        self.btn_duplicate = make_tool_btn(list_ops, "duplicate", "Duplicate Selected Entries (Ctrl+D)")
         self.btn_duplicate.pack(side="left", padx=2)
         
-        self.btn_redo = make_tool_btn(list_ops, "⤻", "Redo (Ctrl+Y)", width=4)
+        self.btn_redo = make_tool_btn(list_ops, "redo", "Redo (Ctrl+Y)")
         self.btn_redo.pack(side="right", padx=2)
         
-        self.btn_undo = make_tool_btn(list_ops, "⤺", "Undo (Ctrl+Z)", width=4)
+        self.btn_undo = make_tool_btn(list_ops, "undo", "Undo (Ctrl+Z)")
         self.btn_undo.pack(side="right", padx=2)
 
         # Media Controls Bottom Frame
@@ -115,44 +116,55 @@ class SequenceTimelinePanel(ttk.LabelFrame):
         media_frame.pack(fill="x", pady=(6, 0))
         
         self.btn_replay = theme.make_flat_button(
-            media_frame, text="▶ Full Replay", bg_color=theme.ACCENT_GREEN, 
-            fg_color=theme.BG_MAIN, hover_bg="#059669", 
-            font_style=theme.FONT_EMOJI_LARGE, height=1, width=12, pady=5
+            media_frame, text=" Full Replay", image=theme.get_icon("play", tint=theme.BG_MAIN), compound="left",
+            bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, hover_bg="#059669", 
+            font_style=theme.FONT_BOLD, padx=15, pady=8
         )
         self.btn_replay.pack(side="left", padx=3)
         ToolTip(self.btn_replay, "Replay Entire Sequence (F5)")
         
         self.btn_replay_sel = theme.make_flat_button(
-            media_frame, text="▶ Selection", bg_color=theme.BG_INPUT, 
-            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-            font_style=theme.FONT_EMOJI_LARGE, height=1, width=12, pady=5
+            media_frame, text=" Selection", image=theme.get_icon("play_selection"), compound="left",
+            bg_color=theme.BG_INPUT, fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
+            font_style=theme.FONT_BOLD, padx=15, pady=8
         )
         self.btn_replay_sel.pack(side="left", padx=3)
         ToolTip(self.btn_replay_sel, "Replay Selected Timeline Items (F6)")
         
-        # Helper to build playback media control flat toggles
-        def make_media_btn(parent, text, hover_text, width=4):
+        # Helper to build playback media control flat toggles (image-based)
+        def make_media_btn(parent, icon_name, hover_text):
+            img = theme.get_icon(icon_name)
             btn = theme.make_flat_button(
-                parent, text=text, bg_color=theme.BG_INPUT, 
+                parent, text="", image=img, bg_color=theme.BG_INPUT, 
                 fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-                font_style=theme.FONT_EMOJI_LARGE, width=width, pady=5
+                width=44, height=44, padx=0, pady=0
             )
             ToolTip(btn, hover_text)
             return btn
 
-        self.btn_pause_media = make_media_btn(media_frame, "⏸", "Pause/Resume Current Playback (F7)", width=4)
+        self.btn_pause_media = make_media_btn(media_frame, "pause", "Pause/Resume Current Playback (F7)")
         self.btn_pause_media.pack(side="left", padx=3)
         
-        self.btn_stop_media = make_media_btn(media_frame, "⏹", "Stop Sequence Replay (F8)", width=4)
+        self.btn_stop_media = make_media_btn(media_frame, "stop", "Stop Sequence Replay (F8)")
         self.btn_stop_media.pack(side="left", padx=3)
         
         self.btn_estop = theme.make_flat_button(
-            media_frame, text="🛑 E-STOP", bg_color=theme.ACCENT_RED, 
-            fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", 
-            font_style=theme.FONT_EMOJI_LARGE, height=1, pady=5
+            media_frame, text=" E-STOP", image=theme.get_icon("estop"), compound="left",
+            bg_color=theme.ACCENT_RED, fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", 
+            font_style=theme.FONT_BOLD, padx=15, pady=8
         )
         self.btn_estop.pack(side="right", fill="x", expand=True, padx=(15, 0))
         ToolTip(self.btn_estop, "EMERGENCY STOP (Escape)")
+
+        # Dynamic layout synchronization: Ensure Pause and Stop buttons are perfect 1:1 squares 
+        # that exactly match the physical height of the Full Replay button next to them in the row.
+        def sync_media_btn_height(event):
+            h = event.height
+            if h > 10:
+                self.btn_pause_media.config(width=h, height=h)
+                self.btn_stop_media.config(width=h, height=h)
+
+        self.btn_replay.bind("<Configure>", sync_media_btn_height)
 
         # Build System Logs ScrolledText Terminal console inside logs_sub_frame
         from tkinter import scrolledtext

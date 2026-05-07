@@ -60,9 +60,9 @@ class LiveStatePanel(ttk.LabelFrame):
 
         # Capture Button inside Bottom Frame
         self.btn_capture = theme.make_flat_button(
-            self.bottom_frame, text="➕ Capture Current Pose", bg_color=theme.ACCENT_GREEN, 
-            fg_color=theme.BG_MAIN, hover_bg="#059669", 
-            font_style=theme.FONT_EMOJI_LARGE, height=1, pady=6
+            self.bottom_frame, text=" Capture Current Pose", image=theme.get_icon("add_waypoint", tint=theme.BG_MAIN), compound="left",
+            bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, hover_bg="#059669", 
+            font_style=theme.FONT_BOLD, pady=8
         )
         self.btn_capture.pack(fill="x", side="bottom")
         ToolTip(self.btn_capture, "Capture current joint & cartesian positions (Ctrl+Space)")
@@ -371,7 +371,7 @@ class LiveStatePanel(ttk.LabelFrame):
         if state.joint_currents:
             for j, c in enumerate(state.joint_currents):
                 if j < len(self.current_labels):
-                    self.current_labels[j].config(text=f"{c:.1f}A")
+                    self.current_labels[j].config(text=f"{c:.1f}")
         else:
             for lbl in self.current_labels: lbl.config(text="-")
 

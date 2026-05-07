@@ -1,7 +1,7 @@
 [
     {
         "type": "angularwaypoint",
-        "duration_s": 4.0,
+        "duration_s": 1.72,
         "max_velocities": [
             0.0,
             0.0,
@@ -22,7 +22,7 @@
     },
     {
         "type": "angularwaypoint",
-        "duration_s": 4.0,
+        "duration_s": 2.71,
         "max_velocities": [
             0.0,
             0.0,
@@ -43,7 +43,7 @@
     },
     {
         "type": "angularwaypoint",
-        "duration_s": 4.0,
+        "duration_s": 2.72,
         "max_velocities": [
             0.0,
             0.0,
@@ -64,7 +64,7 @@
     },
     {
         "type": "angularwaypoint",
-        "duration_s": 4.0,
+        "duration_s": 2.83,
         "max_velocities": [
             0.0,
             0.0,
@@ -84,8 +84,8 @@
         ]
     },
     {
-        "type": "angularwaypoint",
-        "duration_s": 4.0,
+        "type": "action",
+        "duration_s": 2.86,
         "max_velocities": [
             0.0,
             0.0,
@@ -105,8 +105,8 @@
         ]
     },
     {
-        "type": "angularwaypoint",
-        "duration_s": 4.0,
+        "type": "action",
+        "duration_s": 1.77,
         "max_velocities": [
             0.0,
             0.0,
@@ -123,6 +123,27 @@
             359.23,
             359.31,
             359.98
+        ]
+    },
+    {
+        "type": "action",
+        "duration_s": 2.33,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0,
+        "pos": [
+            360.0,
+            39.77,
+            268.6,
+            359.24,
+            312.3,
+            359.93
         ]
     }
 ]

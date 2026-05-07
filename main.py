@@ -83,7 +83,7 @@ def load_config():
     """Loads previously saved IP and credentials from JSON."""
     if os.path.exists(CONFIG_FILE):
         try:
-            with open(CONFIG_FILE, "r") as f:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Failed to load config: {e}")
@@ -92,7 +92,7 @@ def load_config():
 def save_config(ip, username, password):
     """Saves current IP and credentials to JSON."""
     try:
-        with open(CONFIG_FILE, "w") as f:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump({"ip": ip, "username": username, "password": password}, f, indent=4)
     except Exception as e:
         print(f"Failed to save config: {e}")

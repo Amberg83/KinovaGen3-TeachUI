@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from view import theme
+from hardware.kinova_hardware import calculate_min_safe_duration
 
 class WaypointInspectorPanel(ttk.LabelFrame):
     """Encapsulates Column 3: The Waypoint Inspector form to edit or preview sequence entries in responsive dark flat style."""
@@ -27,23 +28,23 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         self.bottom_frame.pack(side="bottom", fill="x", pady=(6, 0))
 
         self.btn_preview = theme.make_flat_button(
-            self.bottom_frame, text="▶ Preview this Pose", bg_color=theme.ACCENT_YELLOW, 
-            fg_color=theme.BG_MAIN, hover_bg="#eab308", 
-            font_style=theme.FONT_EMOJI_LARGE
+            self.bottom_frame, text=" Preview this Pose", image=theme.get_icon("play", tint=theme.BG_MAIN), compound="left",
+            bg_color=theme.ACCENT_YELLOW, fg_color=theme.BG_MAIN, hover_bg="#eab308", 
+            font_style=theme.FONT_BOLD, pady=8
         )
         self.btn_preview.pack(fill="x", side="bottom", pady=2)
         
         self.btn_save_settings = theme.make_flat_button(
-            self.bottom_frame, text="💾 Apply & Save to Selected", bg_color=theme.ACCENT_GREEN, 
-            fg_color=theme.BG_MAIN, hover_bg="#059669", 
-            font_style=theme.FONT_EMOJI_LARGE
+            self.bottom_frame, text=" Apply & Save to Selected", image=theme.get_icon("save", tint=theme.BG_MAIN), compound="left",
+            bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, hover_bg="#059669", 
+            font_style=theme.FONT_BOLD, pady=8
         )
         self.btn_save_settings.pack(fill="x", side="bottom", pady=2)
 
         self.btn_append_new = theme.make_flat_button(
-            self.bottom_frame, text="➕ Append as New Waypoint", bg_color=theme.ACCENT_CYBER, 
-            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.ACCENT_CYBER_HOVER, 
-            font_style=theme.FONT_EMOJI_LARGE
+            self.bottom_frame, text=" Append as New Waypoint", image=theme.get_icon("add_waypoint"), compound="left",
+            bg_color=theme.ACCENT_CYBER, fg_color=theme.TEXT_PRIMARY, hover_bg=theme.ACCENT_CYBER_HOVER, 
+            font_style=theme.FONT_BOLD, pady=8
         )
         self.btn_append_new.pack(fill="x", side="bottom", pady=2)
 
@@ -141,6 +142,30 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         self.ent_duration = tk.Entry(self.duration_frame, font=theme.FONT_MONO)
         self.ent_duration.pack(fill="x", pady=4)
         theme.apply_entry_theme(self.ent_duration)
+
+        # Create a frame for the label and quick apply button
+        dur_action_frame = tk.Frame(self.duration_frame, bg=theme.BG_CARD)
+        dur_action_frame.pack(fill="x", pady=(2, 0))
+
+        self.lbl_min_duration = tk.Label(
+            dur_action_frame, text="Fast Limit: --s", 
+            font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.ACCENT_CYBER
+        )
+        self.lbl_min_duration.pack(side="left", anchor="w")
+
+        self.btn_apply_min_dur = theme.make_flat_button(
+            dur_action_frame, text=" Apply Limit", image=theme.get_icon("bolt", tint=theme.ACCENT_CYBER), compound="left",
+            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_CYBER, hover_bg=theme.BORDER_COLOR,
+            padx=8, pady=4
+        )
+        self.btn_apply_min_dur.pack(side="right")
+
+        # Traces for live recalculation of min duration
+        self._disable_joint_traces = False
+        self._predecessor_pos = [0.0] * 6
+        for var in self.insp_joint_vars:
+            var.trace_add("write", lambda *args: self.recalculate_min_safe_duration())
+        self.wp_type_var.trace_add("write", lambda *args: self.recalculate_min_safe_duration())
 
         # Apply initial layout sizing
         self.apply_layout(self.wide_mode)
@@ -247,6 +272,7 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         self.btn_preview.config(command=commands.get("preview_pose"))
         self.btn_save_settings.config(command=commands.get("save_settings"))
         self.btn_append_new.config(command=commands.get("append_pose"))
+        self.btn_apply_min_dur.config(command=commands.get("apply_min_durations"))
 
     def _set_inspector_state(self, state):
         """Enables or disables editor elements depending on selection state."""
@@ -255,7 +281,7 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         
         # Simple list of elements
         widgets = [self.ent_duration] + self.ent_wp_vels + self.insp_entries + [
-            self.btn_save_settings, self.btn_preview, self.btn_append_new
+            self.btn_save_settings, self.btn_preview, self.btn_append_new, self.btn_apply_min_dur
         ]
         
         for w in widgets: 
@@ -266,10 +292,12 @@ class WaypointInspectorPanel(ttk.LabelFrame):
             self.btn_preview.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
             self.btn_save_settings.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
             self.btn_append_new.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
+            self.btn_apply_min_dur.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
         else:
             self.btn_preview.config(bg=theme.ACCENT_YELLOW, fg=theme.BG_MAIN)
             self.btn_save_settings.config(bg=theme.ACCENT_GREEN, fg=theme.BG_MAIN)
             self.btn_append_new.config(bg=theme.ACCENT_CYBER, fg=theme.TEXT_PRIMARY)
+            self.btn_apply_min_dur.config(bg=theme.BG_INPUT, fg=theme.ACCENT_CYBER)
 
         # Update segment button styles
         self.update_segment_styles()
@@ -297,11 +325,15 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         """Resets panel state when no element is selected anymore."""
         self._set_inspector_state("disabled")
         self.lbl_inspector_title.config(text="No Waypoint Selected", fg=theme.TEXT_MUTED, font=theme.FONT_NORMAL)
+        self.lbl_min_duration.config(text="Fast Limit: --s", fg=theme.TEXT_MUTED)
 
-    def load_inspector_data(self, data, index):
+    def load_inspector_data(self, data, index, predecessor_pos=None):
         """Populates fields from selected row dictionaries."""
         self._set_inspector_state("normal")
         self.lbl_inspector_title.config(text=f"Selected Waypoint: #{index}", fg=theme.ACCENT_CYBER, font=theme.FONT_TITLE)
+        
+        # Disable joint change listener during loading to prevent noise
+        self._disable_joint_traces = True
         
         self.wp_type_var.set(data.get("type", "action"))
         self.update_segment_styles()
@@ -321,6 +353,43 @@ class WaypointInspectorPanel(ttk.LabelFrame):
             if i < len(self.insp_joint_vars):
                 self.insp_joint_vars[i].set(str(val))
 
+        # Store predecessor reference angles to calculate limits on modifications
+        if predecessor_pos is not None:
+            self._predecessor_pos = predecessor_pos
+        else:
+            self._predecessor_pos = [0.0] * 6
+            
+        # Re-enable trace changes and refresh speed limit text
+        self._disable_joint_traces = False
+        self.recalculate_min_safe_duration()
+
+    def recalculate_min_safe_duration(self):
+        """Dynamically computes the physical speed/duration boundary for joint movements."""
+        if getattr(self, "_disable_joint_traces", False) or self.inspector_state == "disabled":
+            return
+            
+        wp_type = self.wp_type_var.get()
+        if wp_type == "pause":
+            self.lbl_min_duration.config(text="Fast Limit: -- (Pause Step)", fg=theme.TEXT_MUTED)
+            return
+
+        current_poses = []
+        for var in self.insp_joint_vars:
+            val_str = var.get().strip()
+            if not val_str:
+                current_poses.append(0.0)
+            else:
+                try:
+                    current_poses.append(float(val_str))
+                except ValueError:
+                    current_poses.append(0.0)
+                    
+        if hasattr(self, "_predecessor_pos") and len(self._predecessor_pos) == len(current_poses):
+            min_safe_dur = calculate_min_safe_duration(current_poses, self._predecessor_pos)
+            self.lbl_min_duration.config(text=f"Fast Limit: {min_safe_dur:.2f}s", fg=theme.ACCENT_CYBER)
+        else:
+            self.lbl_min_duration.config(text="Fast Limit: 0.50s", fg=theme.ACCENT_CYBER)
+
     def enter_bulk_edit_mode(self, indices):
         """Enables a bulk-edit state for editing duration across multiple waypoints."""
         self._set_inspector_state("normal")
@@ -328,6 +397,9 @@ class WaypointInspectorPanel(ttk.LabelFrame):
             text=f"Bulk-Editing {len(indices)} Waypoints", 
             fg=theme.ACCENT_ORANGE, font=theme.FONT_TITLE
         )
+        
+        # Clear/Disable speed limit label during bulk duration edits
+        self.lbl_min_duration.config(text="Fast Limit: -- (Bulk Edit)", fg=theme.TEXT_MUTED)
         
         # Disable elements that shouldn't be edited in bulk (type, velocities, coordinates, preview, append)
         self.inspector_state = "disabled"
@@ -350,6 +422,7 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         self.ent_duration.focus_set()
         
         # Clear joint variables
+        self._disable_joint_traces = True
         for var in self.insp_joint_vars:
             var.set("")
 

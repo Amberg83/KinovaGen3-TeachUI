@@ -79,6 +79,17 @@ class SequenceModel:
         self.logger.info(f"Bulk updated durations of waypoints {indices} to {duration_s}s.")
         self._notify_observers(select_index=indices)
 
+    def bulk_update_durations_custom(self, index_to_duration_dict):
+        """Bulk updates multiple waypoints with individual customized durations in a single undo state."""
+        if not index_to_duration_dict:
+            return
+        self._save_state()
+        for index, duration_s in index_to_duration_dict.items():
+            if 0 <= index < len(self.sequence):
+                self.sequence[index]["duration_s"] = float(duration_s)
+        self.logger.info(f"Bulk updated customized durations of waypoints.")
+        self._notify_observers(select_index=list(index_to_duration_dict.keys()))
+
     def delete_poses(self, indices):
         self._save_state()
         for index in sorted(indices, reverse=True):
@@ -150,7 +161,7 @@ class SequenceModel:
         path_to_save = filepath or self.current_filepath
         if path_to_save:
             try:
-                with open(path_to_save, 'w') as f:
+                with open(path_to_save, 'w', encoding='utf-8') as f:
                     json.dump(self.sequence, f, indent=4)
                 self.current_filepath = path_to_save 
                 self.logger.info(f"Successfully saved {len(self.sequence)} waypoints to '{path_to_save}'.")
@@ -160,7 +171,7 @@ class SequenceModel:
 
     def load_from_json(self, filepath):
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 if isinstance(data, list):
                     for step in data:

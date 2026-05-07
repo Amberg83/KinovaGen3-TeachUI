@@ -12,6 +12,29 @@ from kortex_api.UDPTransport import UDPTransport
 
 from .robot_state import RobotState 
 
+def calculate_min_safe_duration(target_pos, predecessor_pos):
+    """
+    Computes the physical minimum safe duration (seconds) for moving between two joint positions
+    using the industry-standard Trapezoidal Profile Estimation model.
+    
+    This is the SINGLE SOURCE OF TRUTH for robot joint transition limits across the system.
+    """
+    if not target_pos or not predecessor_pos or len(target_pos) != len(predecessor_pos):
+        return 0.6
+        
+    # Cruising Speed: 55.0 deg/s, Ramp Overhead: 0.6s
+    V_MAX = 49.5
+    T_OVERHEAD = 0.5
+    
+    max_diff = 0.0
+    for t, p in zip(target_pos, predecessor_pos):
+        diff = t - p
+        while diff > 180.0: diff -= 360.0
+        while diff < -180.0: diff += 360.0
+        max_diff = max(max_diff, abs(diff))
+        
+    return T_OVERHEAD + (max_diff / V_MAX)
+
 class KinovaHardware:
     """Handles direct communication with the Kinova Gen3 Robot via the Kortex API."""
     def __init__(self, ip="10.163.65.187", username="admin", password="admin"):
@@ -322,19 +345,22 @@ class KinovaHardware:
 
         # construct safe time-frame for movement action
         if duration_s > 0.0:
-            min_safe_duration = max(0.5, max_diff / 30.0) 
+            min_safe_duration = calculate_min_safe_duration(target_pos_deg, current_deg)
             actual_duration = max(float(duration_s), min_safe_duration)
             try: 
                 action.reach_joint_angles.constraint.type = Base_pb2.JOINT_CONSTRAINT_DURATION
             except AttributeError: 
                 action.reach_joint_angles.constraint.type = 1 
             action.reach_joint_angles.constraint.value = float(actual_duration)
+            log_msg = f"Action '{action_name}' sent to robot (Time constraint: {actual_duration:.2f}s)."
+        else:
+            log_msg = f"Action '{action_name}' sent to robot with NO duration constraint (Executing at maximum physical speed!)."
 
         # Notify application about new constructed action
         self._active_movement_pager = pager
         
         try:
-            self.logger.info(f"Action '{action_name}' sent to robot (Time to complete: {duration_s}s).")
+            self.logger.info(log_msg)
             self.base.ExecuteAction(action)
         except Exception as e:
             self.logger.error(f"Exception during API action call (Action '{action_name}'): {e}")

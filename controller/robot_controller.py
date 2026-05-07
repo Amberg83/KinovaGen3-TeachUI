@@ -53,7 +53,8 @@ class RobotController:
             "copy": self.handle_copy_poses,
             "paste": self.handle_paste_poses,
             "duplicate": self.handle_duplicate_poses,
-            "move_entry": self.handle_move_entry
+            "move_entry": self.handle_move_entry,
+            "apply_min_durations": self.handle_apply_min_durations
         })
 
         # Study Mode Setup
@@ -65,7 +66,6 @@ class RobotController:
             self.task_order_indices = [(pid_int - 1 + i) % n_tasks for i in range(n_tasks)]
             self.current_task_index = 0
             self.task_start_time = time.time()
-            self.study_history = []
             
             # Start Study UI Banner
             active_task = self.tasks[self.task_order_indices[self.current_task_index]]
@@ -105,9 +105,23 @@ class RobotController:
             threading.Thread(target=self.hardware.apply_emergency_stop, daemon=True).start()
 
     def handle_tree_select(self, idx):
-        """Passes model data to the view for the inspector."""
+        """Passes model data to the view for the inspector, including the predecessor's joint positions for dynamic min safe duration calculations."""
         step_data = self.model.sequence[idx]
-        self.view.load_inspector_data(step_data, idx)
+        
+        # Calculate predecessor position
+        predecessor_pos = None
+        if idx > 0:
+            prev_step = self.model.sequence[idx - 1]
+            if prev_step.get("type", "action") != "pause" and "pos" in prev_step:
+                predecessor_pos = prev_step["pos"]
+        else:
+            # For first step, compare with current live position if available, or default to Origin
+            if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
+                predecessor_pos = self.hardware.state.joint_angles_deg
+            else:
+                predecessor_pos = [0.0] * 6 # fallback to default/origin
+                
+        self.view.load_inspector_data(step_data, idx, predecessor_pos)
 
     def handle_preview_inspector_pose(self, poses):
         if not self.hardware.state.is_connected: return
@@ -193,6 +207,48 @@ class RobotController:
             self.model.update_pose(idx, params)
             self._auto_save()
             self.logger.info(f"Overwrote WP #{idx} with data from Inspector.")
+
+    def handle_apply_min_durations(self, indices):
+        """Calculates and transactionally applies the physical minimum safe duration to each highlighted waypoint index."""
+        if not indices:
+            return
+            
+        index_to_dur = {}
+        for idx in indices:
+            if idx < 0 or idx >= len(self.model.sequence):
+                continue
+                
+            step_data = self.model.sequence[idx]
+            if step_data.get("type", "action") == "pause":
+                continue # Skip pause steps as their duration is a fixed delay
+                
+            # Compute predecessor pos
+            predecessor_pos = None
+            if idx > 0:
+                prev_step = self.model.sequence[idx - 1]
+                if prev_step.get("type", "action") != "pause" and "pos" in prev_step:
+                    predecessor_pos = prev_step["pos"]
+            else:
+                if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
+                    predecessor_pos = self.hardware.state.joint_angles_deg
+                else:
+                    predecessor_pos = [0.0] * 6
+                    
+            target_pos = step_data.get("pos", [0.0] * 6)
+            
+            # Retrieve centralized duration
+            from hardware.kinova_hardware import calculate_min_safe_duration
+            min_dur = calculate_min_safe_duration(target_pos, predecessor_pos)
+            
+            # Save mapped duration (rounded to 2 decimals)
+            index_to_dur[idx] = round(min_dur, 2)
+            
+        if index_to_dur:
+            self.model.bulk_update_durations_custom(index_to_dur)
+            self._auto_save()
+            self.logger.info(f"Applied physical max speed limits to {len(index_to_dur)} waypoint(s).")
+            # Select first index to refresh form entries
+            self.view.panel_seq.select_index(indices[0])
 
     def _auto_save(self):
         """Explicitly called by the Controller only after actual data mutations."""
@@ -299,36 +355,34 @@ class RobotController:
         task_id = active_task["id"]
         task_name = active_task["name"]
         
-        # 1. Back up current timeline JSON
-        backup_dir = os.path.join("expressions", f"PID_{self.participant_id}")
-        os.makedirs(backup_dir, exist_ok=True)
+        # 1. Back up current timeline JSON inside separate folder for the PID
+        study_results_dir = "study_results"
+        pid_dir = os.path.join(study_results_dir, self.participant_id)
+        os.makedirs(pid_dir, exist_ok=True)
+        
         timestamp_str = time.strftime("%Y_%m_%d-%H_%M_%S")
         backup_filename = f"task_{task_id}_{timestamp_str}.json"
-        backup_path = os.path.join(backup_dir, backup_filename)
+        backup_path = os.path.join(pid_dir, backup_filename)
         
         # Save sequence list even if empty
         self.model.save_to_json(backup_path)
         
         # 2. Append to log file
-        log_dir = "log"
-        os.makedirs(log_dir, exist_ok=True)
-        log_path = os.path.join(log_dir, "study_logs.csv")
+        log_path = os.path.join(study_results_dir, "study_logs.csv")
         
         start_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.task_start_time))
         end_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
         
         # Write individual task completion
         write_header = not os.path.exists(log_path)
+        presentation_order = self.current_task_index + 1
         try:
             with open(log_path, "a", encoding="utf-8") as f:
                 if write_header:
-                    f.write("PID,ReferentID,ReferentName,StartTime,EndTime,BackupFile\n")
-                f.write(f'"{self.participant_id}",{task_id},"{task_name}","{start_time_str}","{end_time_str}","{backup_filename}"\n')
+                    f.write("PID,PresentationOrder,ReferentID,ReferentName,StartTime,EndTime,BackupFile\n")
+                f.write(f'"{self.participant_id}",{presentation_order},{task_id},"{task_name}","{start_time_str}","{end_time_str}","{backup_filename}"\n')
         except Exception as e:
             self.logger.error(f"Failed to write study_logs.csv: {e}")
-            
-        # Record task history for consolidated summary
-        self.study_history.append((task_id, end_time_str))
         
         # Play a beautiful double success beep!
         self.hardware.play_chime("captured")
@@ -343,24 +397,31 @@ class RobotController:
             self.view.update_study_task(next_task, self.current_task_index + 1, len(self.tasks))
             self.logger.info(f"Transitioned to study task {self.current_task_index + 1}/{len(self.tasks)}.")
         else:
-            # Study completed! Append consolidated entry
-            consolidated_log_path = os.path.join(log_dir, "study_participant_summary.csv")
-            write_summary_header = not os.path.exists(consolidated_log_path)
-            try:
-                with open(consolidated_log_path, "a", encoding="utf-8") as f:
-                    if write_summary_header:
-                        cols = ["PID"]
-                        for idx in range(1, len(self.tasks) + 1):
-                            cols.extend([f"ReferentID_{idx}", f"Timestamp_{idx}"])
-                        f.write(",".join(cols) + "\n")
-                    
-                    parts = [f'"{self.participant_id}"']
-                    for tid, tstamp in self.study_history:
-                        parts.extend([str(tid), f'"{tstamp}"'])
-                    f.write(",".join(parts) + "\n")
-            except Exception as e:
-                self.logger.error(f"Failed to write study_participant_summary.csv: {e}")
+            # Study completed! Copy the current log file to the participant's directory.
+            # 1. Flush any active file handlers
+            for handler in logging.getLogger().handlers:
+                if isinstance(handler, logging.FileHandler):
+                    handler.flush()
             
+            # 2. Find and copy the active log file
+            import shutil
+            copied_log = False
+            for handler in logging.getLogger().handlers:
+                if isinstance(handler, logging.FileHandler):
+                    active_log_filepath = handler.baseFilename
+                    if active_log_filepath and os.path.exists(active_log_filepath):
+                        try:
+                            target_log_path = os.path.join(pid_dir, "teach_ui.log")
+                            shutil.copy(active_log_filepath, target_log_path)
+                            self.logger.info(f"Successfully archived current session log to '{target_log_path}'.")
+                            copied_log = True
+                            break # Found and copied the log file
+                        except Exception as copy_err:
+                            self.logger.error(f"Failed to copy active log file: {copy_err}")
+                            
+            if not copied_log:
+                self.logger.warning("Could not locate active log file handler to archive.")
+                
             # Disable study mode panel in UI
             self.view.show_study_completed()
             self.model.clear()

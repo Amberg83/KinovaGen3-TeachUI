@@ -34,23 +34,23 @@ class RobotView:
         self.lbl_fault_badge.pack(side="left")
 
         # Connection status badge (Center-aligned using geometric placement)
-        self.lbl_status = tk.Label(status_frame, text="🔌 DISCONNECTED", font=theme.FONT_BOLD, bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, padx=15, pady=3, relief="flat")
+        self.lbl_status = tk.Label(status_frame, text=" DISCONNECTED", image=theme.get_icon("disconnected"), compound="left", font=theme.FONT_BOLD, bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, padx=15, pady=3, relief="flat")
         self.lbl_status.place(relx=0.5, rely=0.5, anchor="center")
         
         btn_frame = tk.Frame(status_frame, bg=theme.BG_HEADER)
         btn_frame.pack(side="right")
         
         self.btn_reconnect = theme.make_flat_button(
-            btn_frame, text="🔄 Reconnect", bg_color=theme.BG_INPUT, 
+            btn_frame, text=" Reconnect", image=theme.get_icon("reconnect"), compound="left", bg_color=theme.BG_INPUT, 
             fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-            font_style=theme.FONT_EMOJI, padx=12, pady=4
+            font_style=theme.FONT_BOLD, padx=12, pady=4
         )
         self.btn_reconnect.pack(side="left", padx=5)
         
         self.btn_clear_faults = theme.make_flat_button(
-            btn_frame, text="🧹 Clear Faults", bg_color=theme.ACCENT_ORANGE, 
+            btn_frame, text=" Clear Faults", image=theme.get_icon("wrench", tint=theme.BG_MAIN), compound="left", bg_color=theme.ACCENT_ORANGE, 
             fg_color=theme.BG_MAIN, hover_bg="#d97706", 
-            font_style=theme.FONT_EMOJI, padx=12, pady=4
+            font_style=theme.FONT_BOLD, padx=12, pady=4
         )
         self.btn_clear_faults.pack(side="left", padx=5)
 
@@ -114,7 +114,8 @@ class RobotView:
         self.panel_insp.bind_commands({
             "preview_pose": self.on_preview_pose,
             "save_settings": self.on_save_waypoint,
-            "append_pose": self.on_append_inspector_pose
+            "append_pose": self.on_append_inspector_pose,
+            "apply_min_durations": self.on_apply_min_durations
         })
 
         # Global Hotkey listeners
@@ -181,6 +182,11 @@ class RobotView:
         poses = self.panel_insp.get_inspector_poses()
         if poses and "append_inspector_pose" in self.commands:
             self.commands["append_inspector_pose"](params, poses)
+            
+    def on_apply_min_durations(self):
+        indices = self.panel_seq.get_selected_indices()
+        if indices and "apply_min_durations" in self.commands:
+            self.commands["apply_min_durations"](indices)
     
     def on_apply_admittance(self):
         mode = self.panel_live.get_selected_admittance_mode()
@@ -271,13 +277,17 @@ class RobotView:
             self._last_status_text = current_conn_state
             if state.is_connected:
                 self.lbl_status.config(
-                    text=f"🔌 CONNECTED: {current_conn_state[1]} ({current_conn_state[2]}-DOF)",
+                    text=f" CONNECTED: {current_conn_state[1]} ({current_conn_state[2]}-DOF)",
+                    image=theme.get_icon("connected"),
+                    compound="left",
                     bg="#172554",   # Deep dark navy-blue background
                     fg="#93c5fd"    # Bright sky-blue text
                 )
             else:
                 self.lbl_status.config(
-                    text="🔌 DISCONNECTED",
+                    text=" DISCONNECTED",
+                    image=theme.get_icon("disconnected"),
+                    compound="left",
                     bg=theme.BG_INPUT,
                     fg=theme.TEXT_MUTED
                 )
@@ -287,17 +297,21 @@ class RobotView:
         if current_fault_state != self._last_fault_state:
             self._last_fault_state = current_fault_state
             if not state.is_connected:
-                self.lbl_fault_badge.config(text="OFFLINE", bg=theme.BG_INPUT, fg=theme.TEXT_MUTED)
+                self.lbl_fault_badge.config(text="OFFLINE", image="", compound="none", bg=theme.BG_INPUT, fg=theme.TEXT_MUTED)
             else:
                 if state.has_fault:
                     self.lbl_fault_badge.config(
-                        text="⚠️ ARM FAULT ACTIVE", 
-                        bg="#7f1d1d",   # Rich dark warning red background
-                        fg="#fecaca"    # Soft rose red foreground
+                        text="ARM FAULT ACTIVE", 
+                        image=theme.get_icon("fault"),
+                        compound="left",
+                        bg=theme.ACCENT_RED, 
+                        fg=theme.TEXT_PRIMARY
                     )
                 else:
                     self.lbl_fault_badge.config(
-                        text="✅ SYSTEM HEALTHY", 
+                        text="SYSTEM HEALTHY", 
+                        image=theme.get_icon("healthy"),
+                        compound="left",
                         bg="#064e3b",   # Rich dark emerald background
                         fg="#a7f3d0"    # Soft mint green foreground
                     )
@@ -308,9 +322,9 @@ class RobotView:
         self.panel_live.update_telemetry(state)
 
     # ================= PUBLIC API INTERFACES FOR CONTROLLER =================
-    def load_inspector_data(self, data, index):
+    def load_inspector_data(self, data, index, predecessor_pos=None):
         """Called by controller to load a selected waypoint into the editor form."""
-        self.panel_insp.load_inspector_data(data, index)
+        self.panel_insp.load_inspector_data(data, index, predecessor_pos)
 
     # ================= STUDY MODE WIDGET DECORATIONS =================
 
@@ -332,14 +346,14 @@ class RobotView:
         info_frame.grid(row=0, column=0, sticky="w")
         
         self.lbl_study_p = tk.Label(
-            info_frame, text=f"👤 Participant: #{pid}", 
-            font=theme.FONT_TITLE, bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY
+            info_frame, text=f" Participant: #{pid}", image=theme.get_icon("participant"), compound="left",
+            font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY
         )
         self.lbl_study_p.pack(anchor="w")
         
         self.lbl_study_counter = tk.Label(
-            info_frame, text=f"📋 Task {current_idx}/{total_count}", 
-            font=theme.FONT_NORMAL, bg=theme.BG_CARD, fg=theme.ACCENT_CYBER
+            info_frame, text=f" Task {current_idx}/{total_count}", image=theme.get_icon("task"), compound="left",
+            font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.ACCENT_CYBER
         )
         self.lbl_study_counter.pack(anchor="w", pady=(2, 0))
         
@@ -361,9 +375,9 @@ class RobotView:
         self.lbl_task_desc.pack(anchor="w", pady=(2, 0))
         
         self.btn_study_next = theme.make_flat_button(
-            self.study_banner, text="✅ Task Completed / Next Referent", 
+            self.study_banner, text=" Task Completed / Next Referent", image=theme.get_icon("play"), compound="left",
             bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, 
-            hover_bg="#059669", font_style=theme.FONT_EMOJI_LARGE, 
+            hover_bg="#059669", font_style=theme.FONT_BOLD, 
             padx=20, pady=8, command=on_completed_callback
         )
         self.btn_study_next.grid(row=0, column=2, sticky="e", padx=(10, 0))
@@ -372,7 +386,7 @@ class RobotView:
         """Transitions study banner details smoothly to the next task sequence."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
             return
-        self.lbl_study_counter.config(text=f"📋 Task {current_idx}/{total_count}")
+        self.lbl_study_counter.config(text=f" Task {current_idx}/{total_count}")
         self.lbl_task_name.config(text=f"Active Referent: {task['name']}")
         self.lbl_task_desc.config(text=task["instructions"])
 
@@ -380,10 +394,10 @@ class RobotView:
         """Displays a beautiful celebration state and informs user of task completions."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
             return
-        self.lbl_study_counter.config(text="📋 Tasks Completed!", fg=theme.ACCENT_GREEN)
-        self.lbl_task_name.config(text="🎉 All study referents have been completed successfully!", fg=theme.ACCENT_GREEN)
+        self.lbl_study_counter.config(text=" Tasks Completed!", fg=theme.ACCENT_GREEN)
+        self.lbl_task_name.config(text="All study referents have been completed successfully!", fg=theme.ACCENT_GREEN)
         self.lbl_task_desc.config(text="The study data and JSON state sequences have been successfully saved to /log/ and /expressions/.\nPlease close the application to reset.")
-        self.btn_study_next.config(state=tk.DISABLED, text="🎉 Done!", bg_color=theme.BORDER_COLOR, fg_color=theme.TEXT_MUTED)
+        self.btn_study_next.config(state=tk.DISABLED, text="Done!", bg_color=theme.BORDER_COLOR, fg_color=theme.TEXT_MUTED)
         
         # Visual alert popup
         tk.messagebox.showinfo(
