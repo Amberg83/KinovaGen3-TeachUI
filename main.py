@@ -5,12 +5,14 @@ import time
 import logging
 import queue
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import scrolledtext
 from hardware import KinovaHardware, MockKinovaHardware
 from model import SequenceModel
 from view import RobotView, ConnectionDialog
 from controller import RobotController
 from utils.sound_coordinator import SoundCoordinator
+from view import theme
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "connection_config.json")
@@ -100,27 +102,30 @@ def save_config(ip, username, password):
 
 def main():
     """Application entry point: Prompts for connection and builds MVC structure."""
-    root = tk.Tk()
-    root.withdraw() 
-    
     config = load_config()
     
+    # Run setup login screen as standalone root CTk window
     dialog = ConnectionDialog(
-        root, 
         default_ip=config.get("ip", ""), 
         default_user=config.get("username", ""), 
         default_pass=config.get("password", "")
     )
-    root.wait_window(dialog)
+    dialog.mainloop()
     
     if dialog.result is None:
         print("Connection cancelled by user. Shutting down.")
-        root.destroy()
         sys.exit(0)
         
     ip, username, password, participant_id = dialog.result
     save_config(ip, username, password)
-    root.deiconify() 
+
+    # Initialize main dashboard application root
+    root = ctk.CTk()
+    root.title("Kinova Gen3 TeachUI Dashboard")
+    root.configure(fg_color=theme.BG_MAIN)
+    
+    scaling = root._get_window_scaling()
+    theme.update_treeview_font_scaling(scaling)
 
     if "mock" in ip.lower():
         logging.getLogger("Main").info("Launching in OFFLINE SIMULATION (MOCK) Mode.")

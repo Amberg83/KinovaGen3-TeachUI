@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, filedialog
+from tkinter import ttk, scrolledtext, filedialog, messagebox
+import customtkinter as ctk
 from view.panels import LiveStatePanel, SequenceTimelinePanel, WaypointInspectorPanel
 from view import theme
 
@@ -8,7 +9,16 @@ class RobotView:
         self.root = root
         self.root.title("Robot Teach-In Controller (Dashboard)")
         self.root.geometry("1450x820") 
-        self.root.configure(bg=theme.BG_MAIN)
+        self.root.configure(fg_color=theme.BG_MAIN)
+        
+        # Maximize the dashboard window dynamically (Windows + Linux cross-platform compliant)
+        try:
+            self.root.state('zoomed')
+        except Exception:
+            try:
+                self.root.attributes('-zoomed', True)
+            except Exception:
+                pass
         
         self.commands = {}
         self.is_dialog_open = False
@@ -25,51 +35,92 @@ class RobotView:
  
     def setup_ui(self):
         # --- HEADER (Connection Status & Header Operations) ---
-        status_frame = tk.Frame(self.root, bg=theme.BG_HEADER, padx=15, pady=8,
-                                highlightbackground=theme.BORDER_COLOR, highlightthickness=1)
+        status_frame = ctk.CTkFrame(
+            self.root, fg_color=theme.BG_HEADER, corner_radius=0,
+            border_color=theme.BORDER_COLOR, border_width=1
+        )
         status_frame.pack(fill="x")
         
         # Premium custom flat fault indicator pill badge (Left-aligned)
-        self.lbl_fault_badge = tk.Label(status_frame, text="OFFLINE", font=theme.FONT_BOLD, bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, padx=12, pady=3, relief="flat")
-        self.lbl_fault_badge.pack(side="left")
+        self.lbl_fault_badge = theme.make_label(
+            status_frame, text="OFFLINE", font=theme.FONT_BOLD,
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
+            padx=12, pady=4, corner_radius=4
+        )
+        self.lbl_fault_badge.pack(side="left", padx=15, pady=8)
 
         # Connection status badge (Center-aligned using geometric placement)
-        self.lbl_status = tk.Label(status_frame, text=" DISCONNECTED", image=theme.get_icon("disconnected"), compound="left", font=theme.FONT_BOLD, bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, padx=15, pady=3, relief="flat")
+        self.lbl_status = theme.make_label(
+            status_frame, text=" DISCONNECTED", image=theme.get_icon("disconnected"),
+            compound="left", font=theme.FONT_BOLD, fg_color=theme.BG_INPUT,
+            text_color=theme.TEXT_MUTED, padx=15, pady=4, corner_radius=4
+        )
         self.lbl_status.place(relx=0.5, rely=0.5, anchor="center")
         
-        btn_frame = tk.Frame(status_frame, bg=theme.BG_HEADER)
-        btn_frame.pack(side="right")
+        btn_frame = ctk.CTkFrame(status_frame, fg_color=theme.BG_HEADER, corner_radius=0)
+        btn_frame.pack(side="right", padx=15, pady=8)
         
         self.btn_reconnect = theme.make_flat_button(
             btn_frame, text=" Reconnect", image=theme.get_icon("reconnect"), compound="left", bg_color=theme.BG_INPUT, 
             fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-            font_style=theme.FONT_BOLD, padx=12, pady=4
+            font_style=theme.FONT_BOLD
         )
         self.btn_reconnect.pack(side="left", padx=5)
         
         self.btn_clear_faults = theme.make_flat_button(
             btn_frame, text=" Clear Faults", image=theme.get_icon("wrench", tint=theme.BG_MAIN), compound="left", bg_color=theme.ACCENT_ORANGE, 
             fg_color=theme.BG_MAIN, hover_bg="#d97706", 
-            font_style=theme.FONT_BOLD, padx=12, pady=4
+            font_style=theme.FONT_BOLD
         )
         self.btn_clear_faults.pack(side="left", padx=5)
 
         # --- 3-COLUMN MAIN LAYOUT ---
-        content_frame = tk.Frame(self.root, bg=theme.BG_MAIN)
+        self.content_frame = content_frame = ctk.CTkFrame(self.root, fg_color=theme.BG_MAIN, corner_radius=0)
         content_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # ttk.Panedwindow style is mapped inside theme configuration
-        self.paned = ttk.PanedWindow(content_frame, orient=tk.HORIZONTAL, style="TPanedwindow")
-        self.paned.pack(fill="both", expand=True)
+        # Proportional ratio tracking for 3 columns (sums to 1.0)
+        self.panel_ratios = [0.22, 0.56, 0.22]
+        
+        # Columns Packages instantiation (parented to content_frame)
+        self.panel_live = LiveStatePanel(content_frame)
+        self.panel_seq = SequenceTimelinePanel(content_frame)
+        self.panel_insp = WaypointInspectorPanel(content_frame)
 
-        # Columns Packages instantiation
-        self.panel_live = LiveStatePanel(self.paned)
-        self.panel_seq = SequenceTimelinePanel(self.paned)
-        self.panel_insp = WaypointInspectorPanel(self.paned)
+        # Disable geometry propagation so they respect the exact configured layout sizes
+        self.panel_live.pack_propagate(False)
+        self.panel_live.grid_propagate(False)
+        self.panel_seq.pack_propagate(False)
+        self.panel_seq.grid_propagate(False)
+        self.panel_insp.pack_propagate(False)
+        self.panel_insp.grid_propagate(False)
 
-        self.paned.add(self.panel_live, weight=1)
-        self.paned.add(self.panel_seq, weight=3)
-        self.paned.add(self.panel_insp, weight=1)
+        # Create custom vertical dragging dividers (glowing separators)
+        self.panel_sep_0 = ctk.CTkFrame(content_frame, fg_color="transparent", cursor="size_we", width=6)
+        self.panel_sep_1 = ctk.CTkFrame(content_frame, fg_color="transparent", cursor="size_we", width=6)
+
+        # Hover animations for panel separators
+        def on_p_sep_enter(sep, event):
+            sep.configure(fg_color=theme.ACCENT_CYBER)
+            
+        def on_p_sep_leave(sep, event):
+            sep.configure(fg_color="transparent")
+            
+        self.panel_sep_0.bind("<Enter>", lambda e, s=self.panel_sep_0: on_p_sep_enter(s, e))
+        self.panel_sep_0.bind("<Leave>", lambda e, s=self.panel_sep_0: on_p_sep_leave(s, e))
+        self.panel_sep_1.bind("<Enter>", lambda e, s=self.panel_sep_1: on_p_sep_enter(s, e))
+        self.panel_sep_1.bind("<Leave>", lambda e, s=self.panel_sep_1: on_p_sep_leave(s, e))
+
+        # Bind resizing drag-motion events to dividers
+        self.panel_sep_0.bind("<ButtonPress-1>", lambda e: self.on_p_sep_press(0, e))
+        self.panel_sep_0.bind("<B1-Motion>", self.on_p_sep_motion)
+        self.panel_sep_0.bind("<ButtonRelease-1>", self.on_p_sep_release)
+        
+        self.panel_sep_1.bind("<ButtonPress-1>", lambda e: self.on_p_sep_press(1, e))
+        self.panel_sep_1.bind("<B1-Motion>", self.on_p_sep_motion)
+        self.panel_sep_1.bind("<ButtonRelease-1>", self.on_p_sep_release)
+
+        # Handle responsive resize on content_frame configure event
+        content_frame.bind("<Configure>", self.on_content_resize)
 
         # Expose the System Logs Console from Column 2 to the global logger
         self.log_area = self.panel_seq.log_area
@@ -79,8 +130,8 @@ class RobotView:
         self.commands = commands
         
         # Connect Header items
-        self.btn_reconnect.config(command=self.commands.get("reconnect"))
-        self.btn_clear_faults.config(command=self.commands.get("clear_faults"))
+        self.btn_reconnect.configure(command=self.commands.get("reconnect"))
+        self.btn_clear_faults.configure(command=self.commands.get("clear_faults"))
         
         # Bind Column 1
         self.panel_live.bind_commands(
@@ -236,7 +287,7 @@ class RobotView:
 
     def on_pause_media(self):
         is_paused = self.commands.get("pause_media")() if "pause_media" in self.commands else False
-        self.panel_seq.btn_pause_media.config(fg="orange" if is_paused else "white")
+        self.panel_seq.btn_pause_media.configure(text_color="orange" if is_paused else "white")
 
     def prompt_load_json(self):
         self.is_dialog_open = True 
@@ -276,20 +327,20 @@ class RobotView:
         if current_conn_state != self._last_status_text:
             self._last_status_text = current_conn_state
             if state.is_connected:
-                self.lbl_status.config(
+                self.lbl_status.configure(
                     text=f" CONNECTED: {current_conn_state[1]} ({current_conn_state[2]}-DOF)",
                     image=theme.get_icon("connected"),
                     compound="left",
-                    bg="#172554",   # Deep dark navy-blue background
-                    fg="#93c5fd"    # Bright sky-blue text
+                    fg_color="#172554",   # Deep dark navy-blue background
+                    text_color="#93c5fd"    # Bright sky-blue text
                 )
             else:
-                self.lbl_status.config(
+                self.lbl_status.configure(
                     text=" DISCONNECTED",
                     image=theme.get_icon("disconnected"),
                     compound="left",
-                    bg=theme.BG_INPUT,
-                    fg=theme.TEXT_MUTED
+                    fg_color=theme.BG_INPUT,
+                    text_color=theme.TEXT_MUTED
                 )
 
         # 2. Update Fault Status Badge (Separate & highly prominent)
@@ -297,23 +348,23 @@ class RobotView:
         if current_fault_state != self._last_fault_state:
             self._last_fault_state = current_fault_state
             if not state.is_connected:
-                self.lbl_fault_badge.config(text="OFFLINE", image="", compound="none", bg=theme.BG_INPUT, fg=theme.TEXT_MUTED)
+                self.lbl_fault_badge.configure(text="OFFLINE", image="", compound="none", fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
             else:
                 if state.has_fault:
-                    self.lbl_fault_badge.config(
+                    self.lbl_fault_badge.configure(
                         text="ARM FAULT ACTIVE", 
                         image=theme.get_icon("fault"),
                         compound="left",
-                        bg=theme.ACCENT_RED, 
-                        fg=theme.TEXT_PRIMARY
+                        fg_color=theme.ACCENT_RED, 
+                        text_color=theme.TEXT_PRIMARY
                     )
                 else:
-                    self.lbl_fault_badge.config(
+                    self.lbl_fault_badge.configure(
                         text="SYSTEM HEALTHY", 
                         image=theme.get_icon("healthy"),
                         compound="left",
-                        bg="#064e3b",   # Rich dark emerald background
-                        fg="#a7f3d0"    # Soft mint green foreground
+                        fg_color="#064e3b",   # Rich dark emerald background
+                        text_color="#a7f3d0"    # Soft mint green foreground
                     )
 
         if not state.is_connected: return
@@ -330,47 +381,47 @@ class RobotView:
 
     def enable_study_mode(self, pid, first_task, current_idx, total_count, on_completed_callback):
         """Builds a beautiful premium banner panel representing participant task progress."""
-        self.study_banner = tk.Frame(
-            self.root, bg=theme.BG_CARD, padx=15, pady=10, bd=0,
-            highlightbackground=theme.ACCENT_CYBER, highlightthickness=1
+        self.study_banner = ctk.CTkFrame(
+            self.root, fg_color=theme.BG_CARD, corner_radius=6,
+            border_color=theme.ACCENT_CYBER, border_width=1
         )
         # Pack right beneath the main status_frame
-        self.study_banner.pack(fill="x", before=self.root.pack_slaves()[1])
+        self.study_banner.pack(fill="x", before=self.root.pack_slaves()[1], padx=10, pady=(5, 0))
         
         # Grid layout for high-density information
         self.study_banner.columnconfigure(0, weight=1)
         self.study_banner.columnconfigure(1, weight=3)
         self.study_banner.columnconfigure(2, weight=0)
         
-        info_frame = tk.Frame(self.study_banner, bg=theme.BG_CARD)
-        info_frame.grid(row=0, column=0, sticky="w")
+        info_frame = ctk.CTkFrame(self.study_banner, fg_color=theme.BG_CARD, corner_radius=0)
+        info_frame.grid(row=0, column=0, sticky="w", padx=15, pady=10)
         
-        self.lbl_study_p = tk.Label(
+        self.lbl_study_p = theme.make_label(
             info_frame, text=f" Participant: #{pid}", image=theme.get_icon("participant"), compound="left",
-            font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY
+            font=theme.FONT_BOLD, fg_color=theme.BG_CARD, text_color=theme.TEXT_PRIMARY
         )
         self.lbl_study_p.pack(anchor="w")
         
-        self.lbl_study_counter = tk.Label(
+        self.lbl_study_counter = theme.make_label(
             info_frame, text=f" Task {current_idx}/{total_count}", image=theme.get_icon("task"), compound="left",
-            font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.ACCENT_CYBER
+            font=theme.FONT_BOLD, fg_color=theme.BG_CARD, text_color=theme.ACCENT_CYBER
         )
         self.lbl_study_counter.pack(anchor="w", pady=(2, 0))
         
-        inst_frame = tk.Frame(self.study_banner, bg=theme.BG_CARD)
-        inst_frame.grid(row=0, column=1, sticky="w", padx=20)
+        inst_frame = ctk.CTkFrame(self.study_banner, fg_color=theme.BG_CARD, corner_radius=0)
+        inst_frame.grid(row=0, column=1, sticky="w", padx=20, pady=10)
         
-        self.lbl_task_name = tk.Label(
+        self.lbl_task_name = theme.make_label(
             inst_frame, text=f"Active Referent: {first_task['name']}", 
             font=(theme.FONT_NORMAL[0], theme.FONT_NORMAL[1] + 1, "bold"), 
-            bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY
+            fg_color=theme.BG_CARD, text_color=theme.TEXT_PRIMARY
         )
         self.lbl_task_name.pack(anchor="w")
         
-        self.lbl_task_desc = tk.Label(
+        self.lbl_task_desc = theme.make_label(
             inst_frame, text=first_task["instructions"], 
-            font=theme.FONT_NORMAL, bg=theme.BG_CARD, fg=theme.TEXT_MUTED,
-            justify="left", anchor="w"
+            font=theme.FONT_NORMAL, fg_color=theme.BG_CARD, text_color=theme.TEXT_MUTED,
+            justify="left"
         )
         self.lbl_task_desc.pack(anchor="w", pady=(2, 0))
         
@@ -378,29 +429,125 @@ class RobotView:
             self.study_banner, text=" Task Completed / Next Referent", image=theme.get_icon("play"), compound="left",
             bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, 
             hover_bg="#059669", font_style=theme.FONT_BOLD, 
-            padx=20, pady=8, command=on_completed_callback
+            command=on_completed_callback
         )
-        self.btn_study_next.grid(row=0, column=2, sticky="e", padx=(10, 0))
+        self.btn_study_next.grid(row=0, column=2, sticky="e", padx=15, pady=10)
 
     def update_study_task(self, task, current_idx, total_count):
         """Transitions study banner details smoothly to the next task sequence."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
             return
-        self.lbl_study_counter.config(text=f" Task {current_idx}/{total_count}")
-        self.lbl_task_name.config(text=f"Active Referent: {task['name']}")
-        self.lbl_task_desc.config(text=task["instructions"])
+        self.lbl_study_counter.configure(text=f" Task {current_idx}/{total_count}")
+        self.lbl_task_name.configure(text=f"Active Referent: {task['name']}")
+        self.lbl_task_desc.configure(text=task["instructions"])
 
     def show_study_completed(self):
         """Displays a beautiful celebration state and informs user of task completions."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
             return
-        self.lbl_study_counter.config(text=" Tasks Completed!", fg=theme.ACCENT_GREEN)
-        self.lbl_task_name.config(text="All study referents have been completed successfully!", fg=theme.ACCENT_GREEN)
-        self.lbl_task_desc.config(text="The study data and JSON state sequences have been successfully saved to /log/ and /expressions/.\nPlease close the application to reset.")
-        self.btn_study_next.config(state=tk.DISABLED, text="Done!", bg_color=theme.BORDER_COLOR, fg_color=theme.TEXT_MUTED)
+        self.lbl_study_counter.configure(text=" Tasks Completed!", text_color=theme.ACCENT_GREEN)
+        self.lbl_task_name.configure(text="All study referents have been completed successfully!", text_color=theme.ACCENT_GREEN)
+        self.lbl_task_desc.configure(text="The study data and JSON state sequences have been successfully saved to /log/ and /expressions/.\nPlease close the application to reset.")
+        self.btn_study_next.configure(state="disabled", text="Done!", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
         
         # Visual alert popup
-        tk.messagebox.showinfo(
+        messagebox.showinfo(
             "Study Completed", 
             "Congratulations! All referent tasks are complete.\nThe participant logs are stored in /log/ and waypoint sequences in /expressions/.\n\nYou can now close the application."
         )
+
+    def on_content_resize(self, event):
+        """Called automatically when the main content container resizes (e.g. window scaling)."""
+        # CRITICAL: Only respond to resize events on the content_frame itself (or its rendering canvas),
+        # ignore any bubbled-up configure events from child widgets!
+        if event.widget != self.content_frame and event.widget != getattr(self.content_frame, "_canvas", None):
+            return
+            
+        scaling = self.root._get_window_scaling()
+        logical_W = event.width / scaling
+        logical_H = event.height / scaling
+        self.layout_panels(logical_W, logical_H)
+
+    def layout_panels(self, W, H):
+        """Precisely calculates and places columns and vertical separators using absolute pixels."""
+        # Total spacing taken by both vertical dividers (2 * 6px)
+        total_panel_w = W - 12
+        if total_panel_w <= 100:
+            return
+            
+        # Compute exact widths according to proportions
+        w0 = int(total_panel_w * self.panel_ratios[0])
+        w1 = int(total_panel_w * self.panel_ratios[1])
+        w2 = total_panel_w - w0 - w1
+        
+        # Geometry layout propagation using native CTk .configure for scaling
+        self.panel_live.configure(width=w0, height=H)
+        self.panel_live.place(x=0, y=0)
+        self.panel_live.apply_layout(w0 >= 290)
+        
+        x_sep0 = w0
+        self.panel_sep_0.configure(width=6, height=H)
+        self.panel_sep_0.place(x=x_sep0, y=0)
+        
+        self.panel_seq.configure(width=w1, height=H)
+        self.panel_seq.place(x=x_sep0 + 6, y=0)
+        self.panel_seq.layout_vertical_panels(w1, H)
+        
+        x_sep1 = x_sep0 + 6 + w1
+        self.panel_sep_1.configure(width=6, height=H)
+        self.panel_sep_1.place(x=x_sep1, y=0)
+        
+        self.panel_insp.configure(width=w2, height=H)
+        self.panel_insp.place(x=x_sep1 + 6, y=0)
+        self.panel_insp.apply_layout(w2 >= 290)
+
+    def on_p_sep_press(self, sep_idx, event):
+        """Initializes drag-state tracing on separator click."""
+        self._drag_p_sep_idx = sep_idx
+        self._drag_p_start_x = event.x_root
+        self._drag_p_start_ratios = list(self.panel_ratios)
+        self._drag_p_frame_w = self.panel_live.master.winfo_width()
+        
+    def on_p_sep_motion(self, event):
+        """Recalculates ratios in real-time based on absolute pointer movement."""
+        if getattr(self, "_drag_p_sep_idx", None) is None:
+            return
+            
+        scaling = self.root._get_window_scaling()
+        # Fetch physical width and unscale it for ratio checks
+        W_physical = self.content_frame.winfo_width()
+        W_logical = W_physical / scaling
+        
+        dx = event.x_root - self._drag_p_start_x
+        
+        # Determine movement in terms of proportional width ratio (physical dx / physical total width)
+        # Note: both are in physical pixels, so the ratio is correct
+        dr = dx / (W_physical - 12)
+        
+        # Enforce robust minimum column width limits of 200px (logical pixels)
+        min_ratio = 200 / W_logical
+        
+        new_ratios = list(self._drag_p_start_ratios)
+        if self._drag_p_sep_idx == 0:
+            r0 = self._drag_p_start_ratios[0] + dr
+            r1 = self._drag_p_start_ratios[1] - dr
+            if r0 >= min_ratio and r1 >= min_ratio:
+                new_ratios[0] = r0
+                new_ratios[1] = r1
+                self.panel_ratios = new_ratios
+                logical_H = self.content_frame.winfo_height() / scaling
+                self.layout_panels(W_logical, logical_H)
+                
+        elif self._drag_p_sep_idx == 1:
+            r1 = self._drag_p_start_ratios[1] + dr
+            r2 = self._drag_p_start_ratios[2] - dr
+            if r1 >= min_ratio and r2 >= min_ratio:
+                new_ratios[1] = r1
+                new_ratios[2] = r2
+                self.panel_ratios = new_ratios
+                logical_H = self.content_frame.winfo_height() / scaling
+                self.layout_panels(W_logical, logical_H)
+
+    def on_p_sep_release(self, event):
+        """Ends active resizing drag operations."""
+        self._drag_p_sep_idx = None

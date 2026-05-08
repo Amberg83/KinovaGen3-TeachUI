@@ -1,72 +1,75 @@
 import tkinter as tk
+import customtkinter as ctk
 import re
 from view import theme
 
-class ConnectionDialog(tk.Toplevel):
-    """Blocking popup dialog that requests IP and Credentials on startup, styled with the dark flat theme."""
-    def __init__(self, parent, default_ip="", default_user="", default_pass=""):
-        super().__init__(parent)
+class ConnectionDialog(ctk.CTk):
+    """Blocking standalone popup dialog that requests IP and Credentials on startup, styled with the dark flat theme."""
+    def __init__(self, default_ip="", default_user="", default_pass=""):
+        super().__init__()
         self.title("Kinova Gen3 Dashboard Setup")
         self.resizable(False, False)
-        self.configure(bg=theme.BG_MAIN)
+        self.configure(fg_color=theme.BG_MAIN)
 
         self.result = None
 
-        self.ip_var = tk.StringVar(value=default_ip)
-        self.user_var = tk.StringVar(value=default_user)
-        self.pass_var = tk.StringVar(value=default_pass)
-        self.pid_var = tk.StringVar(value="")
+        self.ip_var = ctk.StringVar(value=default_ip)
+        self.user_var = ctk.StringVar(value=default_user)
+        self.pass_var = ctk.StringVar(value=default_pass)
+        self.pid_var = ctk.StringVar(value="")
 
         self.ip_var.trace_add("write", self.validate_inputs)
         self.user_var.trace_add("write", self.validate_inputs)
         self.pass_var.trace_add("write", self.validate_inputs)
 
         # ----------------- HEADER AREA -----------------
-        header_frame = tk.Frame(self, bg=theme.BG_HEADER, pady=18)
+        header_frame = ctk.CTkFrame(self, fg_color=theme.BG_HEADER, corner_radius=0)
         header_frame.pack(fill="x")
         
         # Tech Title with Cyber Teal accent
-        tk.Label(
+        theme.make_label(
             header_frame, text="KINOVA DASHBOARD", 
-            font=theme.FONT_TITLE, bg=theme.BG_HEADER, fg=theme.ACCENT_CYBER
-        ).pack()
+            font=theme.FONT_TITLE, fg_color=theme.BG_HEADER, text_color=theme.ACCENT_CYBER
+        ).pack(pady=(18, 0))
         
         # Subtitle
-        tk.Label(
+        theme.make_label(
             header_frame, text="Configure connection & study credentials", 
-            font=(theme.FONT_NORMAL[0], 9, "normal"), bg=theme.BG_HEADER, fg=theme.TEXT_MUTED
-        ).pack(pady=(2, 0))
+            font=(theme.FONT_NORMAL[0], 9, "normal"), fg_color=theme.BG_HEADER, text_color=theme.TEXT_MUTED
+        ).pack(pady=(2, 18))
 
         # Horizontal accent division line
-        divider = tk.Frame(self, height=2, bg=theme.ACCENT_CYBER)
+        divider = ctk.CTkFrame(self, height=2, fg_color=theme.ACCENT_CYBER, corner_radius=0)
         divider.pack(fill="x")
 
         # ----------------- BODY/INPUT AREA -----------------
-        body_frame = tk.Frame(self, bg=theme.BG_MAIN, padx=30, pady=20)
-        body_frame.pack(fill="both", expand=True)
+        body_frame = ctk.CTkFrame(self, fg_color=theme.BG_MAIN, corner_radius=0)
+        body_frame.pack(fill="both", expand=True, padx=30, pady=20)
 
         # Styled container card for inputs
-        card = tk.Frame(
-            body_frame, bg=theme.BG_CARD, padx=20, pady=20, 
-            highlightbackground=theme.BORDER_COLOR, highlightthickness=1
+        card = ctk.CTkFrame(
+            body_frame, fg_color=theme.BG_CARD,
+            border_color=theme.BORDER_COLOR, border_width=1, corner_radius=6
         )
-        card.pack(fill="both", expand=True)
+        card.pack(fill="both", expand=True, padx=5, pady=5)
 
         # Helper to create inputs
         def build_field(parent, label_text, text_var, is_password=False, is_mono=False):
             # Muted, small uppercase labels for high-end cyber look
-            tk.Label(
+            theme.make_label(
                 parent, text=label_text.upper(), 
-                font=(theme.FONT_NORMAL[0], 8, "bold"), bg=theme.BG_CARD, fg=theme.TEXT_MUTED
-            ).pack(anchor="w", pady=(10, 3))
+                font=(theme.FONT_NORMAL[0], 8, "bold"), fg_color=theme.BG_CARD, text_color=theme.TEXT_MUTED
+            ).pack(anchor="w", pady=(10, 3), padx=20)
             
             ent_font = theme.FONT_MONO if is_mono else theme.FONT_NORMAL
-            entry = tk.Entry(
-                parent, width=32, justify="center", textvariable=text_var, 
-                show="*" if is_password else "", font=ent_font
+            entry = ctk.CTkEntry(
+                parent, width=280, justify="center", textvariable=text_var, 
+                show="*" if is_password else "", font=ent_font,
+                fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY,
+                border_color=theme.BORDER_COLOR, corner_radius=4,
+                border_width=1, height=30
             )
-            entry.pack(fill="x", ipady=3)
-            theme.apply_entry_theme(entry)
+            entry.pack(fill="x", padx=20, pady=(0, 10))
             return entry
 
         self.ent_ip = build_field(card, "IP Address (IPv4)", self.ip_var, is_mono=True)
@@ -75,33 +78,33 @@ class ConnectionDialog(tk.Toplevel):
         self.ent_pid = build_field(card, "User Study ID (Optional)", self.pid_var)
 
         # Helpful notice badge
-        notice_frame = tk.Frame(
-            card, bg=theme.BG_INPUT, padx=10, pady=8,
-            highlightbackground=theme.BORDER_COLOR, highlightthickness=1
+        notice_frame = ctk.CTkFrame(
+            card, fg_color=theme.BG_INPUT,
+            border_color=theme.BORDER_COLOR, border_width=1, corner_radius=4
         )
-        notice_frame.pack(fill="x", pady=(15, 0))
+        notice_frame.pack(fill="x", pady=15, padx=20)
         
-        tk.Label(
+        theme.make_label(
             notice_frame, text=" Leave Participant ID empty to launch in Expert Mode.",
             image=theme.get_icon("lightbulb"), compound="left",
-            font=(theme.FONT_NORMAL[0], 8, "normal"), bg=theme.BG_INPUT, fg=theme.TEXT_MUTED,
+            font=(theme.FONT_NORMAL[0], 8, "normal"), fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
             wraplength=220, justify="left"
-        ).pack(fill="x")
+        ).pack(fill="x", padx=10, pady=8)
 
         # ----------------- ACTION BUTTONS -----------------
-        btn_frame = tk.Frame(self, bg=theme.BG_MAIN, pady=15)
-        btn_frame.pack(fill="x")
+        btn_frame = ctk.CTkFrame(self, fg_color=theme.BG_MAIN, corner_radius=0)
+        btn_frame.pack(fill="x", pady=(0, 15))
         
         self.btn_connect = theme.make_flat_button(
             btn_frame, text="Connect", bg_color=theme.ACCENT_GREEN, 
-            fg_color=theme.BG_MAIN, hover_bg="#059669", width=14, pady=8
+            fg_color=theme.BG_MAIN, hover_bg="#059669", command=self.on_connect
         )
         self.btn_connect.pack(side="left", padx=(30, 10), fill="x", expand=True)
         
         btn_cancel = theme.make_flat_button(
             btn_frame, text="Cancel", bg_color=theme.BG_INPUT, 
             fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-            width=14, pady=8, command=self.on_cancel
+            command=self.on_cancel
         )
         btn_cancel.pack(side="left", padx=(10, 30), fill="x", expand=True)
 
@@ -113,13 +116,18 @@ class ConnectionDialog(tk.Toplevel):
         self.update_idletasks() 
         width = self.winfo_reqwidth()
         height = self.winfo_reqheight()
-        self.geometry(f"{width}x{height}")
         
-        # Position exactly at screen center
-        x = (self.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.winfo_screenheight() // 2) - (height // 2)
-        self.geometry(f'+{x}+{y}') 
-        self.grab_set()
+        # Scaling correction for center-placement on high-DPI screens
+        scale = self._get_window_scaling()
+        sw = int(self.winfo_screenwidth() / scale)
+        sh = int(self.winfo_screenheight() / scale)
+        
+        x = (sw // 2) - (width // 2)
+        y = (sh // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        
+        # Bring to front & capture focus
+        self.focus_force()
 
     def validate_inputs(self, *args):
         """Enables the Connect button only if inputs match valid IP format."""
@@ -133,17 +141,13 @@ class ConnectionDialog(tk.Toplevel):
         ip_pattern = r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
         if re.match(ip_pattern, ip):
             is_valid_ip = all(0 <= int(part) <= 255 for part in ip.split('.'))
+        elif "mock" in ip.lower():
+            is_valid_ip = True
 
         if all_filled and is_valid_ip:
-            self.btn_connect.config(state=tk.NORMAL, bg=theme.ACCENT_GREEN, fg=theme.BG_MAIN, cursor="hand2")
-            self.btn_connect.bind("<Button-1>", lambda e: self.on_connect())
-            self.btn_connect.bind("<Enter>", lambda e: self.btn_connect.config(bg="#059669"))
-            self.btn_connect.bind("<Leave>", lambda e: self.btn_connect.config(bg=theme.ACCENT_GREEN))
+            self.btn_connect.configure(state="normal", fg_color=theme.ACCENT_GREEN, text_color=theme.BG_MAIN)
         else:
-            self.btn_connect.config(state=tk.DISABLED, bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED, cursor="arrow")
-            self.btn_connect.unbind("<Button-1>")
-            self.btn_connect.unbind("<Enter>")
-            self.btn_connect.unbind("<Leave>")
+            self.btn_connect.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
 
     def on_connect(self):
         """Commits the user input and closes the dialog."""

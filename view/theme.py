@@ -1,6 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 import os
+import customtkinter as ctk
+from PIL import Image
+
+# Initialize customtkinter default dark styles
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 # --- DESIGN SYSTEM COLOR PALETTE (Premium Dark/Cyber Mode) ---
 BG_MAIN = "#121214"         # Deep Slate Charcoal (MainWindow background)
@@ -30,56 +36,64 @@ FONT_MONO_SMALL = (("Consolas", "DejaVu Sans Mono", "Courier New", "monospace"),
 FONT_EMOJI = (("Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "DejaVu Sans", "Arial"), 10)
 FONT_EMOJI_LARGE = (("Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "DejaVu Sans", "Arial"), 12)
 
+def _get_best_font_family(fallbacks):
+    """Returns the first font family from fallbacks that is available on the system."""
+    import tkinter.font as tkfont
+    try:
+        available = [f.lower() for f in tkfont.families()]
+        for f in fallbacks:
+            if f.lower() in available:
+                return f
+    except Exception:
+        pass
+    return fallbacks[0] if fallbacks else "Arial"
+
+# Create TTK-compatible single-family font definitions to avoid falling back to microscopic font sizes
+best_font_family = _get_best_font_family(FONT_NORMAL[0])
+TTK_FONT_NORMAL = (best_font_family, 10, "normal")
+TTK_FONT_BOLD = (best_font_family, 10, "bold")
+
 # --- IMAGE / ICON CACHE MANAGER ---
 _icon_cache = {}
+current_scaling = 1.0
 
 def get_icon(name, tint=None):
-    """Retrieves a cached PhotoImage by its asset filename, optionally tinting it on the fly."""
+    """Retrieves a cached CTkImage by its asset filename, optionally tinting it on the fly using Pillow."""
     cache_key = (name, tint)
     if cache_key not in _icon_cache:
-        base_key = (name, None)
-        if base_key not in _icon_cache:
-            assets_dir = os.path.join(os.path.dirname(__file__), "assets")
-            path = os.path.join(assets_dir, f"{name}.png")
-            if os.path.exists(path):
-                try:
-                    _icon_cache[base_key] = tk.PhotoImage(file=path)
-                except Exception as e:
-                    print(f"Error loading icon '{name}': {e}")
-                    _icon_cache[base_key] = ""
-            else:
-                print(f"Icon asset path does not exist: {path}")
-                _icon_cache[base_key] = ""
-                
-        base_img = _icon_cache[base_key]
-        if base_img == "":
-            _icon_cache[cache_key] = ""
-        elif tint is None:
-            # Attach custom properties to the base image
-            if hasattr(base_img, "width"):
-                base_img._icon_name = name
-                base_img._icon_tint = None
-            _icon_cache[cache_key] = base_img
-        else:
+        assets_dir = os.path.join(os.path.dirname(__file__), "assets")
+        path = os.path.join(assets_dir, f"{name}.png")
+        if os.path.exists(path):
             try:
-                # Create a tinted copy of the base image!
-                tinted_img = base_img.copy()
-                w = tinted_img.width()
-                h = tinted_img.height()
-                for y in range(h):
-                    for x in range(w):
-                        if not tinted_img.transparency_get(x, y):
-                            tinted_img.put(tint, to=(x, y))
-                # Attach custom properties to the tinted image
-                tinted_img._icon_name = name
-                tinted_img._icon_tint = tint
-                _icon_cache[cache_key] = tinted_img
-            except Exception as e:
-                print(f"Error tinting icon '{name}' to '{tint}': {e}")
-                _icon_cache[cache_key] = base_img # Fallback to original white icon
+                img = Image.open(path).convert("RGBA")
+                if tint is not None:
+                    # Deconstruct hex color
+                    hex_color = tint.lstrip("#")
+                    r = int(hex_color[0:2], 16)
+                    g = int(hex_color[2:4], 16)
+                    b = int(hex_color[4:6], 16)
+                    
+                    # Split into channels
+                    r_chan, g_chan, b_chan, a_chan = img.split()
+                    # Create solid target color canvas
+                    color_img = Image.new("RGB", img.size, (r, g, b))
+                    # Composite color image onto transparent canvas using original alpha as mask
+                    img = Image.composite(color_img, Image.new("RGBA", img.size, (0, 0, 0, 0)), a_chan)
                 
+                # Use CTkImage for native HiDPI vectorial scaling
+                # CTkImage handles scaling automatically on high-res displays
+                ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
+                ctk_img._icon_name = name
+                ctk_img._icon_tint = tint
+                _icon_cache[cache_key] = ctk_img
+            except Exception as e:
+                print(f"Error loading/tinting icon '{name}' with Pillow: {e}")
+                _icon_cache[cache_key] = ""
+        else:
+            print(f"Icon asset path does not exist: {path}")
+            _icon_cache[cache_key] = ""
+            
     return _icon_cache[cache_key]
-
 
 
 def configure_flat_styles():
@@ -122,7 +136,7 @@ def configure_flat_styles():
                     lightcolor=BORDER_COLOR, 
                     darkcolor=BORDER_COLOR,
                     borderwidth=1,
-                    font=FONT_NORMAL)
+                    font=TTK_FONT_NORMAL)
     
     style.map("TCombobox", 
               fieldbackground=[("readonly", BG_INPUT)],
@@ -135,14 +149,14 @@ def configure_flat_styles():
                     fieldbackground=BG_CARD, 
                     foreground=TEXT_PRIMARY, 
                     rowheight=32, 
-                    font=FONT_NORMAL, 
+                    font=TTK_FONT_NORMAL, 
                     borderwidth=0,
                     gridlines="none")
     
     style.configure("Treeview.Heading", 
                     background=BG_INPUT, 
                     foreground=TEXT_MUTED, 
-                    font=FONT_BOLD, 
+                    font=TTK_FONT_BOLD, 
                     relief="flat", 
                     borderwidth=1, 
                     bordercolor=BORDER_COLOR)
@@ -160,21 +174,22 @@ def configure_flat_styles():
                     lightcolor=BG_CARD, 
                     darkcolor=BG_CARD, 
                     arrowcolor=TEXT_MUTED,
-                    arrowsize=10,
-                    width=10)
+                    arrowsize=12,
+                    width=14)
     
     style.map("Vertical.TScrollbar", 
               background=[("active", BORDER_COLOR)])
 
-class FlatButton(tk.Button):
-    """Custom button class to bypass Tkinter's legacy, buggy disabled image rendering."""
+
+class FlatButton(ctk.CTkButton):
+    """Modernized button class that wraps CustomTkinter's CTKButton for round-cornered animated style."""
     def __init__(self, master, text, bg_color, fg_color, font_style, hover_bg, **kwargs):
         self.bg_color = bg_color
         self.fg_color = fg_color
         self.hover_bg = hover_bg
         self._custom_state = "normal"
         
-        # Track original icon parameters for stateful grey tint adjustments
+        # Track original icon parameters for disabled states
         self._icon_name = None
         self._icon_tint = None
         self._original_image = kwargs.get("image")
@@ -182,39 +197,55 @@ class FlatButton(tk.Button):
             self._icon_name = self._original_image._icon_name
             self._icon_tint = getattr(self._original_image, "_icon_tint", None)
             
-        # Pull command from kwargs if present
-        self._command = kwargs.get("command")
-        if "command" in kwargs:
-            kwargs["command"] = self._on_click
-            
-        super().__init__(master, text=text, bg=bg_color, fg=fg_color, font=font_style, 
-                         relief="flat", bd=0, activebackground=hover_bg or bg_color, 
-                         activeforeground=fg_color, cursor="hand2", **kwargs)
+        # Clean up standard Tkinter properties that CTKButton does not accept or handles differently
+        kwargs.pop("relief", None)
+        kwargs.pop("bd", None)
+        kwargs.pop("activebackground", None)
+        kwargs.pop("activeforeground", None)
+        kwargs.pop("cursor", None)
+        kwargs.pop("padx", None)
+        kwargs.pop("pady", None)
         
-        if self.hover_bg:
-            self.bind("<Enter>", self._on_enter)
-            self.bind("<Leave>", self._on_leave)
-            
-    def _on_enter(self, e):
-        if self._custom_state == "normal" and self.hover_bg:
-            super().configure(bg=self.hover_bg)
-            
-    def _on_leave(self, e):
-        if self._custom_state == "normal":
-            super().configure(bg=self.bg_color)
-            
-    def _on_click(self):
-        if self._custom_state == "normal" and self._command:
-            self._command()
-            
+        # TK default widths for text-only buttons (like width=14) are character counts!
+        # If an image is present, the dimensions are already in pixels!
+        has_image = bool(self._original_image)
+        if "width" in kwargs and not has_image:
+            w = kwargs["width"]
+            if w < 50:
+                kwargs["width"] = w * 10
+                
+        if "height" in kwargs and not has_image:
+            h = kwargs["height"]
+            if h < 10:
+                kwargs["height"] = h * 24
+
+        # Custom-tailor corner radius: crisp rounded square (4) for tool icons, standard (6) for text buttons
+        corner_radius = kwargs.pop("corner_radius", 4 if text == "" else 6)
+
+        # Initialize CTKButton
+        super().__init__(
+            master, 
+            text=text, 
+            fg_color=bg_color, 
+            text_color=fg_color, 
+            font=font_style, 
+            hover_color=hover_bg or bg_color,
+            corner_radius=corner_radius,
+            **kwargs
+        )
+        
     def configure(self, cnf=None, **kw):
         if cnf is None:
             cnf = {}
         cnf = {**cnf, **kw}
         
-        if "command" in cnf:
-            self._command = cnf["command"]
-            cnf["command"] = self._on_click
+        # Normalize tk properties to customtkinter
+        if "bg" in cnf:
+            cnf["fg_color"] = cnf.pop("bg")
+        if "fg" in cnf:
+            cnf["text_color"] = cnf.pop("fg")
+        if "bg_color" in cnf:
+            cnf["fg_color"] = cnf.pop("bg_color")
             
         if "image" in cnf:
             new_img = cnf["image"]
@@ -230,32 +261,41 @@ class FlatButton(tk.Button):
             state_val = cnf["state"]
             if state_val in ("disabled", tk.DISABLED):
                 self._custom_state = "disabled"
-                # Use standard dark input background and zinc text gray for disabled states
-                super().configure(bg=BG_INPUT, fg=TEXT_MUTED, cursor="arrow")
+                cnf["state"] = "disabled"
                 if self._icon_name:
-                    # Switch icon to grey-tinted version to match disabled text color perfectly!
-                    super().configure(image=get_icon(self._icon_name, tint=TEXT_MUTED))
-                cnf["state"] = "normal"  # Force native Tk state to remain "normal" to prevent ugly image halo!
+                    cnf["image"] = get_icon(self._icon_name, tint=TEXT_MUTED)
             elif state_val in ("normal", tk.NORMAL):
                 self._custom_state = "normal"
-                super().configure(bg=self.bg_color, fg=self.fg_color, cursor="hand2")
-                if self._icon_name:
-                    # Restore original active/tinted icon
-                    super().configure(image=self._original_image)
                 cnf["state"] = "normal"
+                if self._icon_name:
+                    cnf["image"] = get_icon(self._icon_name, tint=self._icon_tint)
+                    
+        # Remove any standard tk keys that CTK doesn't like inside configure()
+        for key in ["activebackground", "activeforeground", "relief", "bd", "cursor", "padx", "pady", "compound"]:
+            cnf.pop(key, None)
+            
+        # Standard width/height mapping from tk characters to CTK pixels
+        has_image = bool(cnf.get("image") or self._original_image)
+        if "width" in cnf and not has_image:
+            w = cnf["width"]
+            if w < 50:
+                cnf["width"] = w * 10
+        if "height" in cnf and not has_image:
+            h = cnf["height"]
+            if h < 10:
+                cnf["height"] = h * 24
                 
         return super().configure(**cnf)
         
     config = configure
 
+
 def make_flat_button(parent, text, bg_color, fg_color=TEXT_PRIMARY, font_style=FONT_BOLD, hover_bg=None, **kwargs):
-    """Factory helper to build consistent flat, hover-active Tkinter buttons."""
-    # Ensure default generous padding if not provided to secure high y-axis readability
-    if "pady" not in kwargs:
-        kwargs["pady"] = 6
-    if "padx" not in kwargs:
-        kwargs["padx"] = 12
-        
+    """Factory helper to build consistent flat, hover-active CustomTkinter buttons."""
+    # Ensure default padding parameters are stripped for CTKButton compatibility
+    kwargs.pop("padx", None)
+    kwargs.pop("pady", None)
+    
     # Prevent the 1-pixel height trap when using image-compounded buttons
     if "image" in kwargs and kwargs.get("height") == 1:
         del kwargs["height"]
@@ -263,8 +303,79 @@ def make_flat_button(parent, text, bg_color, fg_color=TEXT_PRIMARY, font_style=F
     return FlatButton(parent, text=text, bg_color=bg_color, fg_color=fg_color, 
                       font_style=font_style, hover_bg=hover_bg, **kwargs)
 
+
 def apply_entry_theme(entry):
-    """Applies clean, modern borders and text padding to an entry widget."""
-    entry.config(bg=BG_INPUT, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY,
-                 relief="flat", bd=1, highlightbackground=BORDER_COLOR,
-                 highlightcolor=ACCENT_CYBER, highlightthickness=1)
+    """Applies clean, modern borders and text padding to an entry widget (handles both tk and CTK)."""
+    if hasattr(entry, "configure") and not isinstance(entry, ctk.CTkEntry):
+        try:
+            entry.configure(bg=BG_INPUT, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY,
+                            relief="flat", bd=1, highlightbackground=BORDER_COLOR,
+                            highlightcolor=ACCENT_CYBER, highlightthickness=1)
+        except Exception:
+            pass
+
+
+class SectionFrame(ctk.CTkFrame):
+    """
+    A titled CTkFrame that replaces tk.LabelFrame throughout the UI.
+    The title appears as a small CTkLabel at the top of the frame.
+    Children should be added to `self.content` (a nested frame)
+    to prevent mixing pack/grid geometry managers inside the main SectionFrame container.
+    """
+    def __init__(self, parent, text: str = "", font=None,
+                 fg_color: str = BG_CARD, text_color: str = TEXT_MUTED, **kwargs):
+        # Strip tk-only constructor kwargs that CTkFrame does not accept
+        for k in ("bg", "fg", "relief", "bd", "padx", "pady",
+                  "highlightbackground", "highlightthickness"):
+            kwargs.pop(k, None)
+        super().__init__(parent, fg_color=fg_color,
+                         border_color=BORDER_COLOR, border_width=1,
+                         corner_radius=4, **kwargs)
+        if text:
+            _font = font if font is not None else FONT_BOLD
+            ctk.CTkLabel(
+                self, text=f" {text} ",
+                font=_font, fg_color=fg_color,
+                text_color=text_color, anchor="w"
+            ).pack(anchor="w", padx=6, pady=(4, 0))
+            
+        self.content = ctk.CTkFrame(self, fg_color="transparent", corner_radius=0)
+        self.content.pack(fill="both", expand=True, padx=4, pady=4)
+
+
+def make_label(parent, text: str = "", font=None,
+               fg_color: str = "transparent",
+               text_color: str = TEXT_PRIMARY, **kwargs) -> ctk.CTkLabel:
+    """
+    Convenience factory: creates a ctk.CTkLabel with common theme defaults.
+    Accepts legacy tk.Label kwargs (bg/fg) and silently translates them.
+    """
+    if "bg" in kwargs:
+        fg_color = kwargs.pop("bg")
+    if "fg" in kwargs:
+        text_color = kwargs.pop("fg")
+    for k in ("relief", "bd", "highlightbackground", "highlightthickness", "anchor"):
+        kwargs.pop(k, None)
+    _font = font if font is not None else FONT_NORMAL
+    return ctk.CTkLabel(parent, text=text, font=_font,
+                        fg_color=fg_color, text_color=text_color, **kwargs)
+
+
+def update_treeview_font_scaling(scaling):
+    """Updates the TTK Treeview style font size dynamically based on the DPI scaling ratio."""
+    global current_scaling
+    current_scaling = scaling
+    style = ttk.Style()
+    
+    # Intuitively scale the standard font sizes according to system DPI multiplier
+    # Start with a comfortable base size of 11 (instead of 10) for pristine clarity on High-DPI screens
+    normal_size = int(11 * scaling)
+    bold_size = int(11 * scaling)
+    row_height = int(36 * scaling)
+    
+    scaled_normal = (best_font_family, normal_size, "normal")
+    scaled_bold = (best_font_family, bold_size, "bold")
+    
+    style.configure("Treeview", font=scaled_normal, rowheight=row_height)
+    style.configure("Treeview.Heading", font=scaled_bold)
+

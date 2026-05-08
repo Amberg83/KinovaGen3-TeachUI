@@ -1,15 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
+import customtkinter as ctk
 from view import theme
 from hardware.kinova_hardware import calculate_min_safe_duration
 
-class WaypointInspectorPanel(ttk.LabelFrame):
+class WaypointInspectorPanel(ctk.CTkFrame):
     """Encapsulates Column 3: The Waypoint Inspector form to edit or preview sequence entries in responsive dark flat style."""
     def __init__(self, parent, **kwargs):
-        kwargs.setdefault("text", "3. Waypoint Inspector / Editor")
-        super().__init__(parent, style="TLabelframe", **kwargs)
+        kwargs.pop("text", None)
+        super().__init__(parent, fg_color=theme.BG_MAIN, corner_radius=0, **kwargs)
         
-        self.wp_type_var = tk.StringVar(value="action")
+        self.wp_type_var = ctk.StringVar(value="action")
         self.insp_joint_vars = []
         self.ent_wp_vels = []
         self.joint_frames = []
@@ -20,143 +21,123 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         
         self.setup_ui()
         self._set_inspector_state("disabled")
-        self.bind("<Configure>", self.on_resize)
+        # self.bind("<Configure>", self.on_resize)  # Driven directly by parent MainView
 
     def setup_ui(self):
+        # Panel Title Header
+        self.lbl_panel_header = theme.make_label(
+            self, text="3. WAYPOINT INSPECTOR / EDITOR", font=theme.FONT_TITLE,
+            fg_color=theme.BG_HEADER, text_color=theme.ACCENT_CYBER,
+            height=32, corner_radius=0
+        )
+        self.lbl_panel_header.pack(fill="x", pady=(0, 6))
+
         # ---------------- PINNED BOTTOM FRAME (Always visible on baseline) ----------------
-        self.bottom_frame = tk.Frame(self, bg=theme.BG_CARD)
+        self.bottom_frame = ctk.CTkFrame(self, fg_color=theme.BG_CARD, corner_radius=4)
         self.bottom_frame.pack(side="bottom", fill="x", pady=(6, 0))
 
         self.btn_preview = theme.make_flat_button(
             self.bottom_frame, text=" Preview this Pose", image=theme.get_icon("play", tint=theme.BG_MAIN), compound="left",
-            bg_color=theme.ACCENT_YELLOW, fg_color=theme.BG_MAIN, hover_bg="#eab308", 
-            font_style=theme.FONT_BOLD, pady=8
+            bg_color=theme.ACCENT_YELLOW, fg_color=theme.BG_MAIN, hover_bg="#eab308"
         )
-        self.btn_preview.pack(fill="x", side="bottom", pady=2)
+        self.btn_preview.pack(fill="x", side="bottom", pady=4, padx=10)
         
         self.btn_save_settings = theme.make_flat_button(
             self.bottom_frame, text=" Apply & Save to Selected", image=theme.get_icon("save", tint=theme.BG_MAIN), compound="left",
-            bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, hover_bg="#059669", 
-            font_style=theme.FONT_BOLD, pady=8
+            bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, hover_bg="#059669"
         )
-        self.btn_save_settings.pack(fill="x", side="bottom", pady=2)
+        self.btn_save_settings.pack(fill="x", side="bottom", pady=4, padx=10)
 
         self.btn_append_new = theme.make_flat_button(
             self.bottom_frame, text=" Append as New Waypoint", image=theme.get_icon("add_waypoint"), compound="left",
-            bg_color=theme.ACCENT_CYBER, fg_color=theme.TEXT_PRIMARY, hover_bg=theme.ACCENT_CYBER_HOVER, 
-            font_style=theme.FONT_BOLD, pady=8
+            bg_color=theme.ACCENT_CYBER, fg_color=theme.TEXT_PRIMARY, hover_bg=theme.ACCENT_CYBER_HOVER
         )
-        self.btn_append_new.pack(fill="x", side="bottom", pady=2)
+        self.btn_append_new.pack(fill="x", side="bottom", pady=(10, 4), padx=10)
 
         # ---------------- SCROLLABLE TOP CONTAINER ----------------
-        self.top_frame = tk.Frame(self, bg=theme.BG_CARD)
-        self.top_frame.pack(side="top", fill="both", expand=True)
-
-        self.canvas = tk.Canvas(self.top_frame, bg=theme.BG_CARD, highlightthickness=0, bd=0)
-        self.canvas.pack(side="left", fill="both", expand=True)
-
-        self.scrollbar = ttk.Scrollbar(self.top_frame, orient="vertical", command=self.canvas.yview, style="Vertical.TScrollbar")
-        self.scrollbar.pack(side="right", fill="y")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        self.scrollable_content = tk.Frame(self.canvas, bg=theme.BG_CARD)
-        self.canvas_window = self.canvas.create_window((0, 0), window=self.scrollable_content, anchor="nw")
-
-        def configure_scroll(event):
-            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.scrollable_content.bind("<Configure>", configure_scroll)
-
-        def configure_canvas(event):
-            # Synchronize width of the content frame to fill the canvas width
-            self.canvas.itemconfig(self.canvas_window, width=event.width)
-        self.canvas.bind("<Configure>", configure_canvas)
-
-        # Localized mousewheel binding helpers
-        def _on_mousewheel(event):
-            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        
-        def _bind_mousewheel(event):
-            self.canvas.bind_all("<MouseWheel>", _on_mousewheel)
-        def _unbind_mousewheel(event):
-            self.canvas.unbind_all("<MouseWheel>")
-            
-        self.bind("<Enter>", _bind_mousewheel)
-        self.bind("<Leave>", _unbind_mousewheel)
+        self.scrollable_content = ctk.CTkScrollableFrame(
+            self, fg_color=theme.BG_CARD, corner_radius=4,
+            scrollbar_button_color=theme.BORDER_COLOR,
+            scrollbar_button_hover_color=theme.ACCENT_CYBER
+        )
+        self.scrollable_content.pack(side="top", fill="both", expand=True)
 
         # Title & Type selectors
-        self.lbl_inspector_title = tk.Label(self.scrollable_content, text="No Waypoint Selected", font=theme.FONT_NORMAL, bg=theme.BG_CARD, fg=theme.TEXT_MUTED)
+        self.lbl_inspector_title = theme.make_label(self.scrollable_content, text="No Waypoint Selected", font=theme.FONT_NORMAL, fg_color=theme.BG_CARD, text_color=theme.TEXT_MUTED)
         self.lbl_inspector_title.pack(pady=(0, 10))
 
-        tk.Label(self.scrollable_content, text="Type:", font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY).pack(anchor="w", pady=(0, 5))
+        theme.make_label(self.scrollable_content, text="Type:", font=theme.FONT_BOLD, fg_color=theme.BG_CARD, text_color=theme.TEXT_PRIMARY).pack(anchor="w", pady=(0, 5))
         
         # Segmented Control Frame
-        type_frame = tk.Frame(self.scrollable_content, bg=theme.BORDER_COLOR, padx=1, pady=1) 
+        type_frame = ctk.CTkFrame(self.scrollable_content, fg_color=theme.BORDER_COLOR, corner_radius=4) 
         type_frame.pack(fill="x", pady=(0, 10))
 
         # Premium Custom Label-based Segmented Controls to bypass Windows native beveled 80s buttons
         self.lbl_action = self.make_segment_btn(type_frame, "ACTION", "action")
-        self.lbl_action.pack(side="left", fill="x", expand=True, padx=1)
+        self.lbl_action.pack(side="left", fill="x", expand=True, padx=1, pady=1)
         
         self.lbl_waypoint = self.make_segment_btn(type_frame, "WAYPOINT", "angularwaypoint")
-        self.lbl_waypoint.pack(side="left", fill="x", expand=True, padx=1)
+        self.lbl_waypoint.pack(side="left", fill="x", expand=True, padx=1, pady=1)
         
         self.lbl_pause = self.make_segment_btn(type_frame, "PAUSE", "pause")
-        self.lbl_pause.pack(side="left", fill="x", expand=True, padx=1)
+        self.lbl_pause.pack(side="left", fill="x", expand=True, padx=1, pady=1)
 
         # ---------------- SECTION 1: JOINT TARGETS (Over other adjustments!) ----------------
-        self.joint_frame = tk.LabelFrame(self.scrollable_content, text="Joint Angles (°)", font=theme.FONT_BOLD, 
-                                    bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY, relief="solid", bd=1, padx=8, pady=6)
+        self.joint_frame = theme.SectionFrame(self.scrollable_content, text="Joint Angles (°)")
         
         for i in range(6):
-            f = tk.Frame(self.joint_frame, bg=theme.BG_CARD)
-            tk.Label(f, text=f"J{i+1}:", font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.TEXT_MUTED, width=3, anchor="w").pack(side="left")
+            f = ctk.CTkFrame(self.joint_frame.content, fg_color="transparent")
+            theme.make_label(f, text=f"J{i+1}:", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_MUTED, width=30, anchor="w").pack(side="left")
             
-            var = tk.StringVar(value="0.0")
-            ent = tk.Entry(f, textvariable=var, width=10, font=theme.FONT_MONO)
+            var = ctk.StringVar(value="0.0")
+            ent = ctk.CTkEntry(
+                f, textvariable=var, width=100, height=28, font=theme.FONT_MONO,
+                fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR, corner_radius=4
+            )
             ent.pack(side="right", fill="x", expand=True, padx=(4, 0))
-            theme.apply_entry_theme(ent)
             
             self.insp_joint_vars.append(var)
             self.insp_entries.append(ent)
             self.joint_frames.append(f)
 
         # ---------------- SECTION 2: MAX VELOCITIES (Middle adjustments) ----------------
-        self.frame_wp_vels = tk.LabelFrame(self.scrollable_content, text="Max Velocities (°/s)", font=theme.FONT_BOLD, 
-                                      bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY, relief="solid", bd=1, padx=8, pady=6)
+        self.frame_wp_vels = theme.SectionFrame(self.scrollable_content, text="Max Velocities (°/s)")
         
         for i in range(6):
-            f = tk.Frame(self.frame_wp_vels, bg=theme.BG_CARD)
-            tk.Label(f, text=f"J{i+1}:", font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.TEXT_MUTED, width=3, anchor="w").pack(side="left")
+            f = ctk.CTkFrame(self.frame_wp_vels.content, fg_color="transparent")
+            theme.make_label(f, text=f"J{i+1}:", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_MUTED, width=30, anchor="w").pack(side="left")
             
-            ent = tk.Entry(f, width=10, font=theme.FONT_MONO)
+            ent = ctk.CTkEntry(
+                f, width=100, height=28, font=theme.FONT_MONO,
+                fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR, corner_radius=4
+            )
             ent.pack(side="right", fill="x", expand=True, padx=(4, 0))
-            theme.apply_entry_theme(ent)
             
             self.ent_wp_vels.append(ent)
             self.vel_frames.append(f)
 
         # ---------------- SECTION 3: DURATION / WAIT TIME (Pause Editor always at the bottom!) ----------------
-        self.duration_frame = tk.LabelFrame(self.scrollable_content, text="Duration / Wait Time (s)", font=theme.FONT_BOLD, 
-                                        bg=theme.BG_CARD, fg=theme.TEXT_PRIMARY, relief="solid", bd=1, padx=8, pady=6)
+        self.duration_frame = theme.SectionFrame(self.scrollable_content, text="Duration / Wait Time (s)")
         
-        self.ent_duration = tk.Entry(self.duration_frame, font=theme.FONT_MONO)
-        self.ent_duration.pack(fill="x", pady=4)
-        theme.apply_entry_theme(self.ent_duration)
+        self.ent_duration = ctk.CTkEntry(
+            self.duration_frame.content, font=theme.FONT_MONO, height=30,
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR, corner_radius=4
+        )
+        self.ent_duration.pack(fill="x", pady=4, padx=5)
 
         # Create a frame for the label and quick apply button
-        dur_action_frame = tk.Frame(self.duration_frame, bg=theme.BG_CARD)
-        dur_action_frame.pack(fill="x", pady=(2, 0))
+        dur_action_frame = ctk.CTkFrame(self.duration_frame.content, fg_color="transparent")
+        dur_action_frame.pack(fill="x", pady=(2, 0), padx=5)
 
-        self.lbl_min_duration = tk.Label(
+        self.lbl_min_duration = theme.make_label(
             dur_action_frame, text="Fast Limit: --s", 
-            font=theme.FONT_BOLD, bg=theme.BG_CARD, fg=theme.ACCENT_CYBER
+            font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.ACCENT_CYBER
         )
         self.lbl_min_duration.pack(side="left", anchor="w")
 
         self.btn_apply_min_dur = theme.make_flat_button(
             dur_action_frame, text=" Apply Limit", image=theme.get_icon("bolt", tint=theme.ACCENT_CYBER), compound="left",
-            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_CYBER, hover_bg=theme.BORDER_COLOR,
-            padx=8, pady=4
+            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_CYBER, hover_bg=theme.BORDER_COLOR
         )
         self.btn_apply_min_dur.pack(side="right")
 
@@ -177,38 +158,38 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         """Redraws and grids editor components depending on container panel width."""
         
         # 1. Joint target position grids
-        self.joint_frame.columnconfigure(0, weight=1)
+        self.joint_frame.content.columnconfigure(0, weight=1)
         if is_wide:
-            self.joint_frame.columnconfigure(1, weight=1)
+            self.joint_frame.content.columnconfigure(1, weight=1)
             for i, f in enumerate(self.joint_frames):
                 row = i // 2
                 col = i % 2
                 f.grid_forget()
                 f.grid(row=row, column=col, sticky="nsew", padx=4, pady=4)
         else:
-            self.joint_frame.columnconfigure(1, weight=0)
+            self.joint_frame.content.columnconfigure(1, weight=0)
             for i, f in enumerate(self.joint_frames):
                 f.grid_forget()
                 f.grid(row=i, column=0, sticky="nsew", padx=4, pady=3)
 
         # 2. Max Velocities grids
-        self.frame_wp_vels.columnconfigure(0, weight=1)
+        self.frame_wp_vels.content.columnconfigure(0, weight=1)
         if is_wide:
-            self.frame_wp_vels.columnconfigure(1, weight=1)
+            self.frame_wp_vels.content.columnconfigure(1, weight=1)
             for i, f in enumerate(self.vel_frames):
                 row = i // 2
                 col = i % 2
                 f.grid_forget()
                 f.grid(row=row, column=col, sticky="nsew", padx=4, pady=4)
         else:
-            self.frame_wp_vels.columnconfigure(1, weight=0)
+            self.frame_wp_vels.content.columnconfigure(1, weight=0)
             for i, f in enumerate(self.vel_frames):
                 f.grid_forget()
                 f.grid(row=i, column=0, sticky="nsew", padx=4, pady=3)
 
     def on_resize(self, event):
         """Binds to container Configure to adapt layout responsively."""
-        if event.widget != self:
+        if str(event.widget) != self._w:
             return
         w = event.width
         # Threshold: 290 pixels
@@ -221,19 +202,20 @@ class WaypointInspectorPanel(ttk.LabelFrame):
 
     def make_segment_btn(self, parent, text, value):
         """Builds custom label-based segmented toggle buttons to bypass platform borders."""
-        lbl = tk.Label(
+        lbl = theme.make_label(
             parent, text=text, font=("Arial", 8, "bold"),
-            bg=theme.BG_INPUT, fg=theme.TEXT_MUTED,
-            relief="flat", bd=0, pady=8, cursor="hand2"
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
+            pady=8, corner_radius=0
         )
+        lbl.configure(cursor="hand2")
         
         def on_enter(e):
             if self.inspector_state != "disabled" and self.wp_type_var.get() != value:
-                lbl.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_PRIMARY)
+                lbl.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_PRIMARY)
                 
         def on_leave(e):
             if self.inspector_state != "disabled" and self.wp_type_var.get() != value:
-                lbl.config(bg=theme.BG_INPUT, fg=theme.TEXT_MUTED)
+                lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
                 
         def on_click(e):
             if self.inspector_state != "disabled":
@@ -259,25 +241,25 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         }
         for val, lbl in mapping.items():
             if self.inspector_state == "disabled":
-                lbl.config(bg=theme.BG_INPUT, fg=theme.TEXT_MUTED, cursor="arrow")
+                lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED, cursor="arrow")
             else:
-                lbl.config(cursor="hand2")
+                lbl.configure(cursor="hand2")
                 if self.wp_type_var.get() == val:
-                    lbl.config(bg=theme.ACCENT_CYBER, fg=theme.BG_MAIN)
+                    lbl.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.BG_MAIN)
                 else:
-                    lbl.config(bg=theme.BG_INPUT, fg=theme.TEXT_MUTED)
+                    lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
 
     def bind_commands(self, commands):
         """Binds commands relating to Column 3 operations."""
-        self.btn_preview.config(command=commands.get("preview_pose"))
-        self.btn_save_settings.config(command=commands.get("save_settings"))
-        self.btn_append_new.config(command=commands.get("append_pose"))
-        self.btn_apply_min_dur.config(command=commands.get("apply_min_durations"))
+        self.btn_preview.configure(command=commands.get("preview_pose"))
+        self.btn_save_settings.configure(command=commands.get("save_settings"))
+        self.btn_append_new.configure(command=commands.get("append_pose"))
+        self.btn_apply_min_dur.configure(command=commands.get("apply_min_durations"))
 
     def _set_inspector_state(self, state):
         """Enables or disables editor elements depending on selection state."""
         self.inspector_state = state
-        tk_state = tk.NORMAL if state == "normal" else tk.DISABLED
+        tk_state = "normal" if state == "normal" else "disabled"
         
         # Simple list of elements
         widgets = [self.ent_duration] + self.ent_wp_vels + self.insp_entries + [
@@ -285,19 +267,19 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         ]
         
         for w in widgets: 
-            w.config(state=tk_state)
+            w.configure(state=tk_state)
             
         # Update colors on disabled to keep the modern flat look
         if state == "disabled":
-            self.btn_preview.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
-            self.btn_save_settings.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
-            self.btn_append_new.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
-            self.btn_apply_min_dur.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
+            self.btn_preview.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+            self.btn_save_settings.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+            self.btn_append_new.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+            self.btn_apply_min_dur.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
         else:
-            self.btn_preview.config(bg=theme.ACCENT_YELLOW, fg=theme.BG_MAIN)
-            self.btn_save_settings.config(bg=theme.ACCENT_GREEN, fg=theme.BG_MAIN)
-            self.btn_append_new.config(bg=theme.ACCENT_CYBER, fg=theme.TEXT_PRIMARY)
-            self.btn_apply_min_dur.config(bg=theme.BG_INPUT, fg=theme.ACCENT_CYBER)
+            self.btn_preview.configure(fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
+            self.btn_save_settings.configure(fg_color=theme.ACCENT_GREEN, text_color=theme.BG_MAIN)
+            self.btn_append_new.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.TEXT_PRIMARY)
+            self.btn_apply_min_dur.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_CYBER)
 
         # Update segment button styles
         self.update_segment_styles()
@@ -324,13 +306,13 @@ class WaypointInspectorPanel(ttk.LabelFrame):
     def clear_inspector(self):
         """Resets panel state when no element is selected anymore."""
         self._set_inspector_state("disabled")
-        self.lbl_inspector_title.config(text="No Waypoint Selected", fg=theme.TEXT_MUTED, font=theme.FONT_NORMAL)
-        self.lbl_min_duration.config(text="Fast Limit: --s", fg=theme.TEXT_MUTED)
+        self.lbl_inspector_title.configure(text="No Waypoint Selected", text_color=theme.TEXT_MUTED, font=theme.FONT_NORMAL)
+        self.lbl_min_duration.configure(text="Fast Limit: --s", text_color=theme.TEXT_MUTED)
 
     def load_inspector_data(self, data, index, predecessor_pos=None):
         """Populates fields from selected row dictionaries."""
         self._set_inspector_state("normal")
-        self.lbl_inspector_title.config(text=f"Selected Waypoint: #{index}", fg=theme.ACCENT_CYBER, font=theme.FONT_TITLE)
+        self.lbl_inspector_title.configure(text=f"Selected Waypoint: #{index}", text_color=theme.ACCENT_CYBER, font=theme.FONT_TITLE)
         
         # Disable joint change listener during loading to prevent noise
         self._disable_joint_traces = True
@@ -370,7 +352,7 @@ class WaypointInspectorPanel(ttk.LabelFrame):
             
         wp_type = self.wp_type_var.get()
         if wp_type == "pause":
-            self.lbl_min_duration.config(text="Fast Limit: -- (Pause Step)", fg=theme.TEXT_MUTED)
+            self.lbl_min_duration.configure(text="Fast Limit: -- (Pause Step)", text_color=theme.TEXT_MUTED)
             return
 
         current_poses = []
@@ -386,20 +368,20 @@ class WaypointInspectorPanel(ttk.LabelFrame):
                     
         if hasattr(self, "_predecessor_pos") and len(self._predecessor_pos) == len(current_poses):
             min_safe_dur = calculate_min_safe_duration(current_poses, self._predecessor_pos)
-            self.lbl_min_duration.config(text=f"Fast Limit: {min_safe_dur:.2f}s", fg=theme.ACCENT_CYBER)
+            self.lbl_min_duration.configure(text=f"Fast Limit: {min_safe_dur:.2f}s", text_color=theme.ACCENT_CYBER)
         else:
-            self.lbl_min_duration.config(text="Fast Limit: 0.50s", fg=theme.ACCENT_CYBER)
+            self.lbl_min_duration.configure(text="Fast Limit: 0.50s", text_color=theme.ACCENT_CYBER)
 
     def enter_bulk_edit_mode(self, indices):
         """Enables a bulk-edit state for editing duration across multiple waypoints."""
         self._set_inspector_state("normal")
-        self.lbl_inspector_title.config(
+        self.lbl_inspector_title.configure(
             text=f"Bulk-Editing {len(indices)} Waypoints", 
-            fg=theme.ACCENT_ORANGE, font=theme.FONT_TITLE
+            text_color=theme.ACCENT_ORANGE, font=theme.FONT_TITLE
         )
         
         # Clear/Disable speed limit label during bulk duration edits
-        self.lbl_min_duration.config(text="Fast Limit: -- (Bulk Edit)", fg=theme.TEXT_MUTED)
+        self.lbl_min_duration.configure(text="Fast Limit: -- (Bulk Edit)", text_color=theme.TEXT_MUTED)
         
         # Disable elements that shouldn't be edited in bulk (type, velocities, coordinates, preview, append)
         self.inspector_state = "disabled"
@@ -410,13 +392,13 @@ class WaypointInspectorPanel(ttk.LabelFrame):
         ] + self.ent_wp_vels + self.insp_entries
         
         for w in disable_widgets:
-            w.config(state=tk.DISABLED)
+            w.configure(state="disabled")
             
-        self.btn_preview.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
-        self.btn_append_new.config(bg=theme.BORDER_COLOR, fg=theme.TEXT_MUTED)
+        self.btn_preview.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+        self.btn_append_new.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
         
         # Clear duration and target inputs
-        self.ent_duration.config(state=tk.NORMAL)
+        self.ent_duration.configure(state="normal")
         self.ent_duration.delete(0, tk.END)
         self.ent_duration.insert(0, "3.0")
         self.ent_duration.focus_set()
