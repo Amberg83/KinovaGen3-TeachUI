@@ -6,7 +6,7 @@ import logging
 import queue
 import tkinter as tk
 from tkinter import scrolledtext
-from hardware import KinovaHardware
+from hardware import KinovaHardware, MockKinovaHardware
 from model import SequenceModel
 from view import RobotView, ConnectionDialog
 from controller import RobotController
@@ -122,7 +122,11 @@ def main():
     save_config(ip, username, password)
     root.deiconify() 
 
-    hardware = KinovaHardware(ip=ip, username=username, password=password)
+    if "mock" in ip.lower():
+        logging.getLogger("Main").info("Launching in OFFLINE SIMULATION (MOCK) Mode.")
+        hardware = MockKinovaHardware(ip=ip, username=username, password=password)
+    else:
+        hardware = KinovaHardware(ip=ip, username=username, password=password)
     model = SequenceModel()
     
     view = RobotView(root)

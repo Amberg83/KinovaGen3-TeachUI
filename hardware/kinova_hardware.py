@@ -52,7 +52,6 @@ class KinovaHardware:
 
         self.state = RobotState()
         self.missed_feedback_count = 0
-        self._observers = []
 
         self._global_notification_handle = None
         self._global_armstate_handle = None
@@ -65,14 +64,25 @@ class KinovaHardware:
         self._fault_loop_active = False
         self._estop_active = False
 
-    def register_observer(self, callback):
-        """Registers a callback to be notified upon state changes."""
-        self._observers.append(callback)
-
     def notify_observers(self):
-        """Notifies all registered observers by passing the current RobotState."""
-        for callback in self._observers:
-            callback(self.state)
+        """Thread-safely publishes an isolated snapshot of the current state on the EventBus."""
+        import copy
+        state_copy = copy.copy(self.state)
+        # Deepcopy list fields to prevent read/write thread mutation races
+        state_copy.tcp_position = list(self.state.tcp_position)
+        state_copy.tcp_orientation = list(self.state.tcp_orientation)
+        state_copy.tcp_linear_velocity = list(self.state.tcp_linear_velocity)
+        state_copy.tcp_angular_velocity = list(self.state.tcp_angular_velocity)
+        state_copy.force = list(self.state.force)
+        state_copy.torque = list(self.state.torque)
+        state_copy.joint_angles_deg = list(self.state.joint_angles_deg)
+        state_copy.joint_velocities = list(self.state.joint_velocities)
+        state_copy.joint_torques = list(self.state.joint_torques)
+        state_copy.joint_currents = list(self.state.joint_currents)
+        state_copy.joint_temperatures = list(self.state.joint_temperatures)
+        state_copy.joint_voltage = list(self.state.joint_voltage)
+        
+        EventBus.publish("hardware_telemetry_updated", state_copy)
 
     def connect(self):
         """Establishes network connections and starts background telemetry polling."""

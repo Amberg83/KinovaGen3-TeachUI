@@ -1,6 +1,7 @@
 import json
 import logging
 import copy
+from utils.event_bus import EventBus
 
 class SequenceModel:
     """Manages the data logic for the robot's movement sequence in memory."""
@@ -10,17 +11,10 @@ class SequenceModel:
         self.undo_stack = [] 
         self.redo_stack = []
         self.current_filepath = None
-        self._observers = []
-
-    def register_observer(self, callback):
-        """Registers a callback to be notified when the model changes."""
-        if callback not in self._observers:
-            self._observers.append(callback)
 
     def _notify_observers(self, select_index=None):
-        """Broadcasts the current state to all observers."""
-        for observer in self._observers:
-            observer(self.sequence, self.current_filepath, select_index)
+        """Broadcasts the current state to all observers via EventBus."""
+        EventBus.publish("sequence_updated", self.sequence, self.current_filepath, select_index)
 
     def _save_state(self):
         self.undo_stack.append(copy.deepcopy(self.sequence))
