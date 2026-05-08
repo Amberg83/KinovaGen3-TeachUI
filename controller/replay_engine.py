@@ -2,6 +2,7 @@ import time
 import threading
 import logging
 from kortex_api.autogen.messages import Base_pb2
+from utils.event_bus import EventBus
 
 class ReplayEngine:
     """Manages the execution of motion sequences on the robot arm in a separate background thread."""
@@ -56,7 +57,7 @@ class ReplayEngine:
                 slept += 0.1
                 
             # 3. Play start chime and begin sequence
-            self.hardware.play_chime("replay_start")
+            EventBus.publish("replay_started")
             self.logger.info("Replay sequence starting...")
 
             batch_waypoints = []
@@ -124,7 +125,7 @@ class ReplayEngine:
             flush_waypoints()
             if not self.stop_requested:
                 self.logger.info("=== REPLAY COMPLETED SUCCESSFULLY ===")
-                self.hardware.play_chime("replay_finished")
+                EventBus.publish("replay_finished")
             else:
                 self.logger.info("=== REPLAY COMPLETED WITH MANUAL ABORT ===")
 

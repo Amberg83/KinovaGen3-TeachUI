@@ -11,6 +11,7 @@ from kortex_api.TCPTransport import TCPTransport
 from kortex_api.UDPTransport import UDPTransport
 
 from .robot_state import RobotState 
+from utils.event_bus import EventBus
 
 def calculate_min_safe_duration(target_pos, predecessor_pos):
     """
@@ -61,6 +62,8 @@ class KinovaHardware:
         self._is_polling = False
         self._polling_thread = None
         self._is_action_paused = False
+        self._fault_loop_active = False
+        self._estop_active = False
 
     def register_observer(self, callback):
         """Registers a callback to be notified upon state changes."""
@@ -119,6 +122,7 @@ class KinovaHardware:
             self._start_global_listeners()
             
             self.logger.info(f"Connection successful! Hardware detected as a {self.state.dof}-DOF robotic arm.")
+            EventBus.publish("robot_connected")
             self.move_to_default()
             return True, f"Successfully connected to {self.ip}"
             
@@ -127,14 +131,15 @@ class KinovaHardware:
             self.notify_observers()
             self.logger.error(f"Connection attempt failed: {str(e)}")
             return False, str(e)
-
+ 
     def move_to_default(self):
         return self.execute_action_pose([0.0,0.0,0.0,0.0,0.0,0.0], 10.0, "Origin")
-
-    def disconnect(self):
+ 
+    def disconnect(self, block_sound=False):
         """Stops polling threads and closes all API sessions."""
         if self.state.is_connected:
             self.logger.info("Disconnecting from robot and closing network sessions...")
+            EventBus.publish("robot_disconnected", block=block_sound)
             
         self._stop_internal_polling()
         self._stop_global_listeners()
@@ -151,6 +156,41 @@ class KinovaHardware:
             except: pass
         self._sessions.clear()
         self._transports.clear()
+
+    def trigger_fault_detected(self):
+        """Thread-safely handles detecting the fault state and starting the beep loop."""
+        if not self.state.has_fault:
+            self.state.has_fault = True
+            if not self._fault_loop_active:
+                self._fault_loop_active = True
+                threading.Thread(target=self._fault_beep_loop, daemon=True).start()
+            self.logger.critical("Robot entered a Faulty State!")
+
+    def trigger_fault_cleared(self):
+        """Thread-safely handles clearing the fault state and playing the success chime."""
+        if self.state.has_fault:
+            self.state.has_fault = False
+            EventBus.publish("fault_cleared")
+            self.logger.info("Robot Fault successfully cleared.")
+
+    def _fault_beep_loop(self):
+        """Asynchronously repeats the fault warning sound every 3 seconds while in fault."""
+        # If an E-Stop was pressed, wait 3 seconds for the siren sound to finish once before beeping
+        if self._estop_active:
+            for _ in range(6):
+                if not self.state.has_fault or not self.state.is_connected:
+                    break
+                time.sleep(0.5)
+            self._estop_active = False # Clear E-Stop flag so normal fault beep takes over
+
+        while self.state.is_connected and self.state.has_fault:
+            EventBus.publish("fault")
+            # Sleep in 0.5s increments to respond instantly when faults are cleared
+            for _ in range(6):
+                if not self.state.has_fault or not self.state.is_connected:
+                    break
+                time.sleep(0.5)
+        self._fault_loop_active = False
 
     def _start_global_listeners(self):
         """Starts implemented event subscribers."""
@@ -186,16 +226,12 @@ class KinovaHardware:
         def arm_state_callback(notification):
             active_state = notification.active_state
             if active_state == Base_pb2.ARMSTATE_IN_FAULT:
-                self.logger.critical("Robot in Faulty State!")
-                self.state.has_fault = True
-                self.play_chime("fault")
-                
+                self.trigger_fault_detected()
                 if self._active_movement_pager:
                     self._active_movement_pager.set()
                     self._active_movement_pager = None
-                    
             elif active_state == Base_pb2.ARMSTATE_IDLE:
-                self.state.has_fault = False
+                self.trigger_fault_cleared()
 
         # --- Control_Mode Subscriber ---
         def control_mode_callback(notification):
@@ -284,9 +320,18 @@ class KinovaHardware:
             self.state.dof = len(feedback.actuators)
             self.state.fault_bank_a = getattr(feedback.base, 'fault_bank_a', 0)
             self.state.fault_bank_b = getattr(feedback.base, 'fault_bank_b', 0)
-            self.state.has_fault = (self.state.fault_bank_a != 0) or (self.state.fault_bank_b != 0)
+            active_state_val = getattr(feedback.base, 'active_state', 0)
+            self.state.active_state = active_state_val
             
-            self.state.active_state = getattr(feedback.base, 'active_state', 0)
+            # Encapsulated state updates via atomic triggers to eliminate race conditions
+            is_currently_faulted = (active_state_val == Base_pb2.ARMSTATE_IN_FAULT) or \
+                                   (self.state.fault_bank_a != 0) or \
+                                   (self.state.fault_bank_b != 0)
+            
+            if is_currently_faulted:
+                self.trigger_fault_detected()
+            else:
+                self.trigger_fault_cleared()
             
             self.state.tcp_position = [
                 getattr(feedback.base, 'tool_pose_x', 0.0), getattr(feedback.base, 'tool_pose_y', 0.0), getattr(feedback.base, 'tool_pose_z', 0.0)
@@ -418,6 +463,8 @@ class KinovaHardware:
         """Sends an immediate Emergency Stop."""
         if self.state.is_connected and self.base:
             try: 
+                self._estop_active = True
+                EventBus.publish("estop_activated")
                 self.base.ApplyEmergencyStop()
                 self.logger.critical("EMERGENCY STOP APPLIED! Physical robot reset might be required.")
             except Exception as e: 
@@ -427,6 +474,7 @@ class KinovaHardware:
         """Attempts to clear minor software faults and warnings."""
         if self.state.is_connected and self.base:
             try:
+                self._estop_active = False
                 self.base.ClearFaults()
                 self.logger.info("Clear Faults command dispatched to robot controller.")
             except Exception as e:
@@ -453,7 +501,10 @@ class KinovaHardware:
             
             self.base.SetAdmittance(admittance)
             self.logger.info(f"Successfully set Admittance Mode to: {mode_str}")
-            self.play_chime("admittance")
+            if mode_str == "Disabled":
+                EventBus.publish("admittance_disabled")
+            else:
+                EventBus.publish("admittance_enabled")
             return True
             
         except Exception as e:
@@ -474,32 +525,3 @@ class KinovaHardware:
         except Exception as e:
             return False, f"API Exception during validation: {e}"
 
-    def play_chime(self, event_type):
-        """Asynchronously triggers sound notifications across Windows and Linux fallback platforms."""
-        def beep_worker():
-            import sys
-            if sys.platform.startswith("win"):
-                try:
-                    import winsound
-                    if event_type == "captured":
-                        winsound.Beep(1200, 80)
-                        time.sleep(0.04)
-                        winsound.Beep(1500, 120)
-                    elif event_type == "fault":
-                        winsound.Beep(600, 200)
-                        time.sleep(0.04)
-                        winsound.Beep(400, 200)
-                    elif event_type == "admittance":
-                        winsound.Beep(800, 150)
-                    elif event_type == "replay_start":
-                        winsound.Beep(800, 120)
-                    elif event_type == "replay_finished":
-                        winsound.Beep(1000, 150)
-                except Exception as e:
-                    self.logger.debug(f"Winsound play failed: {e}")
-            else:
-                # Linux terminal bell fallback
-                sys.stdout.write("\a")
-                sys.stdout.flush()
-
-        threading.Thread(target=beep_worker, daemon=True).start()

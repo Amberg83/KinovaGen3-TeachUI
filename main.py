@@ -10,6 +10,7 @@ from hardware import KinovaHardware
 from model import SequenceModel
 from view import RobotView, ConnectionDialog
 from controller import RobotController
+from utils.sound_coordinator import SoundCoordinator
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "connection_config.json")
@@ -129,9 +130,12 @@ def main():
     
     controller = RobotController(root, view, model, hardware, participant_id=participant_id)
     
+    # Initialize the sound coordinator to listen to events and trigger audio feedback
+    sound_coordinator = SoundCoordinator()
+    
     def on_closing():
         logging.getLogger("Main").info("Closing application...")
-        hardware.disconnect()
+        hardware.disconnect(block_sound=True)
         root.destroy()
         
     root.protocol("WM_DELETE_WINDOW", on_closing)

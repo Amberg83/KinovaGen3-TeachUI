@@ -3,4 +3,8 @@
 # It must be installed from a local wheel (.whl) file downloaded from Kinova.
 # Example: pip install C:\path\to\kortex_api-2.X.X-py3-none-any.whl
 
-# No other external packages are required (uses standard library and tkinter).
+# High-performance cross-platform audio playback engine (WAV/MP3)
+miniaudio>=1.40.0
+
+# Kinova Gen3 Robotics API
+./kortex_api-2.8.0.post5-py3-none-any.whl

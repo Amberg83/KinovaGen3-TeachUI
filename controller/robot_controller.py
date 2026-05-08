@@ -4,6 +4,7 @@ import threading
 import logging
 import json
 from .replay_engine import ReplayEngine
+from utils.event_bus import EventBus
 
 class RobotController:
     """Orchestrates application logic, linking View panels to Model and Hardware layers."""
@@ -138,10 +139,12 @@ class RobotController:
     def handle_move_up(self, idx):
         self.model.move_up(idx)
         self._auto_save()
+        EventBus.publish("waypoint_moved_up")
 
     def handle_move_down(self, idx):
         self.model.move_down(idx)
         self._auto_save()
+        EventBus.publish("waypoint_moved_down")
 
     def handle_copy_poses(self, indices):
         self.clipboard = self.model.copy_poses(indices)
@@ -161,18 +164,22 @@ class RobotController:
     def handle_move_entry(self, from_idx, to_idx):
         self.model.move_pose(from_idx, to_idx)
         self._auto_save()
+        EventBus.publish("waypoint_moved_entry")
 
     def handle_delete_poses(self, indices):
         self.model.delete_poses(indices)
         self._auto_save()
+        EventBus.publish("waypoint_deleted")
 
     def handle_undo(self):
         if self.model.undo():
             self._auto_save()
+            EventBus.publish("edit_undone")
 
     def handle_redo(self):
         if self.model.redo():
             self._auto_save()
+            EventBus.publish("edit_redone")
 
     def handle_append_pose(self, poses):
         params = {"type": "action", "duration_s": 5.0, "max_velocities": [0.0]*6, "pause_s": 0.0}
@@ -188,7 +195,7 @@ class RobotController:
             self.model.append_pose(pose_data)
             self.logger.info(f"Captured current live pose to new end entry.")
             
-        self.hardware.play_chime("captured")
+        EventBus.publish("waypoint_captured")
         self._auto_save()
 
     def handle_save_waypoint_changes(self, idx_or_indices, params, poses):
@@ -207,6 +214,8 @@ class RobotController:
             self.model.update_pose(idx, params)
             self._auto_save()
             self.logger.info(f"Overwrote WP #{idx} with data from Inspector.")
+            
+        EventBus.publish("waypoint_saved")
 
     def handle_apply_min_durations(self, indices):
         """Calculates and transactionally applies the physical minimum safe duration to each highlighted waypoint index."""
@@ -385,7 +394,7 @@ class RobotController:
             self.logger.error(f"Failed to write study_logs.csv: {e}")
         
         # Play a beautiful double success beep!
-        self.hardware.play_chime("captured")
+        EventBus.publish("task_completed")
 
         # 3. Transition to next task
         self.current_task_index += 1
