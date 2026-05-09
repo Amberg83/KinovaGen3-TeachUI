@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, filedialog, messagebox
+from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from view.panels import LiveStatePanel, SequenceTimelinePanel, WaypointInspectorPanel
 from view import theme

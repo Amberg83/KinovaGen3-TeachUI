@@ -6,7 +6,6 @@ import logging
 import queue
 import tkinter as tk
 import customtkinter as ctk
-from tkinter import scrolledtext
 from hardware import KinovaHardware, MockKinovaHardware
 from model import SequenceModel
 from view import RobotView, ConnectionDialog
@@ -19,7 +18,7 @@ CONFIG_FILE = os.path.join(BASE_DIR, "connection_config.json")
 
 class UITextHandler(logging.Handler):
     """Routes log messages to Tkinter safely using a Queue to prevent freezes."""
-    def __init__(self, text_widget: scrolledtext.ScrolledText, update_interval=100, max_lines=2000):
+    def __init__(self, text_widget: ctk.CTkTextbox, update_interval=100, max_lines=2000):
         super().__init__()
         self.text_widget = text_widget
         self.log_queue = queue.Queue()
@@ -37,8 +36,12 @@ class UITextHandler(logging.Handler):
         self.log_queue.put((msg, level_tag))
 
     def flush_queue(self):
-        """Bulk-inserts waiting logs into Tkinter and prunes old lines."""
+        """Bulk-inserts waiting logs into Tkinter and prunes old lines with classic terminal scroll behavior."""
         if not self.log_queue.empty():
+            # Check scroll position before modifying the text
+            y_range = self.text_widget.yview()
+            is_at_bottom = len(y_range) == 2 and y_range[1] >= 0.99
+            
             self.text_widget.configure(state='normal')
             
             while not self.log_queue.empty():
@@ -53,7 +56,10 @@ class UITextHandler(logging.Handler):
                 self.text_widget.delete('1.0', f'{current_lines - self.max_lines + 1}.0')
             
             self.text_widget.configure(state='disabled')
-            self.text_widget.see(tk.END)
+            
+            # Auto-scroll to bottom only if the user was already at the bottom
+            if is_at_bottom:
+                self.text_widget.see(tk.END)
             
         self.text_widget.after(self.update_interval, self.flush_queue)
 

@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
 from view import theme
 from view.widgets import ToolTip

@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
 from view import theme
 from hardware.kinova_hardware import calculate_min_safe_duration

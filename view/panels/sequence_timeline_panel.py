@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
 from view.widgets import ToolTip
 from view import theme
@@ -234,24 +233,19 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.btn_estop.pack(side="right", fill="x", expand=True, padx=(15, 3), pady=6)
         ToolTip(self.btn_estop, "EMERGENCY STOP (Escape)")
 
-        # Build System Logs ScrolledText Terminal console inside logs_sub_frame.content
-        from tkinter import scrolledtext
-        scaling = theme.current_scaling
-        scaled_mono = (theme.FONT_MONO[0], int(theme.FONT_MONO[1] * scaling), theme.FONT_MONO[2])
-        self.log_area = scrolledtext.ScrolledText(
-            logs_sub_frame.content, height=4, state='disabled', font=scaled_mono,
-            bg="#09090b", fg=theme.TEXT_PRIMARY, insertbackground=theme.TEXT_PRIMARY,
-            relief="flat", bd=0, highlightthickness=0
+        # Build System Logs CTkTextbox Terminal console inside logs_sub_frame.content
+        self.log_area = ctk.CTkTextbox(
+            logs_sub_frame.content, state='disabled', font=theme.FONT_MONO,
+            fg_color="#09090b", text_color=theme.TEXT_PRIMARY,
+            border_width=0, corner_radius=0
         )
         self.log_area.pack(fill="both", expand=True)
         
         self.log_area.tag_config('DEBUG', foreground='#818cf8')
         self.log_area.tag_config('INFO', foreground='#94a3b8')
         self.log_area.tag_config('WARNING', foreground=theme.ACCENT_YELLOW)
-        
-        scaled_mono_bold = (theme.FONT_MONO[0], int(theme.FONT_MONO[1] * scaling), "bold")
-        self.log_area.tag_config('ERROR', foreground=theme.ACCENT_RED, font=scaled_mono_bold)
-        self.log_area.tag_config('CRITICAL', foreground='#ffffff', background='#991b1b', font=scaled_mono_bold)
+        self.log_area.tag_config('ERROR', foreground=theme.ACCENT_RED)
+        self.log_area.tag_config('CRITICAL', foreground='#ffffff', background='#991b1b')
 
     def update_header_separators(self):
         """Calculates and places column resizing markers inside the header frame."""
