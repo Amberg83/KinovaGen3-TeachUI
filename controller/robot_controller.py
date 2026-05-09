@@ -253,8 +253,11 @@ class RobotController:
 
     def _auto_save(self):
         """Explicitly called by the Controller only after actual data mutations."""
-        # If in study mode, prevent auto-saves to root expressions to avoid file clutter
-        if self.study_mode:
+        # If in study mode, save directly to the participant's persistent task file
+        if self.study_manager.study_mode:
+            filepath = self.study_manager.current_task_filepath
+            if filepath:
+                self.model.save_to_json(filepath)
             return
 
         if self.model.current_filepath is None and len(self.model.sequence) > 0:
