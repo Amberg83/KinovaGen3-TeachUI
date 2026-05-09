@@ -2,6 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 from view.widgets import ToolTip
 from view import theme
+from .timeline_widgets import TimelineRowCard, SystemLogsConsole, MediaPlaybackToolbar
 
 class SequenceTimelinePanel(ctk.CTkFrame):
     """Encapsulates Column 2: The sequence timeline list, file utilities, and media playback control buttons with fully adjustable columns."""
@@ -187,66 +188,20 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.btn_redo.pack(side="right", padx=2)
 
         # Toolbar Bottom (Playback / Media Control Center)
-        media_frame = ctk.CTkFrame(
-            timeline_sub_frame.content, fg_color=theme.BG_HEADER, corner_radius=4,
-            border_width=1, border_color=theme.BORDER_COLOR
-        )
-        media_frame.pack(fill="x", pady=(6, 0))
+        self.playback_toolbar = MediaPlaybackToolbar(timeline_sub_frame.content)
+        self.playback_toolbar.pack(fill="x", pady=(6, 0))
         
-        self.btn_replay = theme.make_flat_button(
-            media_frame, text=" Full Replay", image=theme.get_icon("play", tint=theme.BG_MAIN), compound="left",
-            bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, hover_bg="#059669", 
-            font_style=theme.FONT_BOLD, padx=15, height=44
-        )
-        self.btn_replay.pack(side="left", padx=3, pady=6)
-        ToolTip(self.btn_replay, "Replay Entire Sequence (F5)")
-        
-        self.btn_replay_sel = theme.make_flat_button(
-            media_frame, text=" Selection", image=theme.get_icon("play_selection"), compound="left",
-            bg_color=theme.BG_INPUT, fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-            font_style=theme.FONT_BOLD, padx=15, height=44
-        )
-        self.btn_replay_sel.pack(side="left", padx=3, pady=6)
-        ToolTip(self.btn_replay_sel, "Replay Selected Timeline Items (F6)")
-        
-        # Helper to build playback media control flat toggles (image-based 1:1 squares)
-        def make_media_btn(parent, icon_name, hover_text):
-            img = theme.get_icon(icon_name)
-            btn = theme.make_flat_button(
-                parent, text="", image=img, bg_color=theme.BG_INPUT, 
-                fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
-                width=44, height=44, padx=0, pady=0
-            )
-            ToolTip(btn, hover_text)
-            return btn
+        # Expose references for controller bindings and main view toggles
+        self.btn_replay = self.playback_toolbar.btn_replay
+        self.btn_replay_sel = self.playback_toolbar.btn_replay_sel
+        self.btn_pause_media = self.playback_toolbar.btn_pause_media
+        self.btn_stop_media = self.playback_toolbar.btn_stop_media
+        self.btn_estop = self.playback_toolbar.btn_estop
 
-        self.btn_pause_media = make_media_btn(media_frame, "pause", "Pause Active Replay (F7)")
-        self.btn_pause_media.pack(side="left", padx=3, pady=6)
-        
-        self.btn_stop_media = make_media_btn(media_frame, "stop", "Stop Playback and Release Robot Locks (F8)")
-        self.btn_stop_media.pack(side="left", padx=3, pady=6)
-        
-        self.btn_estop = theme.make_flat_button(
-            media_frame, text=" E-STOP", image=theme.get_icon("estop"), compound="left",
-            bg_color=theme.ACCENT_RED, fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", 
-            font_style=theme.FONT_BOLD, padx=15, height=44
-        )
-        self.btn_estop.pack(side="right", fill="x", expand=True, padx=(15, 3), pady=6)
-        ToolTip(self.btn_estop, "EMERGENCY STOP (Escape)")
-
-        # Build System Logs CTkTextbox Terminal console inside logs_sub_frame.content
-        self.log_area = ctk.CTkTextbox(
-            logs_sub_frame.content, state='disabled', font=theme.FONT_MONO,
-            fg_color="#09090b", text_color=theme.TEXT_PRIMARY,
-            border_width=0, corner_radius=0
-        )
-        self.log_area.pack(fill="both", expand=True)
-        
-        self.log_area.tag_config('DEBUG', foreground='#818cf8')
-        self.log_area.tag_config('INFO', foreground='#94a3b8')
-        self.log_area.tag_config('WARNING', foreground=theme.ACCENT_YELLOW)
-        self.log_area.tag_config('ERROR', foreground=theme.ACCENT_RED)
-        self.log_area.tag_config('CRITICAL', foreground='#ffffff', background='#991b1b')
+        # Build System Logs Console Component
+        self.logs_console = SystemLogsConsole(logs_sub_frame.content)
+        self.logs_console.pack(fill="both", expand=True)
+        self.log_area = self.logs_console.textbox
 
     def update_header_separators(self):
         """Calculates and places column resizing markers inside the header frame."""
@@ -363,61 +318,30 @@ class SequenceTimelinePanel(ctk.CTkFrame):
 
         # Re-build each row
         for idx, step in enumerate(sequence):
-            type_str = step.get("type", "action").upper()
-            dur = step.get('duration_s', 3.0)
-            
-            if type_str == "PAUSE":
-                pos_str = "--- (WAITING) ---"
-                param_str = f"Wait: {dur}s"
-            else:
-                pos_str = [f"{v:.1f}" for v in step["pos"]]
-                param_str = f"Duration: {dur}s"
-
-            # Create Card Frame
             is_selected = idx in self.selected_indices
-            bg_color = theme.BG_HEADER if is_selected else theme.BG_INPUT
-            border_color = theme.ACCENT_CYBER if is_selected else theme.BORDER_COLOR
             
-            row_frame = ctk.CTkFrame(
-                self.scroll_frame, fg_color=bg_color, height=36, corner_radius=4,
-                border_width=1, border_color=border_color
+            # Instantiate clean modular subclass widget
+            row_card = TimelineRowCard(
+                self.scroll_frame, idx, step, self.col_widths,
+                self.on_row_click, self.on_row_drag_motion, self.on_row_drag_drop,
+                is_selected
             )
-            row_frame.pack(fill="x", pady=2, ipady=4)
-
-            # Labels (sized to current adjustable column widths)
-            lbl_id = ctk.CTkLabel(row_frame, text=str(idx), width=self.col_widths[0], font=theme.FONT_MONO)
-            lbl_id.pack(side="left")
+            row_card.pack(fill="x", pady=2, ipady=4)
             
-            lbl_type = ctk.CTkLabel(row_frame, text=type_str, width=self.col_widths[1], font=theme.FONT_BOLD, text_color=theme.ACCENT_CYBER)
-            lbl_type.pack(side="left")
-            
-            lbl_pos = ctk.CTkLabel(row_frame, text=str(pos_str), width=self.col_widths[2], font=theme.FONT_MONO)
-            lbl_pos.pack(side="left")
-            
-            lbl_param = ctk.CTkLabel(row_frame, text=param_str, font=theme.FONT_NORMAL, anchor="w")
-            lbl_param.pack(side="left", fill="x", expand=True, padx=(10, 0))
-
             self.row_widgets.append({
-                "frame": row_frame,
-                "id": lbl_id,
-                "type": lbl_type,
-                "pos": lbl_pos,
-                "param": lbl_param
+                "frame": row_card,
+                "id": row_card.lbl_id,
+                "type": row_card.lbl_type,
+                "pos": row_card.lbl_pos,
+                "param": row_card.lbl_param
             })
-
+            
             # Map widgets to index for drag-and-drop containing lookup
-            self.widget_to_idx[row_frame] = idx
-            self.widget_to_idx[lbl_id] = idx
-            self.widget_to_idx[lbl_type] = idx
-            self.widget_to_idx[lbl_pos] = idx
-            self.widget_to_idx[lbl_param] = idx
-
-            # Bind click and drag events to ALL components
-            widgets_to_bind = [row_frame, lbl_id, lbl_type, lbl_pos, lbl_param]
-            for w in widgets_to_bind:
-                w.bind("<ButtonPress-1>", lambda e, i=idx: self.on_row_click(i, e))
-                w.bind("<B1-Motion>", lambda e, i=idx: self.on_row_drag_motion(i, e))
-                w.bind("<ButtonRelease-1>", lambda e: self.on_row_drag_drop(e))
+            self.widget_to_idx[row_card] = idx
+            self.widget_to_idx[row_card.lbl_id] = idx
+            self.widget_to_idx[row_card.lbl_type] = idx
+            self.widget_to_idx[row_card.lbl_pos] = idx
+            self.widget_to_idx[row_card.lbl_param] = idx
 
     def on_row_click(self, idx, event):
         self._drag_start_idx = idx
@@ -531,6 +455,9 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         # Reset hover index tracking
         self._current_hover_idx = None
         
+        # Check if a drag was actually initiated (proxy overlay existed)
+        was_dragging = (self.drag_proxy is not None)
+        
         # Clean up and destroy the floating drag-and-drop proxy card overlay
         if self.drag_proxy:
             self.drag_proxy.destroy()
@@ -550,8 +477,8 @@ class SequenceTimelinePanel(ctk.CTkFrame):
                     target_idx = idx
                     break
             
-            # If a drop target was successfully identified, select it and move it in the model
-            if target_idx is not None:
+            # If a real drag occurred and a drop target was identified, select it and move it in the model
+            if was_dragging and target_idx is not None:
                 self.selected_indices = {target_idx}
                 self.last_clicked_idx = target_idx
                 
