@@ -29,13 +29,13 @@ class ConnectionDialog(ctk.CTk):
         # Tech Title with Cyber Teal accent
         theme.make_label(
             header_frame, text="KINOVA DASHBOARD", 
-            font=theme.FONT_TITLE, fg_color=theme.BG_HEADER, text_color=theme.ACCENT_CYBER
+            font=(theme.FONT_TITLE[0], 15, "bold"), fg_color=theme.BG_HEADER, text_color=theme.ACCENT_CYBER
         ).pack(pady=(18, 0))
         
         # Subtitle
         theme.make_label(
             header_frame, text="Configure connection & study credentials", 
-            font=(theme.FONT_NORMAL[0], 9, "normal"), fg_color=theme.BG_HEADER, text_color=theme.TEXT_MUTED
+            font=(theme.FONT_NORMAL[0], 11, "normal"), fg_color=theme.BG_HEADER, text_color=theme.TEXT_MUTED
         ).pack(pady=(2, 18))
 
         # Horizontal accent division line
@@ -87,8 +87,8 @@ class ConnectionDialog(ctk.CTk):
         theme.make_label(
             notice_frame, text=" Leave Participant ID empty to launch in Expert Mode.",
             image=theme.get_icon("lightbulb"), compound="left",
-            font=(theme.FONT_NORMAL[0], 8, "normal"), fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
-            wraplength=220, justify="left"
+            font=(theme.FONT_NORMAL[0], 10, "normal"), fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
+            wraplength=280, justify="left"
         ).pack(fill="x", padx=10, pady=8)
 
         # ----------------- ACTION BUTTONS -----------------
@@ -114,17 +114,23 @@ class ConnectionDialog(ctk.CTk):
 
         # Update window geometry dynamically based on requested sizes
         self.update_idletasks() 
-        width = self.winfo_reqwidth()
-        height = self.winfo_reqheight()
         
-        # Scaling correction for center-placement on high-DPI screens
         scale = self._get_window_scaling()
-        sw = int(self.winfo_screenwidth() / scale)
-        sh = int(self.winfo_screenheight() / scale)
         
-        x = (sw // 2) - (width // 2)
-        y = (sh // 2) - (height // 2)
-        self.geometry(f"{width}x{height}+{x}+{y}")
+        # winfo_reqwidth() and winfo_reqheight() return physical (scaled) pixels.
+        # We must divide them by the scaling factor to obtain the logical (unscaled) sizes.
+        width_logical = int(self.winfo_reqwidth() / scale)
+        height_logical = int(self.winfo_reqheight() / scale)
+        
+        # winfo_screenwidth() and winfo_screenheight() return logical screen sizes.
+        screen_width_logical = self.winfo_screenwidth()
+        screen_height_logical = self.winfo_screenheight()
+        
+        # Center the window in logical coordinates
+        x = (screen_width_logical // 2) - (width_logical // 2)
+        y = (screen_height_logical // 2) - (height_logical // 2)
+        
+        self.geometry(f"{width_logical}x{height_logical}+{x}+{y}")
         
         # Bring to front & capture focus
         self.focus_force()
