@@ -24,6 +24,7 @@ connection_config.json
 log/
 expressions/PID_*/
 expressions/*_*.json
+study_results/
 
 # OS Specific Files
 .DS_Store

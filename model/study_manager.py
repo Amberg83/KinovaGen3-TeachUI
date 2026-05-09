@@ -18,6 +18,7 @@ class StudyManager:
         self.task_order_indices = []
         self.current_task_index = 0
         self.task_start_time = 0.0
+        self.current_task_filepath = None
         
         if self.study_mode:
             self.tasks = self._load_or_create_referents()
@@ -27,7 +28,26 @@ class StudyManager:
             self.task_order_indices = [(pid_int - 1 + i) % n_tasks for i in range(n_tasks)]
             self.current_task_index = 0
             self.task_start_time = time.time()
+            self._update_current_task_filepath()
             self.logger.info(f"Study Mode activated for PID: '{self.participant_id}' with task order indices: {self.task_order_indices}")
+
+    def _update_current_task_filepath(self):
+        """Updates the persistent filepath for the currently active study task."""
+        if not self.study_mode:
+            self.current_task_filepath = None
+            return
+        active_task = self.get_active_task()
+        if not active_task:
+            self.current_task_filepath = None
+            return
+        
+        task_id = active_task["id"]
+        study_results_dir = "study_results"
+        pid_dir = os.path.join(study_results_dir, self.participant_id)
+        os.makedirs(pid_dir, exist_ok=True)
+        
+        timestamp_str = time.strftime("%Y_%m_%d-%H_%M_%S", time.localtime(self.task_start_time))
+        self.current_task_filepath = os.path.join(pid_dir, f"task_{task_id}_{timestamp_str}.json")
 
     def get_active_task(self):
         """Returns the currently active task dictionary, or None if not in study mode."""
@@ -61,18 +81,21 @@ class StudyManager:
         task_name = active_task["name"]
         
         # 1. Back up current timeline JSON inside separate folder for the PID
-        study_results_dir = "study_results"
-        pid_dir = os.path.join(study_results_dir, self.participant_id)
-        os.makedirs(pid_dir, exist_ok=True)
-        
-        timestamp_str = time.strftime("%Y_%m_%d-%H_%M_%S")
-        backup_filename = f"task_{task_id}_{timestamp_str}.json"
-        backup_path = os.path.join(pid_dir, backup_filename)
-        
-        # Save sequence list even if empty
-        current_sequence_model.save_to_json(backup_path)
+        if self.current_task_filepath:
+            os.makedirs(os.path.dirname(self.current_task_filepath), exist_ok=True)
+            current_sequence_model.save_to_json(self.current_task_filepath)
+            backup_filename = os.path.basename(self.current_task_filepath)
+        else:
+            # Fallback
+            pid_dir = os.path.join("study_results", self.participant_id)
+            os.makedirs(pid_dir, exist_ok=True)
+            timestamp_str = time.strftime("%Y_%m_%d-%H_%M_%S")
+            backup_filename = f"task_{task_id}_{timestamp_str}.json"
+            backup_path = os.path.join(pid_dir, backup_filename)
+            current_sequence_model.save_to_json(backup_path)
         
         # 2. Append to log file
+        study_results_dir = "study_results"
         log_path = os.path.join(study_results_dir, "study_logs.csv")
         start_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.task_start_time))
         end_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
@@ -93,10 +116,12 @@ class StudyManager:
         self.current_task_index += 1
         if self.current_task_index < len(self.tasks):
             self.task_start_time = time.time()
+            self._update_current_task_filepath()
             next_task = self.get_active_task()
             return False, next_task
         else:
             # Study completed! Archive log file
+            pid_dir = os.path.join("study_results", self.participant_id)
             self._archive_session_logs(pid_dir)
             return True, None
 

@@ -10,6 +10,7 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         super().__init__(parent, fg_color=theme.BG_MAIN, corner_radius=0, **kwargs)
         self._move_entry_cb = None
         self._drag_start_idx = None
+        self.drag_proxy = None
         
         # Adjustable column settings
         self.col_widths = [60, 130, 280]  # Initial widths for Col 0 (ID), Col 1 (Type), Col 2 (Position)
@@ -343,7 +344,7 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.row_widgets.clear()
         self.widget_to_idx.clear()
 
-        # Update select_index if passed
+        # Update select_index if passed, otherwise preserve valid current selections
         if select_index is not None:
             if isinstance(select_index, list):
                 self.selected_indices = set(select_index)
@@ -355,8 +356,10 @@ class SequenceTimelinePanel(ctk.CTkFrame):
                 else:
                     self.last_clicked_idx = select_index
         else:
-            self.selected_indices.clear()
-            self.last_clicked_idx = None
+            # Preserve current selection, filtering out any indices that are now out of bounds (e.g. after list clear)
+            self.selected_indices = {idx for idx in self.selected_indices if 0 <= idx < len(sequence)}
+            if self.last_clicked_idx is not None and (self.last_clicked_idx < 0 or self.last_clicked_idx >= len(sequence)):
+                self.last_clicked_idx = None if not self.selected_indices else list(self.selected_indices)[0]
 
         # Re-build each row
         for idx, step in enumerate(sequence):
@@ -448,9 +451,91 @@ class SequenceTimelinePanel(ctk.CTkFrame):
 
     def on_row_drag_motion(self, idx, event):
         self.scroll_frame.configure(cursor="hand2")
+        
+        if self._drag_start_idx is not None:
+            # 1. Create the floating proxy card if it does not exist yet
+            if not self.drag_proxy:
+                # Dim/ghost the original row in the list to indicate it is "detached"
+                orig_cells = self.row_widgets[idx]
+                orig_cells["frame"].configure(
+                    fg_color=theme.BG_MAIN,
+                    border_color=theme.BORDER_COLOR
+                )
+                
+                # Build the floating proxy container overlay parented to self (SequenceTimelinePanel)
+                # Pass width and height strictly to constructor to avoid CustomTkinter place ValueError
+                self.drag_proxy = ctk.CTkFrame(
+                    self,
+                    fg_color=theme.ACCENT_CYBER,
+                    width=self.winfo_width() - 40,
+                    height=36,
+                    corner_radius=4,
+                    border_width=1,
+                    border_color=theme.TEXT_PRIMARY
+                )
+                self.drag_proxy.place(x=20, y=0)
+                
+                # Clone labels inside the proxy card (using dark theme contrast text color)
+                lbl_type = ctk.CTkLabel(
+                    self.drag_proxy,
+                    text=orig_cells["type"].cget("text"),
+                    font=theme.FONT_BOLD,
+                    text_color=theme.BG_MAIN
+                )
+                lbl_type.pack(side="left", padx=15)
+                
+                lbl_pos = ctk.CTkLabel(
+                    self.drag_proxy,
+                    text=orig_cells["pos"].cget("text"),
+                    font=theme.FONT_MONO,
+                    text_color=theme.BG_MAIN
+                )
+                lbl_pos.pack(side="left", fill="x", expand=True, padx=10)
+                
+            # 2. Update position of the proxy card based on screen DPI scaling relative to panel
+            scaling = ctk.ScalingTracker.get_window_scaling(self)
+            relative_y_physical = event.y_root - self.winfo_rooty()
+            relative_y_logical = relative_y_physical / scaling
+            
+            # Position centered vertically on the mouse pointer inside Column 2
+            self.drag_proxy.place(x=20, y=relative_y_logical - 18)
+            # Lift the proxy to the top of the timeline's widget Z-stack overlay
+            self.drag_proxy.lift()
+
+            # 3. Dynamic insertion highlight feedback: locate current hover target index
+            hover_idx = None
+            for i, cells in enumerate(self.row_widgets):
+                row_frame = cells["frame"]
+                if not row_frame.winfo_exists():
+                    continue
+                ry = row_frame.winfo_rooty()
+                rh = row_frame.winfo_height()
+                if ry <= event.y_root <= ry + rh:
+                    hover_idx = i
+                    break
+            
+            # If hover index changed, update styling of the rows in real-time
+            if not hasattr(self, "_current_hover_idx") or self._current_hover_idx != hover_idx:
+                self._current_hover_idx = hover_idx
+                self.redraw_selection_states()
+                if hover_idx is not None and hover_idx != self._drag_start_idx:
+                    # Highlight target row with cyber-cyan border and filled header background
+                    self.row_widgets[hover_idx]["frame"].configure(
+                        border_color=theme.ACCENT_CYBER,
+                        fg_color=theme.BG_HEADER
+                    )
 
     def on_row_drag_drop(self, event):
         self.scroll_frame.configure(cursor="")
+        
+        # Reset hover index tracking
+        self._current_hover_idx = None
+        
+        # Clean up and destroy the floating drag-and-drop proxy card overlay
+        if self.drag_proxy:
+            self.drag_proxy.destroy()
+            self.drag_proxy = None
+            
         if self._drag_start_idx is not None:
             # Check which row card frame contains the absolute screen pointer y-coordinate
             target_idx = None
@@ -465,9 +550,22 @@ class SequenceTimelinePanel(ctk.CTkFrame):
                     target_idx = idx
                     break
             
-            if target_idx is not None and target_idx != self._drag_start_idx:
-                if self._move_entry_cb:
-                    self._move_entry_cb(self._drag_start_idx, target_idx)
+            # If a drop target was successfully identified, select it and move it in the model
+            if target_idx is not None:
+                self.selected_indices = {target_idx}
+                self.last_clicked_idx = target_idx
+                
+                if target_idx != self._drag_start_idx:
+                    if self._move_entry_cb:
+                        self._move_entry_cb(self._drag_start_idx, target_idx)
+                
+                # Trigger selection callback to update controller/inspector
+                if self._select_cb:
+                    self._select_cb(None)
+            
+            # Refresh all row background and border colors
+            self.redraw_selection_states()
+            
         self._drag_start_idx = None
 
     def redraw_selection_states(self):
