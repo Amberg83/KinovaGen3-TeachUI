@@ -95,8 +95,8 @@ class RobotView:
         self.panel_insp.grid_propagate(False)
 
         # Create custom vertical dragging dividers (glowing separators)
-        self.panel_sep_0 = ctk.CTkFrame(content_frame, fg_color="transparent", cursor="size_we", width=6)
-        self.panel_sep_1 = ctk.CTkFrame(content_frame, fg_color="transparent", cursor="size_we", width=6)
+        self.panel_sep_0 = ctk.CTkFrame(content_frame, fg_color="transparent", cursor="sb_h_double_arrow", width=6)
+        self.panel_sep_1 = ctk.CTkFrame(content_frame, fg_color="transparent", cursor="sb_h_double_arrow", width=6)
 
         # Hover animations for panel separators
         def on_p_sep_enter(sep, event):

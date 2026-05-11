@@ -38,9 +38,9 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.timeline_sub_frame = timeline_sub_frame = theme.SectionFrame(self, text="Sequence Timeline")
         self.timeline_sub_frame.pack_propagate(False)
         
-        # Horizontal separator bar running from left to right (6px high, size_ns drag cursor)
+        # Horizontal separator bar running from left to right (6px high, sb_v_double_arrow drag cursor)
         # We use theme.BG_MAIN instead of transparent to prevent Tkinter mouse event click-throughs
-        self.logs_sep = ctk.CTkFrame(self, fg_color=theme.BG_MAIN, cursor="size_ns", height=6)
+        self.logs_sep = ctk.CTkFrame(self, fg_color=theme.BG_MAIN, cursor="sb_v_double_arrow", height=6)
         
         # Logs bottom panel
         self.logs_sub_frame = logs_sub_frame = theme.SectionFrame(self, text="System Logs")
@@ -113,9 +113,9 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.lbl_h_param.pack(side="left", fill="x", expand=True, padx=(10, 0))
 
         # Create column resize separators inside the header row
-        self.sep_0 = ctk.CTkFrame(self.header_row, fg_color="transparent", cursor="size_we", width=5)
-        self.sep_1 = ctk.CTkFrame(self.header_row, fg_color="transparent", cursor="size_we", width=5)
-        self.sep_2 = ctk.CTkFrame(self.header_row, fg_color="transparent", cursor="size_we", width=5)
+        self.sep_0 = ctk.CTkFrame(self.header_row, fg_color="transparent", cursor="sb_h_double_arrow", width=5)
+        self.sep_1 = ctk.CTkFrame(self.header_row, fg_color="transparent", cursor="sb_h_double_arrow", width=5)
+        self.sep_2 = ctk.CTkFrame(self.header_row, fg_color="transparent", cursor="sb_h_double_arrow", width=5)
         
         # Attach subtle hover effects to separators
         def on_sep_enter(sep, event):
