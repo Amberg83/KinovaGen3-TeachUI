@@ -12,8 +12,5 @@ customtkinter>=5.2.0
 # Python Imaging Library for loading and tinting interface icons
 Pillow>=10.0.0
 
-# Protocol Buffers required by the Kinova Kortex API (Python 3.x compatible)
-protobuf>=3.19.0,<4.0.0
-
 # Kinova Gen3 Robotics API (Local wheel)
 ./kortex_api-2.8.0.post5-py3-none-any.whl
