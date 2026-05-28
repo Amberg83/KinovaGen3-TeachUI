@@ -67,7 +67,7 @@ class UITextHandler(logging.Handler):
 def setup_global_logging(view: RobotView):
     """Configures system logging for UI, File, and Console outputs."""
     os.makedirs("log", exist_ok=True)
-    log_timestamp = time.strftime("%Y_%m_%d-%H_%M_%S")
+    log_timestamp = str(int(time.time()))
     log_filepath = os.path.join("log", f"{log_timestamp}.log")
 
     root_logger = logging.getLogger()

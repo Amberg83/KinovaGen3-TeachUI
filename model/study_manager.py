@@ -19,17 +19,18 @@ class StudyManager:
         self.current_task_index = 0
         self.task_start_time = 0.0
         self.current_task_filepath = None
+        self.session_creation_timestamp = int(time.time())
         
         if self.study_mode:
             self.tasks = self._load_or_create_referents()
             n_tasks = len(self.tasks)
             pid_int = int(self.participant_id) if self.participant_id.isdigit() else 1
-            # Balanced Latin Square task mapping based on participant ID
-            self.task_order_indices = [(pid_int - 1 + i) % n_tasks for i in range(n_tasks)]
+            # Balanced Latin Square task mapping based on Williams' design
+            self.task_order_indices = self._generate_balanced_latin_square_order(pid_int, n_tasks)
             self.current_task_index = 0
             self.task_start_time = time.time()
             self._update_current_task_filepath()
-            self.logger.info(f"Study Mode activated for PID: '{self.participant_id}' with task order indices: {self.task_order_indices}")
+            self.logger.info(f"Study Mode activated for PID: '{self.participant_id}' (Session: {self.session_creation_timestamp}) with task order indices: {self.task_order_indices}")
 
     def _update_current_task_filepath(self):
         """Updates the persistent filepath for the currently active study task."""
@@ -43,10 +44,10 @@ class StudyManager:
         
         task_id = active_task["id"]
         study_results_dir = "study_results"
-        pid_dir = os.path.join(study_results_dir, self.participant_id)
+        pid_dir = os.path.join(study_results_dir, f"{self.participant_id}-{self.session_creation_timestamp}")
         os.makedirs(pid_dir, exist_ok=True)
         
-        timestamp_str = time.strftime("%Y_%m_%d-%H_%M_%S", time.localtime(self.task_start_time))
+        timestamp_str = str(int(self.task_start_time))
         self.current_task_filepath = os.path.join(pid_dir, f"task_{task_id}_{timestamp_str}.json")
 
     def get_active_task(self):
@@ -87,30 +88,34 @@ class StudyManager:
             backup_filename = os.path.basename(self.current_task_filepath)
         else:
             # Fallback
-            pid_dir = os.path.join("study_results", self.participant_id)
+            pid_dir = os.path.join("study_results", f"{self.participant_id}-{self.session_creation_timestamp}")
             os.makedirs(pid_dir, exist_ok=True)
-            timestamp_str = time.strftime("%Y_%m_%d-%H_%M_%S")
+            timestamp_str = str(int(time.time()))
             backup_filename = f"task_{task_id}_{timestamp_str}.json"
             backup_path = os.path.join(pid_dir, backup_filename)
             current_sequence_model.save_to_json(backup_path)
         
-        # 2. Append to log file
-        study_results_dir = "study_results"
-        log_path = os.path.join(study_results_dir, "study_logs.csv")
-        start_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.task_start_time))
-        end_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+        # 2. Append to participant-specific CSV log file
+        participants_dir = os.path.join("study_results", "Participants")
+        os.makedirs(participants_dir, exist_ok=True)
+        
+        log_filename = f"study_log-{self.participant_id}-{self.session_creation_timestamp}.csv"
+        log_path = os.path.join(participants_dir, log_filename)
         
         write_header = not os.path.exists(log_path)
         presentation_order = self.current_task_index + 1
         
+        start_time_unix = int(self.task_start_time)
+        end_time_unix = int(time.time())
+        
         try:
             with open(log_path, "a", encoding="utf-8") as f:
                 if write_header:
-                    f.write("PID,PresentationOrder,ReferentID,ReferentName,StartTime,EndTime,BackupFile\n")
-                f.write(f'"{self.participant_id}",{presentation_order},{task_id},"{task_name}","{start_time_str}","{end_time_str}","{backup_filename}"\n')
+                    f.write("PID,Starttime,Endtime,RID,RName,PresentationOrder,GestureFile\n")
+                f.write(f'"{self.participant_id}",{start_time_unix},{end_time_unix},{task_id},"{task_name}",{presentation_order},"{backup_filename}"\n')
             self.logger.info(f"Logged task {presentation_order} metrics to {log_path}")
         except Exception as e:
-            self.logger.error(f"Failed to write study_logs.csv: {e}")
+            self.logger.error(f"Failed to write participant study log: {e}")
 
         # 3. Transition to next task
         self.current_task_index += 1
@@ -121,7 +126,7 @@ class StudyManager:
             return False, next_task
         else:
             # Study completed! Archive log file
-            pid_dir = os.path.join("study_results", self.participant_id)
+            pid_dir = os.path.join("study_results", f"{self.participant_id}-{self.session_creation_timestamp}")
             self._archive_session_logs(pid_dir)
             return True, None
 
@@ -192,3 +197,34 @@ class StudyManager:
             except Exception as e:
                 self.logger.error(f"Failed to read referents.json: {e}. Using defaults.")
                 return default_tasks
+
+    def _generate_balanced_latin_square_order(self, pid_int, n_tasks):
+        """
+        Generates a balanced Latin Square sequence using Williams' design.
+        Williams' Latin Square requires N to be even (which is always true for this study: N=4).
+        """
+        if n_tasks <= 0 or n_tasks % 2 != 0:
+            # Fallback to cyclic shift if N is somehow not even
+            return [(pid_int - 1 + i) % n_tasks for i in range(n_tasks)]
+            
+        # Williams' base sequence generator: [0, N-1, 1, N-2, 2, N-3, ...]
+        col = []
+        left = 0
+        right = n_tasks - 1
+        for j in range(n_tasks):
+            if j % 2 == 0:
+                col.append(left)
+                left += 1
+            else:
+                col.append(right)
+                right -= 1
+                
+        # Offset based on 0-indexed participant ID
+        participant_index = (pid_int - 1) % n_tasks
+        
+        order = []
+        for j in range(n_tasks):
+            val = (participant_index + col[j]) % n_tasks
+            order.append(val)
+            
+        return order

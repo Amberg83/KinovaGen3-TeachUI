@@ -136,7 +136,8 @@ class RobotView:
         # Bind Column 1
         self.panel_live.bind_commands(
             capture_pose_cb=self.on_capture_pose,
-            apply_admittance_cb=self.on_apply_admittance
+            apply_admittance_cb=self.on_apply_admittance,
+            move_default_cb=self.on_move_default
         )
         
         # Bind Column 2
@@ -243,6 +244,10 @@ class RobotView:
         mode = self.panel_live.get_selected_admittance_mode()
         if mode and "set_admittance" in self.commands:
             self.commands["set_admittance"](mode)
+
+    def on_move_default(self):
+        if "move_default" in self.commands:
+            self.commands["move_default"]()
 
     def on_tree_select(self, event):
         indices = self.panel_seq.get_selected_indices()

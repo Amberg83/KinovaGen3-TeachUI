@@ -43,6 +43,7 @@ class KinovaHardware:
         self.ip = ip
         self.username = username
         self.password = password
+        self.default_pose = [0.0,50.0,264.0,0.0,58.0,90.0]
         
         self.base = None
         self.base_cyclic = None
@@ -143,7 +144,8 @@ class KinovaHardware:
             return False, str(e)
  
     def move_to_default(self):
-        return self.execute_action_pose([0.0,0.0,0.0,0.0,0.0,0.0], 10.0, "Origin")
+        speed = calculate_min_safe_duration(self.default_pose, self.state.joint_angles_deg)
+        return self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
  
     def disconnect(self, block_sound=False):
         """Stops polling threads and closes all API sessions."""

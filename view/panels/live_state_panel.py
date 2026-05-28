@@ -36,6 +36,14 @@ class LiveStatePanel(ctk.CTkFrame):
         self.bottom_frame = ctk.CTkFrame(self, fg_color=theme.BG_CARD, corner_radius=4)
         self.bottom_frame.pack(side="bottom", fill="x", pady=(6, 0))
 
+        # Button to move robot to default position
+        self.btn_default_pose = theme.make_flat_button(
+            self.bottom_frame, text=" Move to Default Position", image=theme.get_icon("play", tint=theme.BG_MAIN), compound="left",
+            bg_color=theme.ACCENT_CYBER, fg_color=theme.BG_MAIN, hover_bg=theme.ACCENT_CYBER_HOVER
+        )
+        self.btn_default_pose.pack(fill="x", padx=10, pady=(10, 6))
+        ToolTip(self.btn_default_pose, "Move robot back to its starting default pose")
+
         # Admittance Control Panel inside Bottom Frame
         self.adm_frame = theme.SectionFrame(self.bottom_frame, text="Admittance Control")
         self.adm_frame.pack(fill="x", pady=(0, 6))
@@ -270,9 +278,10 @@ class LiveStatePanel(ctk.CTkFrame):
             else:
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
 
-    def bind_commands(self, capture_pose_cb, apply_admittance_cb):
+    def bind_commands(self, capture_pose_cb, apply_admittance_cb, move_default_cb):
         """Binds commands relating to Column 1 operations."""
         self.btn_capture.configure(command=capture_pose_cb)
+        self.btn_default_pose.configure(command=move_default_cb)
         self._apply_admittance_cb = apply_admittance_cb
 
     def on_admittance_toggle(self):

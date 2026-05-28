@@ -56,7 +56,8 @@ class RobotController:
             "paste": self.handle_paste_poses,
             "duplicate": self.handle_duplicate_poses,
             "move_entry": self.handle_move_entry,
-            "apply_min_durations": self.handle_apply_min_durations
+            "apply_min_durations": self.handle_apply_min_durations,
+            "move_default": self.handle_move_default
         })
 
         # Study Mode Setup
@@ -67,6 +68,8 @@ class RobotController:
                 self.study_manager.current_task_index + 1, self.study_manager.get_total_tasks(), 
                 self.handle_task_completed
             )
+            # Automatically move to default and save initial pose on startup
+            self._move_to_default_and_save_pose()
 
         self.logger.info("Application initialized. Dashboard active.")
         self.root.after(100, self.handle_initial_connect)
@@ -261,7 +264,7 @@ class RobotController:
             return
 
         if self.model.current_filepath is None and len(self.model.sequence) > 0:
-            timestamp = time.strftime("%Y_%m_%d-%H_%M_%S")
+            timestamp = str(int(time.time()))
             new_file = os.path.join("expressions", f"{timestamp}.json")
             self.model.current_filepath = new_file
             self.logger.info(f"Initiated new auto-save context: {new_file}")
@@ -324,8 +327,60 @@ class RobotController:
                 self.study_manager.get_total_tasks()
             )
             self.logger.info(f"Transitioned to study task {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()}.")
+            
+            # Automatically move to default and save initial pose for the new task
+            self._move_to_default_and_save_pose()
         else:
             # Entire study sequence is completed
             self.view.show_study_completed()
             self.model.clear()
             self.logger.info("Participant study cycle fully completed! Results archived.")
+
+    def handle_move_default(self):
+        if not self.hardware.state.is_connected:
+            self.logger.warning("Cannot move to default position: Robot disconnected.")
+            return
+        self.logger.info("Moving robot to default position...")
+        threading.Thread(target=self.hardware.move_to_default, daemon=True).start()
+
+    def _move_to_default_and_save_pose(self):
+        """Asynchronously moves the robot to the default position, waits for it, and appends/saves the pose."""
+        def worker():
+            if not self.hardware.state.is_connected:
+                # Wait up to 5 seconds for connection if we are at startup
+                for _ in range(50):
+                    if self.hardware.state.is_connected:
+                        break
+                    time.sleep(0.1)
+            
+            if not self.hardware.state.is_connected:
+                self.logger.error("Cannot move to default position: Robot not connected.")
+                return
+                
+            self.logger.info("Moving to default position...")
+            completion_event = self.hardware.move_to_default()
+            
+            # Wait for default positioning completion (up to 15s)
+            if not completion_event.wait(timeout=15.0):
+                self.logger.warning("Default positioning movement timed out before appending pose.")
+            
+            # Wait another short moment to ensure telemetry is updated/settled
+            time.sleep(0.5)
+            
+            # Capture the current pose (which is now at default, i.e., ~[0,0,0,0,0,0])
+            live_poses = self.hardware.state.joint_angles_deg
+            if not live_poses or len(live_poses) < 6:
+                live_poses = [0.0] * 6
+                
+            # Run the pose capture inside the main Tkinter thread to avoid race conditions on the model/UI
+            self.root.after(0, lambda: self._capture_and_save_initial_pose(live_poses))
+            
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _capture_and_save_initial_pose(self, poses):
+        """Appends the initial default pose to the model sequence and saves it."""
+        self.logger.info(f"Automatically capturing and saving initial default pose: {poses}")
+        params = {"type": "action", "duration_s": 5.0, "max_velocities": [0.0]*6, "pause_s": 0.0}
+        pose_data = {"pos": poses, **params}
+        self.model.append_pose(pose_data)
+        self._auto_save()
