@@ -153,6 +153,7 @@ class KinovaHardware:
             self.state.has_fault = True
             if not self._fault_loop_active:
                 self._fault_loop_active = True
+                EventBus.publish("estop")
                 threading.Thread(target=self._fault_beep_loop, daemon=True).start()
             self.logger.critical("Robot entered a Faulty State!")
 
@@ -164,22 +165,13 @@ class KinovaHardware:
             self.logger.info("Robot Fault successfully cleared.")
 
     def _fault_beep_loop(self):
-        """Asynchronously repeats the fault warning sound every 3 seconds while in fault."""
-        # If an E-Stop was pressed, wait 3 seconds for the siren sound to finish once before beeping
-        if self._estop_active:
-            for _ in range(6):
-                if not self.state.has_fault or not self.state.is_connected:
-                    break
-                time.sleep(0.5)
-            self._estop_active = False # Clear E-Stop flag so normal fault beep takes over
-
+        """Asynchronously repeats the fault warning sound every 5 seconds while in fault."""
         while self.state.is_connected and self.state.has_fault:
-            EventBus.publish("fault")
             # Sleep in 0.5s increments to respond instantly when faults are cleared
-            for _ in range(6):
-                if not self.state.has_fault or not self.state.is_connected:
-                    break
-                time.sleep(0.5)
+            time.sleep(5.0)
+            if not self.state.has_fault or not self.state.is_connected:
+                break
+            EventBus.publish("fault")
         self._fault_loop_active = False
 
     def _start_global_listeners(self):
@@ -479,7 +471,6 @@ class KinovaHardware:
         if self.state.is_connected and self.base:
             try: 
                 self._estop_active = True
-                EventBus.publish("estop_activated")
                 self.base.ApplyEmergencyStop()
                 self.logger.critical("EMERGENCY STOP APPLIED! Physical robot reset might be required.")
             except Exception as e: 

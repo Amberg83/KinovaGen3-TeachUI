@@ -378,9 +378,9 @@ class RobotView:
         self.panel_live.update_telemetry(state)
 
     # ================= PUBLIC API INTERFACES FOR CONTROLLER =================
-    def load_inspector_data(self, data, index, predecessor_pos=None):
+    def load_inspector_data(self, data, index, predecessor_pos=None, run_poses=None, run_selected_idx=None):
         """Called by controller to load a selected waypoint into the editor form."""
-        self.panel_insp.load_inspector_data(data, index, predecessor_pos)
+        self.panel_insp.load_inspector_data(data, index, predecessor_pos, run_poses, run_selected_idx)
 
     # ================= STUDY MODE WIDGET DECORATIONS =================
 

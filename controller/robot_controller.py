@@ -117,7 +117,37 @@ class RobotController:
             else:
                 predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
-        self.view.load_inspector_data(step_data, idx, predecessor_pos)
+        # Find consecutive run context for angularwaypoint
+        run_poses = None
+        run_selected_idx = None
+        if step_data.get("type", "action") == "angularwaypoint":
+            # Find start and end of the consecutive run of angularwaypoint
+            start_run_idx = idx
+            while start_run_idx > 0 and self.model.sequence[start_run_idx - 1].get("type", "action") == "angularwaypoint":
+                start_run_idx -= 1
+                
+            end_run_idx = idx
+            while end_run_idx < len(self.model.sequence) - 1 and self.model.sequence[end_run_idx + 1].get("type", "action") == "angularwaypoint":
+                end_run_idx += 1
+                
+            # Determine predecessor for the run
+            run_predecessor_pos = None
+            if start_run_idx > 0:
+                for k in range(start_run_idx - 1, -1, -1):
+                    step = self.model.sequence[k]
+                    if step.get("type", "action") != "pause" and "pos" in step:
+                        run_predecessor_pos = step["pos"]
+                        break
+            if run_predecessor_pos is None:
+                if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
+                    run_predecessor_pos = self.hardware.state.joint_angles_deg
+                else:
+                    run_predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                    
+            run_poses = [run_predecessor_pos] + [self.model.sequence[k]["pos"] for k in range(start_run_idx, end_run_idx + 1)]
+            run_selected_idx = idx - start_run_idx
+            
+        self.view.load_inspector_data(step_data, idx, predecessor_pos, run_poses, run_selected_idx)
 
     def handle_preview_inspector_pose(self, poses):
         if not self.hardware.state.is_connected: return

@@ -307,7 +307,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             self.duration_frame.pack(fill="x", pady=5)
         elif wp_type == "angularwaypoint":
             self.joint_frame.pack(fill="x", pady=5)
-            self.frame_wp_vels.pack(fill="x", pady=5)
+            self.frame_wp_vels.pack_forget()
             self.duration_frame.pack(fill="x", pady=5)
         elif wp_type == "pause":
             self.joint_frame.pack_forget()
@@ -320,7 +320,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.lbl_inspector_title.configure(text="No Waypoint Selected", text_color=theme.TEXT_MUTED, font=theme.FONT_NORMAL)
         self.lbl_min_duration.configure(text="Fast Limit: --s", text_color=theme.TEXT_MUTED)
 
-    def load_inspector_data(self, data, index, predecessor_pos=None):
+    def load_inspector_data(self, data, index, predecessor_pos=None, run_poses=None, run_selected_idx=None):
         """Populates fields from selected row dictionaries."""
         self.is_bulk_editing = False
         self._set_inspector_state("normal")
@@ -352,6 +352,10 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             self._predecessor_pos = predecessor_pos
         else:
             self._predecessor_pos = [0.0] * 6
+
+        # Store run context to calculate precise continuous-run limits
+        self._run_poses = run_poses
+        self._run_selected_idx = run_selected_idx
             
         # Re-enable trace changes and refresh speed limit text
         self._disable_joint_traces = False
@@ -382,8 +386,21 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             if wp_type == "action":
                 min_safe_dur = calculate_min_trajectory_duration(self._predecessor_pos, current_poses)
             else:
-                min_durs = calculate_waypoint_durations([self._predecessor_pos, current_poses])
-                min_safe_dur = min_durs[0] if min_durs else 0.6
+                # Use the full consecutive run context if available to get accurate continuous-run limits
+                if getattr(self, "_run_poses", None) is not None and getattr(self, "_run_selected_idx", None) is not None:
+                    modified_run_poses = list(self._run_poses)
+                    target_idx = self._run_selected_idx + 1
+                    if 0 <= target_idx < len(modified_run_poses):
+                        modified_run_poses[target_idx] = current_poses
+                    
+                    min_durs = calculate_waypoint_durations(modified_run_poses)
+                    if min_durs and 0 <= self._run_selected_idx < len(min_durs):
+                        min_safe_dur = min_durs[self._run_selected_idx]
+                    else:
+                        min_safe_dur = 0.6
+                else:
+                    min_durs = calculate_waypoint_durations([self._predecessor_pos, current_poses])
+                    min_safe_dur = min_durs[0] if min_durs else 0.6
                 
             self.lbl_min_duration.configure(text=f"Fast Limit: {min_safe_dur:.2f}s", text_color=theme.ACCENT_CYBER)
         else:
@@ -434,13 +451,6 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             dur_s = float(self.ent_duration.get() or 3.0)
         except ValueError: 
             dur_s = 3.0
-
-        if wp_type == "angularwaypoint":
-            for i, ent in enumerate(self.ent_wp_vels):
-                try: 
-                    max_vels[i] = float(ent.get() or 0.0)
-                except ValueError: 
-                    pass
 
         return {"type": wp_type, "duration_s": dur_s, "max_velocities": max_vels, "pause_s": 0.0}
 

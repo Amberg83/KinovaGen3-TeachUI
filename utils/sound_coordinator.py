@@ -23,9 +23,9 @@ class SoundCoordinator:
         EventBus.subscribe("robot_disconnected", lambda block=False: self._play("disconnected", block=block))
         
         # --- Robot Safety and Fault Events ---
-        EventBus.subscribe("fault_detected", lambda: self._play("fault"))
+        EventBus.subscribe("fault", lambda: self._play("fault"))
         EventBus.subscribe("fault_cleared", lambda: self._play("fault_cleared"))
-        EventBus.subscribe("estop_activated", lambda: self._play("estop"))
+        EventBus.subscribe("estop", lambda: self._play("estop"))
         
         # --- Admittance Mode Toggle Events ---
         EventBus.subscribe("admittance_enabled", lambda: self._play("admittance_enable"))
