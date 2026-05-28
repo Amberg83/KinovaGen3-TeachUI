@@ -126,8 +126,10 @@ class MockKinovaHardware:
 
     def execute_action_pose(self, target_pos_deg, duration_s, action_name="Move"):
         pager = threading.Event()
+        self._last_action_success = True
         if not self.state.is_connected or self.state.has_fault:
             self.logger.warning("[Mock] Aborted action execution: Robot offline or in fault.")
+            self._last_action_success = False
             pager.set()
             return pager
             
@@ -140,6 +142,46 @@ class MockKinovaHardware:
             daemon=True
         ).start()
         
+    def execute_waypoint_list(self, waypoint_list):
+        """Mock implementation of waypoint list execution."""
+        pager = threading.Event()
+        self._last_action_success = True
+        if not self.state.is_connected or self.state.has_fault:
+            self.logger.warning("[Mock] Aborted waypoint list execution: Robot offline or in fault.")
+            self._last_action_success = False
+            pager.set()
+            return pager
+
+        self._active_movement_pager = pager
+        
+        def worker():
+            for i, wp in enumerate(waypoint_list.waypoints):
+                if not self.state.is_connected or self.state.has_fault:
+                    self._last_action_success = False
+                    break
+                target_angles = list(wp.angular_waypoint.angles)
+                duration = wp.angular_waypoint.duration
+                self.logger.info(f"[Mock] Waypoint {i+1}/{len(waypoint_list.waypoints)}: Interpolating to {target_angles} over {duration:.2f}s...")
+                
+                sub_pager = threading.Event()
+                threading.Thread(
+                    target=self._interpolate_joints,
+                    args=(list(self.state.joint_angles_deg), target_angles, float(duration), sub_pager),
+                    daemon=True
+                ).start()
+                sub_pager.wait()
+                
+                if not self._last_action_success:
+                    break
+            
+            self._active_movement_pager = None
+            pager.set()
+            if self._last_action_success:
+                self.logger.info("[Mock] Waypoint list execution completed.")
+            else:
+                self.logger.error("[Mock] Waypoint list execution failed.")
+
+        threading.Thread(target=worker, daemon=True).start()
         return pager
 
     def move_to_default(self):
@@ -152,7 +194,10 @@ class MockKinovaHardware:
             
         for step in range(1, steps + 1):
             if not self.state.is_connected or self.state.has_fault:
-                break
+                self._last_action_success = False
+                self._active_movement_pager = None
+                pager.set()
+                return
                 
             t = step / steps
             # Smooth ease-in-ease-out sine interpolation

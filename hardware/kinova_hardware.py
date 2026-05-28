@@ -12,29 +12,7 @@ from kortex_api.UDPTransport import UDPTransport
 
 from .robot_state import RobotState 
 from utils.event_bus import EventBus
-
-def calculate_min_safe_duration(target_pos, predecessor_pos):
-    """
-    Computes the physical minimum safe duration (seconds) for moving between two joint positions
-    using the industry-standard Trapezoidal Profile Estimation model.
-    
-    This is the SINGLE SOURCE OF TRUTH for robot joint transition limits across the system.
-    """
-    if not target_pos or not predecessor_pos or len(target_pos) != len(predecessor_pos):
-        return 0.6
-        
-    # Cruising Speed: 55.0 deg/s, Ramp Overhead: 0.6s
-    V_MAX = 49.5
-    T_OVERHEAD = 0.5
-    
-    max_diff = 0.0
-    for t, p in zip(target_pos, predecessor_pos):
-        diff = t - p
-        while diff > 180.0: diff -= 360.0
-        while diff < -180.0: diff += 360.0
-        max_diff = max(max_diff, abs(diff))
-        
-    return T_OVERHEAD + (max_diff / V_MAX)
+from utils.duration_calculator import calculate_min_trajectory_duration
 
 class KinovaHardware:
     """Handles direct communication with the Kinova Gen3 Robot via the Kortex API."""
@@ -144,7 +122,7 @@ class KinovaHardware:
             return False, str(e)
  
     def move_to_default(self):
-        speed = calculate_min_safe_duration(self.default_pose, self.state.joint_angles_deg)
+        speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose)
         return self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
  
     def disconnect(self, block_sound=False):
@@ -226,6 +204,7 @@ class KinovaHardware:
                     self._active_movement_pager = None
             elif event_type == Base_pb2.ACTION_ABORT:
                 self.logger.error(f"Action ({action_id}, {action_type_name}) aborted with Code: {notification.abort_details}")
+                self._last_action_success = False
                 if self._active_movement_pager:
                     self._active_movement_pager.set()
                     self._active_movement_pager = None
@@ -239,6 +218,7 @@ class KinovaHardware:
             active_state = notification.active_state
             if active_state == Base_pb2.ARMSTATE_IN_FAULT:
                 self.trigger_fault_detected()
+                self._last_action_success = False
                 if self._active_movement_pager:
                     self._active_movement_pager.set()
                     self._active_movement_pager = None
@@ -369,9 +349,11 @@ class KinovaHardware:
     def execute_action_pose(self, target_pos_deg, duration_s, action_name="Move"):
         """Executes deployed action."""
         pager = threading.Event()
+        self._last_action_success = True
 
         if not self.state.is_connected or self.state.has_fault:
             self.logger.warning(f"Aborted action execution: Robot offline or in fault state.")
+            self._last_action_success = False
             pager.set()
             return pager
 
@@ -402,7 +384,7 @@ class KinovaHardware:
 
         # construct safe time-frame for movement action
         if duration_s > 0.0:
-            min_safe_duration = calculate_min_safe_duration(target_pos_deg, current_deg)
+            min_safe_duration = calculate_min_trajectory_duration(current_deg, target_pos_deg)
             actual_duration = max(float(duration_s), min_safe_duration)
             try: 
                 action.reach_joint_angles.constraint.type = Base_pb2.JOINT_CONSTRAINT_DURATION
@@ -421,6 +403,7 @@ class KinovaHardware:
             self.base.ExecuteAction(action)
         except Exception as e:
             self.logger.error(f"Exception during API action call (Action '{action_name}'): {e}")
+            self._last_action_success = False
             pager.set()
             self._active_movement_pager = None
             
@@ -430,8 +413,10 @@ class KinovaHardware:
     def execute_waypoint_list(self, waypoint_list):
         """Executes deployed WaypointList."""
         pager = threading.Event()
+        self._last_action_success = True
 
         if not self.state.is_connected or self.state.has_fault:
+            self._last_action_success = False
             pager.set()
             return pager
 
@@ -442,6 +427,24 @@ class KinovaHardware:
             self.base.ExecuteWaypointTrajectory(waypoint_list)
         except Exception as e:
             self.logger.error(f"Exception during API WaypointList call: {e}")
+            self._last_action_success = False
+            
+            # Retrieve exact trajectory error report from base
+            try:
+                validation_res = self.base.ValidateWaypointList(waypoint_list)
+                errors = validation_res.trajectory_error_report.trajectory_error_elements
+                if errors:
+                    error_msgs = []
+                    for i, err in enumerate(errors):
+                        # Clean up formatting to keep it on one line in log
+                        err_str = str(err).replace('\n', ' ').strip()
+                        error_msgs.append(f"Err #{i+1}: {err_str}")
+                    self.logger.error("Trajectory Error Report: " + " | ".join(error_msgs))
+                else:
+                    self.logger.error("Trajectory Error Report: No specific validation errors returned.")
+            except Exception as val_e:
+                self.logger.error(f"Failed to retrieve validation report: {val_e}")
+                
             pager.set()
             self._active_movement_pager = None
             

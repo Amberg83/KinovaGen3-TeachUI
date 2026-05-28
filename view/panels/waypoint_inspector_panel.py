@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from view import theme
-from hardware.kinova_hardware import calculate_min_safe_duration
+from utils.duration_calculator import calculate_min_trajectory_duration, calculate_waypoint_durations
 
 class WaypointInspectorPanel(ctk.CTkFrame):
     """Encapsulates Column 3: The Waypoint Inspector form to edit or preview sequence entries in responsive dark flat style."""
@@ -17,6 +17,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.insp_entries = []
         self.inspector_state = "disabled"
         self.wide_mode = True
+        self.is_bulk_editing = False
         
         self.setup_ui()
         self._set_inspector_state("disabled")
@@ -209,15 +210,15 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         lbl.configure(cursor="hand2")
         
         def on_enter(e):
-            if self.inspector_state != "disabled" and self.wp_type_var.get() != value:
+            if (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and self.wp_type_var.get() != value:
                 lbl.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_PRIMARY)
                 
         def on_leave(e):
-            if self.inspector_state != "disabled" and self.wp_type_var.get() != value:
+            if (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and self.wp_type_var.get() != value:
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
                 
         def on_click(e):
-            if self.inspector_state != "disabled":
+            if self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False):
                 self.set_wp_type(value)
                 
         lbl.bind("<Enter>", on_enter)
@@ -229,7 +230,8 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         """Saves selection state, updates highlight colors and swaps velocity visibility dynamically."""
         self.wp_type_var.set(value)
         self.update_segment_styles()
-        self.toggle_wp_settings()
+        if not getattr(self, 'is_bulk_editing', False):
+            self.toggle_wp_settings()
 
     def update_segment_styles(self):
         """Renders solid accent cyan backgrounds on active toggle buttons and grey on disabled entries."""
@@ -239,7 +241,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             "pause": self.lbl_pause
         }
         for val, lbl in mapping.items():
-            if self.inspector_state == "disabled":
+            if self.inspector_state == "disabled" and not getattr(self, 'is_bulk_editing', False):
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED, cursor="arrow")
             else:
                 lbl.configure(cursor="hand2")
@@ -254,6 +256,16 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.btn_save_settings.configure(command=commands.get("save_settings"))
         self.btn_append_new.configure(command=commands.get("append_pose"))
         self.btn_apply_min_dur.configure(command=commands.get("apply_min_durations"))
+        
+        # Bind <Return> (Enter key) on all entry fields to trigger save settings
+        self._save_settings_cb = commands.get("save_settings")
+        for ent in self.insp_entries + self.ent_wp_vels + [self.ent_duration]:
+            ent.bind("<Return>", lambda event: self._on_enter_pressed())
+
+    def _on_enter_pressed(self):
+        """Triggers waypoint modifications save when Enter key is pressed."""
+        if self.inspector_state != "disabled" and getattr(self, "_save_settings_cb", None):
+            self._save_settings_cb()
 
     def _set_inspector_state(self, state):
         """Enables or disables editor elements depending on selection state."""
@@ -310,6 +322,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
 
     def load_inspector_data(self, data, index, predecessor_pos=None):
         """Populates fields from selected row dictionaries."""
+        self.is_bulk_editing = False
         self._set_inspector_state("normal")
         self.lbl_inspector_title.configure(text=f"Selected Waypoint: #{index}", text_color=theme.ACCENT_CYBER, font=theme.FONT_TITLE)
         
@@ -366,13 +379,18 @@ class WaypointInspectorPanel(ctk.CTkFrame):
                     current_poses.append(0.0)
                     
         if hasattr(self, "_predecessor_pos") and len(self._predecessor_pos) == len(current_poses):
-            min_safe_dur = calculate_min_safe_duration(current_poses, self._predecessor_pos)
+            if wp_type == "action":
+                min_safe_dur = calculate_min_trajectory_duration(self._predecessor_pos, current_poses)
+            else:
+                min_durs = calculate_waypoint_durations([self._predecessor_pos, current_poses])
+                min_safe_dur = min_durs[0] if min_durs else 0.6
+                
             self.lbl_min_duration.configure(text=f"Fast Limit: {min_safe_dur:.2f}s", text_color=theme.ACCENT_CYBER)
         else:
             self.lbl_min_duration.configure(text="Fast Limit: 0.50s", text_color=theme.ACCENT_CYBER)
 
     def enter_bulk_edit_mode(self, indices):
-        """Enables a bulk-edit state for editing duration across multiple waypoints."""
+        """Enables a bulk-edit state for editing duration and type across multiple waypoints."""
         self._set_inspector_state("normal")
         self.lbl_inspector_title.configure(
             text=f"Bulk-Editing {len(indices)} Waypoints", 
@@ -382,8 +400,9 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         # Clear/Disable speed limit label during bulk duration edits
         self.lbl_min_duration.configure(text="Fast Limit: -- (Bulk Edit)", text_color=theme.TEXT_MUTED)
         
-        # Disable elements that shouldn't be edited in bulk (type, velocities, coordinates, preview, append)
+        self.is_bulk_editing = True
         self.inspector_state = "disabled"
+        self.wp_type_var.set("action")
         self.update_segment_styles()
         
         disable_widgets = [

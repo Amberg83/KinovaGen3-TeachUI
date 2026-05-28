@@ -42,6 +42,9 @@ class ReplayEngine:
             if completion_event:
                 completion_event.wait(timeout=15.0)
                 
+            if not getattr(self.hardware, '_last_action_success', True):
+                raise RuntimeError("Moving to default position failed!")
+                
             if self.stop_requested:
                 self.logger.info("Replay aborted before sequence start.")
                 return
@@ -68,11 +71,36 @@ class ReplayEngine:
                 if not batch_waypoints: 
                     return
                 
+                # Fetch actual starting joint positions from the hardware telemetry
+                reference_pose = getattr(self.hardware.state, 'joint_angles_deg', None)
+                if not reference_pose or len(reference_pose) < 6:
+                    reference_pose = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                else:
+                    reference_pose = list(reference_pose)
+
                 wp_list = Base_pb2.WaypointList()
                 wp_list.use_optimal_blending = True
+                
                 for wp_data in batch_waypoints:
                     wp = wp_list.waypoints.add()
-                    wp.angular_waypoint.angles.extend(wp_data['pos'])
+                    
+                    # Unwrap target angles relative to the reference_pose to guarantee the shortest path
+                    unwrapped_angles = []
+                    for i in range(6):
+                        ref_angle = reference_pose[i]
+                        target_angle = wp_data['pos'][i]
+                        
+                        diff = target_angle - ref_angle
+                        while diff > 180.0: diff -= 360.0
+                        while diff < -180.0: diff += 360.0
+                        
+                        unwrapped_angle = ref_angle + diff
+                        unwrapped_angles.append(unwrapped_angle)
+                        
+                    # Advance the reference_pose to the current target for the next waypoint
+                    reference_pose = unwrapped_angles
+                    
+                    wp.angular_waypoint.angles.extend(unwrapped_angles)
                     wp.angular_waypoint.duration = wp_data['duration_s']
                     if sum(wp_data['max_velocities']) > 0:
                         wp.angular_waypoint.maximum_velocities.extend(wp_data['max_velocities'])
@@ -86,6 +114,9 @@ class ReplayEngine:
                     
                 batch_waypoints.clear()
                 batch_duration = 0.0
+
+                if not getattr(self.hardware, '_last_action_success', True):
+                    raise RuntimeError("WaypointList execution failed!")
 
             for idx, step in enumerate(sequence):
                 if self.stop_requested: 
@@ -108,6 +139,9 @@ class ReplayEngine:
                     
                     if completion_event:
                         completion_event.wait(timeout=step["duration_s"] + 5.0)
+                        
+                    if not getattr(self.hardware, '_last_action_success', True):
+                        raise RuntimeError("Action execution failed!")
 
                 elif stype == "pause":
                     flush_waypoints()
@@ -131,6 +165,10 @@ class ReplayEngine:
 
         except Exception as e:
             self.logger.error(f"Exception occurred during Replay: {e}")
+            self.logger.error("Aborting replay sequence due to execution error.")
+            # Trigger audio feedback notification for failure using the standard fault event
+            EventBus.publish("fault_detected")
+            self.stop_requested = True
         finally:
             self.is_replaying = False
             if on_finished_callback:

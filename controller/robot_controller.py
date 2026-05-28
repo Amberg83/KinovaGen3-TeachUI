@@ -115,7 +115,7 @@ class RobotController:
             if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
                 predecessor_pos = self.hardware.state.joint_angles_deg
             else:
-                predecessor_pos = [0.0] * 6 # fallback to default/origin
+                predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
         self.view.load_inspector_data(step_data, idx, predecessor_pos)
 
@@ -195,10 +195,11 @@ class RobotController:
 
     def handle_save_waypoint_changes(self, idx_or_indices, params, poses):
         if isinstance(idx_or_indices, list):
-            # Bulk duration edit on selected rows
-            self.model.bulk_update_durations(idx_or_indices, params["duration_s"])
+            # Bulk update type and duration on selected rows
+            target_type = params.get("type")
+            self.model.bulk_update_waypoint_changes(idx_or_indices, params["duration_s"], target_type)
             self._auto_save()
-            self.logger.info(f"Bulk-updated durations of {len(idx_or_indices)} selected waypoints.")
+            self.logger.info(f"Bulk-updated details of {len(idx_or_indices)} selected waypoints.")
         else:
             idx = idx_or_indices
             if poses is not None:
@@ -217,42 +218,88 @@ class RobotController:
         if not indices:
             return
             
+        from utils.duration_calculator import calculate_min_trajectory_duration, calculate_waypoint_durations
+        
+        # 1. Identify all consecutive runs of 'angularwaypoint' in the entire sequence
+        runs = []
+        in_run = False
+        start_idx = None
+        for i, step in enumerate(self.model.sequence):
+            if step.get("type", "action") == "angularwaypoint":
+                if not in_run:
+                    in_run = True
+                    start_idx = i
+            else:
+                if in_run:
+                    runs.append((start_idx, i - 1))
+                    in_run = False
+        if in_run:
+            runs.append((start_idx, len(self.model.sequence) - 1))
+            
+        # 2. For each run, compute predecessor pose and all safe segment durations
+        waypoint_durations_map = {}
+        for r_start, r_end in runs:
+            # Determine the predecessor pose for this run
+            predecessor_pos = None
+            for k in range(r_start - 1, -1, -1):
+                step = self.model.sequence[k]
+                if step.get("type", "action") != "pause" and "pos" in step:
+                    predecessor_pos = step["pos"]
+                    break
+            if predecessor_pos is None:
+                if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
+                    predecessor_pos = self.hardware.state.joint_angles_deg
+                else:
+                    predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                    
+            run_waypoints = [predecessor_pos] + [self.model.sequence[k]["pos"] for k in range(r_start, r_end + 1)]
+            segment_durations = calculate_waypoint_durations(run_waypoints)
+            
+            for k in range(r_start, r_end + 1):
+                seg_idx = k - r_start
+                if seg_idx < len(segment_durations):
+                    waypoint_durations_map[k] = segment_durations[seg_idx]
+
+        # 3. Apply the limits to the requested indices
         index_to_dur = {}
         for idx in indices:
             if idx < 0 or idx >= len(self.model.sequence):
                 continue
                 
             step_data = self.model.sequence[idx]
-            if step_data.get("type", "action") == "pause":
-                continue # Skip pause steps as their duration is a fixed delay
+            step_type = step_data.get("type", "action")
+            
+            if step_type == "pause":
+                continue # Skip pause steps
                 
-            # Compute predecessor pos
-            predecessor_pos = None
-            if idx > 0:
-                prev_step = self.model.sequence[idx - 1]
-                if prev_step.get("type", "action") != "pause" and "pos" in prev_step:
-                    predecessor_pos = prev_step["pos"]
-            else:
-                if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
-                    predecessor_pos = self.hardware.state.joint_angles_deg
-                else:
-                    predecessor_pos = [0.0] * 6
+            if step_type == "action":
+                # Compute predecessor pos for this single action step
+                predecessor_pos = None
+                for k in range(idx - 1, -1, -1):
+                    step = self.model.sequence[k]
+                    if step.get("type", "action") != "pause" and "pos" in step:
+                        predecessor_pos = step["pos"]
+                        break
+                if predecessor_pos is None:
+                    if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
+                        predecessor_pos = self.hardware.state.joint_angles_deg
+                    else:
+                        predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                
+                target_pos = step_data.get("pos", [0.0] * 6)
+                min_dur = calculate_min_trajectory_duration(predecessor_pos, target_pos)
+                index_to_dur[idx] = round(min_dur, 2)
+                
+            elif step_type == "angularwaypoint":
+                if idx in waypoint_durations_map:
+                    index_to_dur[idx] = round(waypoint_durations_map[idx], 2)
                     
-            target_pos = step_data.get("pos", [0.0] * 6)
-            
-            # Retrieve centralized duration
-            from hardware.kinova_hardware import calculate_min_safe_duration
-            min_dur = calculate_min_safe_duration(target_pos, predecessor_pos)
-            
-            # Save mapped duration (rounded to 2 decimals)
-            index_to_dur[idx] = round(min_dur, 2)
-            
         if index_to_dur:
             self.model.bulk_update_durations_custom(index_to_dur)
             self._auto_save()
             self.logger.info(f"Applied physical max speed limits to {len(index_to_dur)} waypoint(s).")
             # Select first index to refresh form entries
-            self.view.panel_seq.select_index(indices[0])
+            self.handle_tree_select(indices[0])
 
     def _auto_save(self):
         """Explicitly called by the Controller only after actual data mutations."""

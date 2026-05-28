@@ -63,14 +63,24 @@ class SequenceModel:
             self.logger.info(f"Updated waypoint at index {index}.")
             self._notify_observers(select_index=index)
 
-    def bulk_update_durations(self, indices, duration_s):
+    def bulk_update_waypoint_changes(self, indices, duration_s, target_type=None):
         if not indices:
             return
         self._save_state()
         for index in indices:
             if 0 <= index < len(self.sequence):
                 self.sequence[index]["duration_s"] = float(duration_s)
-        self.logger.info(f"Bulk updated durations of waypoints {indices} to {duration_s}s.")
+                if target_type is not None:
+                    old_type = self.sequence[index].get("type")
+                    if old_type != target_type:
+                        self.sequence[index]["type"] = target_type
+                        # Ensure structure is valid for the new type
+                        if target_type in ("action", "angularwaypoint"):
+                            if "pos" not in self.sequence[index]:
+                                self.sequence[index]["pos"] = [0.0] * 6
+                            if "max_velocities" not in self.sequence[index]:
+                                self.sequence[index]["max_velocities"] = [0.0] * 6
+        self.logger.info(f"Bulk updated waypoints {indices}: duration to {duration_s}s, type to {target_type}.")
         self._notify_observers(select_index=indices)
 
     def bulk_update_durations_custom(self, index_to_duration_dict):
