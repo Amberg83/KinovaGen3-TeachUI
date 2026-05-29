@@ -15,22 +15,31 @@ class StudyManager:
         self.logger = logging.getLogger("StudyManager")
         
         self.tasks = []
-        self.task_order_indices = []
+        self.tutorials = []
+        self.experimental_tasks = []
         self.current_task_index = 0
         self.task_start_time = 0.0
         self.current_task_filepath = None
         self.session_creation_timestamp = int(time.time())
         
         if self.study_mode:
-            self.tasks = self._load_or_create_referents()
-            n_tasks = len(self.tasks)
+            self.tutorials = self._load_or_create_tutorials()
+            self.experimental_tasks = self._load_or_create_referents()
+            
+            n_experimental = len(self.experimental_tasks)
             pid_int = int(self.participant_id) if self.participant_id.isdigit() else 1
-            # Balanced Latin Square task mapping based on Williams' design
-            self.task_order_indices = self._generate_balanced_latin_square_order(pid_int, n_tasks)
+            
+            # Reorder experimental tasks first using the balanced Latin Square
+            latin_order = self._generate_balanced_latin_square_order(pid_int, n_experimental)
+            ordered_experimental = [self.experimental_tasks[idx] for idx in latin_order]
+            
+            # Combine tutorials and ordered experimental tasks directly
+            self.tasks = self.tutorials + ordered_experimental
+            
             self.current_task_index = 0
             self.task_start_time = time.time()
             self._update_current_task_filepath()
-            self.logger.info(f"Study Mode activated for PID: '{self.participant_id}' (Session: {self.session_creation_timestamp}) with task order indices: {self.task_order_indices}")
+            self.logger.info(f"Study Mode activated for PID: '{self.participant_id}' (Session: {self.session_creation_timestamp}) with tasks in presentation order: {[t['name'] for t in self.tasks]}")
 
     def _update_current_task_filepath(self):
         """Updates the persistent filepath for the currently active study task."""
@@ -54,7 +63,7 @@ class StudyManager:
         """Returns the currently active task dictionary, or None if not in study mode."""
         if not self.study_mode or self.current_task_index >= len(self.tasks):
             return None
-        return self.tasks[self.task_order_indices[self.current_task_index]]
+        return self.tasks[self.current_task_index]
 
     def get_total_tasks(self):
         """Returns the total number of tasks in the study."""
@@ -197,6 +206,41 @@ class StudyManager:
             except Exception as e:
                 self.logger.error(f"Failed to read referents.json: {e}. Using defaults.")
                 return default_tasks
+
+    def _load_or_create_tutorials(self):
+        """Loads tutorial tasks from tutorials.json, creating a default file if missing."""
+        path = "tutorials.json"
+        default_tutorials = [
+            {
+                "id": 101,
+                "name": "Tutorial 1: Greifer testen (Test Gripper)",
+                "instructions": "Öffne und schließe den Greifer des Roboters mehrmals.\nGewöhne dich an die Steuerung."
+            },
+            {
+                "id": 102,
+                "name": "Tutorial 2: Einfache Bewegung (Simple Movement)",
+                "instructions": "Bewege den Roboterarm ein kleines Stück nach oben und wieder zurück."
+            }
+        ]
+        
+        if not os.path.exists(path):
+            try:
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(default_tutorials, f, indent=2, ensure_ascii=False)
+                self.logger.info("Created default tutorials.json configuration file.")
+                return default_tutorials
+            except Exception as e:
+                self.logger.error(f"Failed to write default tutorials.json: {e}")
+                return default_tutorials
+        else:
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    tutorials = json.load(f)
+                self.logger.info(f"Successfully loaded {len(tutorials)} tutorials from tutorials.json.")
+                return tutorials
+            except Exception as e:
+                self.logger.error(f"Failed to read tutorials.json: {e}. Using defaults.")
+                return default_tutorials
 
     def _generate_balanced_latin_square_order(self, pid_int, n_tasks):
         """

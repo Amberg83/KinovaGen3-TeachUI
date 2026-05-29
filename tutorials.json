@@ -1,0 +1,12 @@
+[
+  {
+    "id": 101,
+    "name": "Tutorial 1: Greifer testen (Test Gripper)",
+    "instructions": "Öffne und schließe den Greifer des Roboters mehrmals.\nGewöhne dich an die Steuerung."
+  },
+  {
+    "id": 102,
+    "name": "Tutorial 2: Einfache Bewegung (Simple Movement)",
+    "instructions": "Bewege den Roboterarm ein kleines Stück nach oben und wieder zurück."
+  }
+]
