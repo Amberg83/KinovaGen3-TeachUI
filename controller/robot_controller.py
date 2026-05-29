@@ -73,11 +73,12 @@ class RobotController:
                 self.handle_task_completed
             )
             
-            # If in Review Mode and a file exists for the active task, load it!
-            filepath = self.study_manager.current_task_filepath
-            if getattr(self.study_manager, "review_mode", False) and filepath and os.path.exists(filepath):
-                self.logger.info(f"Review Mode: Loading recorded gesture from '{filepath}'")
-                self.model.load_from_json(filepath)
+            # If in Review Mode, load recorded gesture if a file exists, but NEVER move to default or save initial pose
+            if getattr(self.study_manager, "review_mode", False):
+                filepath = self.study_manager.current_task_filepath
+                if filepath and os.path.exists(filepath):
+                    self.logger.info(f"Review Mode: Loading recorded gesture from '{filepath}'")
+                    self.model.load_from_json(filepath)
             else:
                 # Automatically move to default and save initial pose on startup for normal study
                 self._move_to_default_and_save_pose()
@@ -423,11 +424,12 @@ class RobotController:
             )
             self.logger.info(f"Transitioned to study task {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()}.")
             
-            # If in Review Mode and a file exists for the next task, load it!
-            filepath = self.study_manager.current_task_filepath
-            if getattr(self.study_manager, "review_mode", False) and filepath and os.path.exists(filepath):
-                self.logger.info(f"Review Mode: Loading recorded gesture from '{filepath}'")
-                self.model.load_from_json(filepath)
+            # If in Review Mode, load recorded gesture if a file exists, but NEVER move to default or save initial pose
+            if getattr(self.study_manager, "review_mode", False):
+                filepath = self.study_manager.current_task_filepath
+                if filepath and os.path.exists(filepath):
+                    self.logger.info(f"Review Mode: Loading recorded gesture from '{filepath}'")
+                    self.model.load_from_json(filepath)
             else:
                 # Automatically move to default and save initial pose for the new task
                 self._move_to_default_and_save_pose()
@@ -474,13 +476,11 @@ class RobotController:
             # Wait another short moment to ensure telemetry is updated/settled
             time.sleep(0.5)
             
-            # Capture the current pose (which is now at default, i.e., ~[0,0,0,0,0,0])
-            live_poses = self.hardware.state.joint_angles_deg
-            if not live_poses or len(live_poses) < 6:
-                live_poses = [0.0] * 6
+            # Save the exact starting default pose specified in the hardware layer instead of capturing live angles
+            default_poses = list(self.hardware.default_pose)
                 
             # Run the pose capture inside the main Tkinter thread to avoid race conditions on the model/UI
-            self.root.after(0, lambda: self._capture_and_save_initial_pose(live_poses))
+            self.root.after(0, lambda: self._capture_and_save_initial_pose(default_poses))
             
         threading.Thread(target=worker, daemon=True).start()
 

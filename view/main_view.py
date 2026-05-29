@@ -426,7 +426,7 @@ class RobotView:
         self.lbl_task_desc = theme.make_label(
             inst_frame, text=first_task["instructions"], 
             font=theme.FONT_NORMAL, fg_color=theme.BG_CARD, text_color=theme.TEXT_MUTED,
-            justify="left"
+            justify="left", wraplength=800
         )
         self.lbl_task_desc.pack(anchor="w", pady=(2, 0))
         
@@ -472,6 +472,12 @@ class RobotView:
         logical_W = event.width / scaling
         logical_H = event.height / scaling
         self.layout_panels(logical_W, logical_H)
+        
+        # Dynamically adjust the wrap length of study banner instructions
+        if hasattr(self, "lbl_task_desc") and self.lbl_task_desc is not None:
+            # Prevent overflowing Column 2 (Next button) by allocating the responsive width
+            wrap_w = max(400, int(logical_W - 500))
+            self.lbl_task_desc.configure(wraplength=wrap_w)
 
     def layout_panels(self, W, H):
         """Precisely calculates and places columns and vertical separators using absolute pixels."""

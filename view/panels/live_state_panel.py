@@ -349,6 +349,12 @@ class LiveStatePanel(ctk.CTkFrame):
         state_str = active_states.get(state.active_state, f"Code {state.active_state}")
         self.lbl_active_state.configure(text=state_str, text_color=theme.ACCENT_RED if state.active_state == 4 else theme.ACCENT_GREEN)
 
+        # If the robot is currently playing a sequence, automatically update the UI selection to Disabled,
+        # as the hardware layer automatically turns off admittance control during trajectory plays.
+        if state.active_state == 8 and self.adm_type_var.get() != "Disabled":
+            self.adm_type_var.set("Disabled")
+            self.update_segment_styles()
+
         # Update Temps micro-badges
         if state.joint_temperatures:
             for j, t in enumerate(state.joint_temperatures):
