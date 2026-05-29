@@ -1,12 +1,12 @@
 [
   {
     "id": 101,
-    "name": "Tutorial 1: Greifer testen (Test Gripper)",
-    "instructions": "Öffne und schließe den Greifer des Roboters mehrmals.\nGewöhne dich an die Steuerung."
+    "name": "SS Tutorial",
+    "instructions": "Imagine you are assembling something together with another person. While you are working, you see that the other person needs a tool that is placed right next to you. How would you hand it over?"
   },
   {
     "id": 102,
-    "name": "Tutorial 2: Einfache Bewegung (Simple Movement)",
-    "instructions": "Bewege den Roboterarm ein kleines Stück nach oben und wieder zurück."
+    "name": "SD Tutorial",
+    "instructions": "Imagine you are assembling something while another person in the same room is doing something else. You see that the other person is struggling with the weight of the object they are holding. How would you help them?"
   }
 ]

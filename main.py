@@ -122,7 +122,7 @@ def main():
         print("Connection cancelled by user. Shutting down.")
         sys.exit(0)
         
-    ip, username, password, participant_id = dialog.result
+    ip, username, password, participant_id, is_review_mode = dialog.result
     save_config(ip, username, password)
 
     # Initialize main dashboard application root
@@ -143,7 +143,7 @@ def main():
     view = RobotView(root)
     setup_global_logging(view)
     
-    controller = RobotController(root, view, model, hardware, participant_id=participant_id)
+    controller = RobotController(root, view, model, hardware, participant_id=participant_id, is_review_mode=is_review_mode)
     
     # Initialize the sound coordinator to listen to events and trigger audio feedback
     sound_coordinator = SoundCoordinator()

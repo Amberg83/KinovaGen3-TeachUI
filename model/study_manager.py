@@ -9,7 +9,7 @@ class StudyManager:
     Manages the state, task transition, logging, and backups for a user study session.
     Keeps high-level experimental workflow logic cleanly separated from the controller.
     """
-    def __init__(self, participant_id=""):
+    def __init__(self, participant_id="", is_review_mode=False):
         self.participant_id = participant_id
         self.study_mode = bool(participant_id)
         self.logger = logging.getLogger("StudyManager")
@@ -21,8 +21,23 @@ class StudyManager:
         self.task_start_time = 0.0
         self.current_task_filepath = None
         self.session_creation_timestamp = int(time.time())
+        self.review_mode = False
         
         if self.study_mode:
+            # Check if this participant_id matches an existing directory under study_results and Review Mode was checked
+            possible_path = os.path.join("study_results", self.participant_id)
+            if is_review_mode and os.path.isdir(possible_path):
+                self.review_mode = True
+                self.logger.info(f"Review Mode activated: loading session folder '{self.participant_id}'")
+                
+                # Parse participant ID and original session timestamp if it follows the PID-timestamp pattern
+                if "-" in self.participant_id:
+                    parts = self.participant_id.rsplit("-", 1)
+                    if len(parts) == 2 and parts[1].isdigit():
+                        self.participant_id = parts[0]
+                        self.session_creation_timestamp = int(parts[1])
+                        self.logger.info(f"Parsed original PID: '{self.participant_id}' and Session Timestamp: {self.session_creation_timestamp}")
+            
             self.tutorials = self._load_or_create_tutorials()
             self.experimental_tasks = self._load_or_create_referents()
             
@@ -39,7 +54,9 @@ class StudyManager:
             self.current_task_index = 0
             self.task_start_time = time.time()
             self._update_current_task_filepath()
-            self.logger.info(f"Study Mode activated for PID: '{self.participant_id}' (Session: {self.session_creation_timestamp}) with tasks in presentation order: {[t['name'] for t in self.tasks]}")
+            
+            mode_str = "Review Mode" if self.review_mode else "Study Mode"
+            self.logger.info(f"{mode_str} activated for PID: '{self.participant_id}' (Session: {self.session_creation_timestamp}) with tasks in presentation order: {[t['name'] for t in self.tasks]}")
 
     def _update_current_task_filepath(self):
         """Updates the persistent filepath for the currently active study task."""
@@ -54,8 +71,15 @@ class StudyManager:
         task_id = active_task["id"]
         study_results_dir = "study_results"
         pid_dir = os.path.join(study_results_dir, f"{self.participant_id}-{self.session_creation_timestamp}")
-        os.makedirs(pid_dir, exist_ok=True)
         
+        # If in Review Mode, find the existing gesture file
+        if getattr(self, "review_mode", False) and os.path.exists(pid_dir):
+            for filename in os.listdir(pid_dir):
+                if filename.startswith(f"task_{task_id}_") and filename.endswith(".json"):
+                    self.current_task_filepath = os.path.join(pid_dir, filename)
+                    return
+        
+        os.makedirs(pid_dir, exist_ok=True)
         timestamp_str = str(int(self.task_start_time))
         self.current_task_filepath = os.path.join(pid_dir, f"task_{task_id}_{timestamp_str}.json")
 
@@ -89,6 +113,17 @@ class StudyManager:
 
         task_id = active_task["id"]
         task_name = active_task["name"]
+        
+        # If in Review Mode, completely bypass saving, CSV writing, and log archiving
+        if getattr(self, "review_mode", False):
+            self.current_task_index += 1
+            if self.current_task_index < len(self.tasks):
+                self.task_start_time = time.time()
+                self._update_current_task_filepath()
+                next_task = self.get_active_task()
+                return False, next_task
+            else:
+                return True, None
         
         # 1. Back up current timeline JSON inside separate folder for the PID
         if self.current_task_filepath:

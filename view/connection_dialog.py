@@ -17,10 +17,12 @@ class ConnectionDialog(ctk.CTk):
         self.user_var = ctk.StringVar(value=default_user)
         self.pass_var = ctk.StringVar(value=default_pass)
         self.pid_var = ctk.StringVar(value="")
+        self.review_var = ctk.BooleanVar(value=False)
 
         self.ip_var.trace_add("write", self.validate_inputs)
         self.user_var.trace_add("write", self.validate_inputs)
         self.pass_var.trace_add("write", self.validate_inputs)
+        self.pid_var.trace_add("write", self.validate_pid_change)
 
         # ----------------- HEADER AREA -----------------
         header_frame = ctk.CTkFrame(self, fg_color=theme.BG_HEADER, corner_radius=0)
@@ -76,6 +78,16 @@ class ConnectionDialog(ctk.CTk):
         self.ent_user = build_field(card, "Operator Username", self.user_var)
         self.ent_pass = build_field(card, "Session Password", self.pass_var, is_password=True)
         self.ent_pid = build_field(card, "User Study ID (Optional)", self.pid_var)
+        
+        # Checkbox for review mode
+        self.chk_review = ctk.CTkCheckBox(
+            card, text="Review Mode", variable=self.review_var,
+            font=(theme.FONT_NORMAL[0], 9, "bold"), fg_color=theme.ACCENT_CYBER,
+            text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR,
+            corner_radius=4, hover_color=theme.ACCENT_CYBER
+        )
+        self.chk_review.pack(anchor="w", padx=20, pady=(0, 10))
+        self.chk_review.configure(state="disabled")
 
         # Helpful notice badge
         notice_frame = ctk.CTkFrame(
@@ -155,13 +167,39 @@ class ConnectionDialog(ctk.CTk):
         else:
             self.btn_connect.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
 
+    def validate_pid_change(self, *args):
+        """Enables/Disables the Review Mode checkbox dynamically based on PID textbox content."""
+        pid = self.pid_var.get().strip()
+        if pid:
+            self.chk_review.configure(state="normal")
+        else:
+            self.review_var.set(False)
+            self.chk_review.configure(state="disabled")
+
     def on_connect(self):
-        """Commits the user input and closes the dialog."""
+        """Commits the user input, performs review mode checks, and closes the dialog."""
+        import os
+        from tkinter import messagebox
+        
+        pid = self.pid_var.get().strip()
+        is_review = self.review_var.get()
+        
+        if is_review and pid:
+            possible_path = os.path.join("study_results", pid)
+            if not os.path.isdir(possible_path):
+                messagebox.showerror(
+                    "Session Folder Not Found", 
+                    f"The specified session folder '{pid}' does not exist under 'study_results/'.\n\n"
+                    "Please verify the folder name matches an existing participant directory."
+                )
+                return
+                
         self.result = (
             self.ip_var.get().strip(), 
             self.user_var.get().strip(), 
             self.pass_var.get().strip(),
-            self.pid_var.get().strip()
+            pid,
+            is_review
         )
         self.destroy()
 

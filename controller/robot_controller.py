@@ -9,14 +9,14 @@ from model import StudyManager
 
 class RobotController:
     """Orchestrates application logic, linking View panels to Model and Hardware layers."""
-    def __init__(self, root, view, model, hardware, participant_id=""):
+    def __init__(self, root, view, model, hardware, participant_id="", is_review_mode=False):
         self.root = root
         self.view = view
         self.model = model
         self.hardware = hardware
         
         # Instantiate encapsulated study manager
-        self.study_manager = StudyManager(participant_id)
+        self.study_manager = StudyManager(participant_id, is_review_mode=is_review_mode)
         
         self.logger = logging.getLogger("Controller")
         self.replay_engine = ReplayEngine(self.hardware)
@@ -63,13 +63,24 @@ class RobotController:
         # Study Mode Setup
         if self.study_manager.study_mode:
             active_task = self.study_manager.get_active_task()
+            
+            # Display custom participant ID indicator including Review Mode flag in the view
+            pid_display = f"{self.study_manager.participant_id} (REVIEW MODE)" if getattr(self.study_manager, "review_mode", False) else self.study_manager.participant_id
+            
             self.view.enable_study_mode(
-                self.study_manager.participant_id, active_task, 
+                pid_display, active_task, 
                 self.study_manager.current_task_index + 1, self.study_manager.get_total_tasks(), 
                 self.handle_task_completed
             )
-            # Automatically move to default and save initial pose on startup
-            self._move_to_default_and_save_pose()
+            
+            # If in Review Mode and a file exists for the active task, load it!
+            filepath = self.study_manager.current_task_filepath
+            if getattr(self.study_manager, "review_mode", False) and filepath and os.path.exists(filepath):
+                self.logger.info(f"Review Mode: Loading recorded gesture from '{filepath}'")
+                self.model.load_from_json(filepath)
+            else:
+                # Automatically move to default and save initial pose on startup for normal study
+                self._move_to_default_and_save_pose()
 
         self.logger.info("Application initialized. Dashboard active.")
         self.root.after(100, self.handle_initial_connect)
@@ -333,6 +344,10 @@ class RobotController:
 
     def _auto_save(self):
         """Explicitly called by the Controller only after actual data mutations."""
+        # Block autosaving in study review mode
+        if getattr(self.study_manager, "review_mode", False):
+            return
+            
         # If in study mode, save directly to the participant's persistent task file
         if self.study_manager.study_mode:
             filepath = self.study_manager.current_task_filepath
@@ -350,6 +365,9 @@ class RobotController:
             self.model.save_to_json()
 
     def handle_save_json(self):
+        if getattr(self.study_manager, "review_mode", False):
+            self.logger.warning("Saving is disabled in Study Review Mode.")
+            return
         if not self.model.sequence and self.model.current_filepath is not None: return
         self.model.save_to_json()
         self.logger.info("Manual save executed successfully.")
@@ -405,11 +423,23 @@ class RobotController:
             )
             self.logger.info(f"Transitioned to study task {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()}.")
             
-            # Automatically move to default and save initial pose for the new task
-            self._move_to_default_and_save_pose()
+            # If in Review Mode and a file exists for the next task, load it!
+            filepath = self.study_manager.current_task_filepath
+            if getattr(self.study_manager, "review_mode", False) and filepath and os.path.exists(filepath):
+                self.logger.info(f"Review Mode: Loading recorded gesture from '{filepath}'")
+                self.model.load_from_json(filepath)
+            else:
+                # Automatically move to default and save initial pose for the new task
+                self._move_to_default_and_save_pose()
         else:
             # Entire study sequence is completed
-            self.view.show_study_completed()
+            if getattr(self.study_manager, "review_mode", False):
+                self.view.show_study_completed()
+                # Customize the text for review mode
+                self.view.lbl_task_name.configure(text="Review of study referents completed successfully!", text_color=theme.ACCENT_GREEN)
+                self.view.lbl_task_desc.configure(text="No changes were saved, as the system is in Review Mode.\nYou can close the application now.")
+            else:
+                self.view.show_study_completed()
             self.model.clear()
             self.logger.info("Participant study cycle fully completed! Results archived.")
 
