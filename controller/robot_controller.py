@@ -164,7 +164,17 @@ class RobotController:
     def handle_preview_inspector_pose(self, poses):
         if not self.hardware.state.is_connected: return
         self.logger.info("Previewing pose from Inspector...")
-        threading.Thread(target=self.hardware.execute_action_pose, args=(poses, 10.0, "Preview Pose"), daemon=True).start()
+        
+        # Calculate duration dynamically in medium speed based on the difference from current position:
+        try:
+            from utils.duration_calculator import calculate_min_trajectory_duration
+            current_angles = self.hardware.state.joint_angles_deg
+            duration = calculate_min_trajectory_duration(current_angles, poses, speed="medium")
+            duration = round(duration, 2)
+        except Exception:
+            duration = 10.0
+            
+        threading.Thread(target=self.hardware.execute_action_pose, args=(poses, duration, "Preview Pose"), daemon=True).start()
 
     def handle_append_inspector_pose(self, params, poses):
         """Creates a new entry at the end of the sequence using Inspector data."""
@@ -219,18 +229,48 @@ class RobotController:
             EventBus.publish("edit_redone")
 
     def handle_append_pose(self, poses):
-        params = {"type": "action", "duration_s": 5.0, "max_velocities": [0.0]*6, "pause_s": 0.0}
+        # 1. Determine predecessor pose in the sequence to compute default duration in medium speed
+        predecessor_pos = None
+        selected_indices = self.view.panel_seq.get_selected_indices()
+        if selected_indices:
+            target_index = selected_indices[-1]
+            for k in range(target_index, -1, -1):
+                step = self.model.sequence[k]
+                if step.get("type", "action") != "pause" and "pos" in step:
+                    predecessor_pos = step["pos"]
+                    break
+        else:
+            for k in range(len(self.model.sequence) - 1, -1, -1):
+                step = self.model.sequence[k]
+                if step.get("type", "action") != "pause" and "pos" in step:
+                    predecessor_pos = step["pos"]
+                    break
+                    
+        if predecessor_pos is None:
+            if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
+                predecessor_pos = self.hardware.state.joint_angles_deg
+            else:
+                predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                
+        # 2. Calculate duration in medium speed
+        try:
+            from utils.duration_calculator import calculate_min_trajectory_duration
+            min_dur = calculate_min_trajectory_duration(predecessor_pos, poses, speed="medium")
+            duration_s = round(min_dur, 2)
+        except Exception:
+            duration_s = 5.0
+            
+        params = {"type": "action", "duration_s": duration_s, "max_velocities": [0.0]*6, "pause_s": 0.0}
         pose_data = {"pos": poses, **params}
         
-        selected_indices = self.view.panel_seq.get_selected_indices()
         if selected_indices:
             # Insert right after the last highlighted row (Insert Behind)
             target_index = selected_indices[-1]
             self.model.insert_pose(pose_data, target_index)
-            self.logger.info(f"Inserted captured pose right after index {target_index}.")
+            self.logger.info(f"Inserted captured pose right after index {target_index} with Medium speed duration {duration_s}s.")
         else:
             self.model.append_pose(pose_data)
-            self.logger.info(f"Captured current live pose to new end entry.")
+            self.logger.info(f"Captured current live pose to new end entry with Medium speed duration {duration_s}s.")
             
         EventBus.publish("waypoint_captured")
         self._auto_save()
@@ -255,8 +295,8 @@ class RobotController:
             
         EventBus.publish("waypoint_saved")
 
-    def handle_apply_min_durations(self, indices):
-        """Calculates and transactionally applies the physical minimum safe duration to each highlighted waypoint index."""
+    def handle_apply_min_durations(self, indices, speed="fast"):
+        """Calculates and transactionally applies the physical minimum safe duration (scaled by speed multiplier) to each highlighted waypoint index."""
         if not indices:
             return
             
@@ -295,7 +335,7 @@ class RobotController:
                     predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                     
             run_waypoints = [predecessor_pos] + [self.model.sequence[k]["pos"] for k in range(r_start, r_end + 1)]
-            segment_durations = calculate_waypoint_durations(run_waypoints)
+            segment_durations = calculate_waypoint_durations(run_waypoints, speed=speed)
             
             for k in range(r_start, r_end + 1):
                 seg_idx = k - r_start
@@ -329,7 +369,7 @@ class RobotController:
                         predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
                 target_pos = step_data.get("pos", [0.0] * 6)
-                min_dur = calculate_min_trajectory_duration(predecessor_pos, target_pos)
+                min_dur = calculate_min_trajectory_duration(predecessor_pos, target_pos, speed=speed)
                 index_to_dur[idx] = round(min_dur, 2)
                 
             elif step_type == "angularwaypoint":
@@ -339,7 +379,7 @@ class RobotController:
         if index_to_dur:
             self.model.bulk_update_durations_custom(index_to_dur)
             self._auto_save()
-            self.logger.info(f"Applied physical max speed limits to {len(index_to_dur)} waypoint(s).")
+            self.logger.info(f"Applied physical max speed limits at speed '{speed}' to {len(index_to_dur)} waypoint(s).")
             # Select first index to refresh form entries
             self.handle_tree_select(indices[0])
 

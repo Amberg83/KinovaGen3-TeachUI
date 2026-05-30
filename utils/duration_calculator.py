@@ -27,6 +27,23 @@ def calculate_min_safe_duration(target_pos, predecessor_pos):
         
     return T_OVERHEAD + (max_diff / V_MAX)
 
+from enum import Enum
+
+class DurationSpeed(str, Enum):
+    FAST = "fast"
+    MEDIUM = "medium"
+    SLOW = "slow"
+
+    @property
+    def multiplier(self) -> float:
+        if self == DurationSpeed.FAST:
+            return 1.0
+        elif self == DurationSpeed.MEDIUM:
+            return 2.0
+        elif self == DurationSpeed.SLOW:
+            return 4.0
+        return 1.0
+
 class DurationConfig:
     """
     Configuration parameter bank for trajectory and waypoint list duration estimators.
@@ -49,10 +66,10 @@ class DurationConfig:
     ACCEL_SMALL = 572.96
 
 
-def calculate_min_trajectory_duration(start_angles, end_angles, time_buffer=None):
+def calculate_min_trajectory_duration(start_angles, end_angles, time_buffer=None, speed="fast"):
     """
     Calculates the minimum feasible duration for a movement between two angular 
-    positions for a 6-DOF Kinova Gen3 robot based on custom web app limits.
+    positions for a 6-DOF Kinova Gen3 robot based on custom web app limits, scaled by speed multiplier.
     """
     if len(start_angles) != 6 or len(end_angles) != 6:
         raise ValueError("Must provide exactly 6 joint angles.")
@@ -104,17 +121,25 @@ def calculate_min_trajectory_duration(start_angles, end_angles, time_buffer=None
 
     # The entire arm must take the time of its slowest joint
     minimum_safe_time = max(min_durations)
+    base_duration = minimum_safe_time + time_buffer
     
-    return minimum_safe_time + time_buffer
+    # Resolve the duration multiplier based on speed Enum
+    try:
+        speed_enum = DurationSpeed(speed)
+    except ValueError:
+        speed_enum = DurationSpeed.FAST
+        
+    return base_duration * speed_enum.multiplier
 
 
-def calculate_waypoint_durations(waypoints, time_buffer=None):
+def calculate_waypoint_durations(waypoints, time_buffer=None, speed="fast"):
     """
-    Calculates the minimum feasible durations for a continuous list of angular waypoints.
+    Calculates the minimum feasible durations for a continuous list of angular waypoints, scaled by speed multiplier.
     
     :param waypoints: List of poses, where each pose is a list of 6 joint angles in degrees.
                       Example: [[pose1], [pose2], [pose3]]
     :param time_buffer: Safety margin to prevent API float-rounding rejections.
+    :param speed: The speed multiplier to apply ("fast", "medium", "slow").
     :return: A list of safe duration constraints (in seconds) for each segment.
     """
     if not waypoints or len(waypoints) < 2:
@@ -194,4 +219,11 @@ def calculate_waypoint_durations(waypoints, time_buffer=None):
         segment_safe_time = max(segment_times)
         durations.append(segment_safe_time + time_buffer)
         
-    return durations
+    # Resolve the duration multiplier based on speed Enum
+    try:
+        speed_enum = DurationSpeed(speed)
+    except ValueError:
+        speed_enum = DurationSpeed.FAST
+        
+    multiplier = speed_enum.multiplier
+    return [d * multiplier for d in durations]

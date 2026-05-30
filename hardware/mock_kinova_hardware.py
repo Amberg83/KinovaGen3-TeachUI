@@ -17,6 +17,7 @@ class MockKinovaHardware:
         self.username = username
         self.password = password
         self.logger = logging.getLogger("MockHardware")
+        self.default_pose = [0.0, 50.0, 264.0, 0.0, 58.0, 90.0]
         
         self.state = RobotState()
         self._is_polling = False
@@ -185,7 +186,9 @@ class MockKinovaHardware:
         return pager
 
     def move_to_default(self):
-        return self.execute_action_pose([0.0]*6, 5.0, "Origin")
+        from utils.duration_calculator import calculate_min_trajectory_duration
+        speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose, speed="medium")
+        return self.execute_action_pose(self.default_pose, speed, "Origin")
 
     def _interpolate_joints(self, start_angles, target_angles, duration, pager):
         steps = int(duration * 20.0) # 20Hz update steps

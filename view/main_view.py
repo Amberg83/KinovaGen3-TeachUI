@@ -235,10 +235,10 @@ class RobotView:
         if poses and "append_inspector_pose" in self.commands:
             self.commands["append_inspector_pose"](params, poses)
             
-    def on_apply_min_durations(self):
+    def on_apply_min_durations(self, speed="fast"):
         indices = self.panel_seq.get_selected_indices()
         if indices and "apply_min_durations" in self.commands:
-            self.commands["apply_min_durations"](indices)
+            self.commands["apply_min_durations"](indices, speed)
     
     def on_apply_admittance(self):
         mode = self.panel_live.get_selected_admittance_mode()

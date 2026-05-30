@@ -122,8 +122,8 @@ class KinovaHardware:
             return False, str(e)
  
     def move_to_default(self):
-        speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose)
-        return self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
+        speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose, speed="medium")
+        return self.execute_action_pose(self.default_pose, speed, "Origin")
  
     def disconnect(self, block_sound=False):
         """Stops polling threads and closes all API sessions."""

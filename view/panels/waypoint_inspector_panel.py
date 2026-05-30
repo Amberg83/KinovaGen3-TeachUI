@@ -125,21 +125,30 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         )
         self.ent_duration.pack(fill="x", pady=4, padx=5)
 
-        # Create a frame for the label and quick apply button
-        dur_action_frame = ctk.CTkFrame(self.duration_frame.content, fg_color="transparent")
-        dur_action_frame.pack(fill="x", pady=(2, 0), padx=5)
-
         self.lbl_min_duration = theme.make_label(
-            dur_action_frame, text="Fast Limit: --s", 
-            font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.ACCENT_CYBER
+            self.duration_frame.content, text="Fast: --s | Med: --s | Slow: --s", 
+            font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.ACCENT_CYBER,
+            anchor="w"
         )
-        self.lbl_min_duration.pack(side="left", anchor="w")
+        self.lbl_min_duration.pack(fill="x", pady=(2, 4), padx=5)
 
-        self.btn_apply_min_dur = theme.make_flat_button(
-            dur_action_frame, text=" Apply Limit", image=theme.get_icon("bolt", tint=theme.ACCENT_CYBER), compound="left",
-            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_CYBER, hover_bg=theme.BORDER_COLOR
+        self.btn_apply_fast = theme.make_flat_button(
+            self.duration_frame.content, text=" Apply Fast Limit", image=theme.get_icon("speed", tint=theme.ACCENT_RED), compound="left",
+            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_RED, hover_bg=theme.BORDER_COLOR
         )
-        self.btn_apply_min_dur.pack(side="right")
+        self.btn_apply_fast.pack(fill="x", pady=2, padx=5)
+
+        self.btn_apply_medium = theme.make_flat_button(
+            self.duration_frame.content, text=" Apply Medium Limit", image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW), compound="left",
+            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_YELLOW, hover_bg=theme.BORDER_COLOR
+        )
+        self.btn_apply_medium.pack(fill="x", pady=2, padx=5)
+
+        self.btn_apply_slow = theme.make_flat_button(
+            self.duration_frame.content, text=" Apply Slow Limit", image=theme.get_icon("speed", tint=theme.ACCENT_GREEN), compound="left",
+            bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_GREEN, hover_bg=theme.BORDER_COLOR
+        )
+        self.btn_apply_slow.pack(fill="x", pady=2, padx=5)
 
         # Traces for live recalculation of min duration
         self._disable_joint_traces = False
@@ -255,12 +264,26 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.btn_preview.configure(command=commands.get("preview_pose"))
         self.btn_save_settings.configure(command=commands.get("save_settings"))
         self.btn_append_new.configure(command=commands.get("append_pose"))
-        self.btn_apply_min_dur.configure(command=commands.get("apply_min_durations"))
+        
+        # Bind the three new apply buttons
+        self.btn_apply_fast.configure(command=lambda: self._on_apply_speed(commands.get("apply_min_durations"), "fast"))
+        self.btn_apply_medium.configure(command=lambda: self._on_apply_speed(commands.get("apply_min_durations"), "medium"))
+        self.btn_apply_slow.configure(command=lambda: self._on_apply_speed(commands.get("apply_min_durations"), "slow"))
         
         # Bind <Return> (Enter key) on all entry fields to trigger save settings
         self._save_settings_cb = commands.get("save_settings")
         for ent in self.insp_entries + self.ent_wp_vels + [self.ent_duration]:
             ent.bind("<Return>", lambda event: self._on_enter_pressed())
+
+    def _on_apply_speed(self, cmd_cb, speed):
+        """Populates the calculated duration locally and dispatches the save/apply command."""
+        if hasattr(self, "_calculated_durations") and speed in self._calculated_durations:
+            val = self._calculated_durations[speed]
+            self.ent_duration.delete(0, tk.END)
+            self.ent_duration.insert(0, f"{val:.2f}")
+            
+        if cmd_cb:
+            cmd_cb(speed=speed)
 
     def _on_enter_pressed(self):
         """Triggers waypoint modifications save when Enter key is pressed."""
@@ -274,7 +297,8 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         
         # Simple list of elements
         widgets = [self.ent_duration] + self.ent_wp_vels + self.insp_entries + [
-            self.btn_save_settings, self.btn_preview, self.btn_append_new, self.btn_apply_min_dur
+            self.btn_save_settings, self.btn_preview, self.btn_append_new,
+            self.btn_apply_fast, self.btn_apply_medium, self.btn_apply_slow
         ]
         
         for w in widgets: 
@@ -285,12 +309,16 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             self.btn_preview.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
             self.btn_save_settings.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
             self.btn_append_new.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
-            self.btn_apply_min_dur.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+            self.btn_apply_fast.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+            self.btn_apply_medium.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+            self.btn_apply_slow.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
         else:
             self.btn_preview.configure(fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
             self.btn_save_settings.configure(fg_color=theme.ACCENT_GREEN, text_color=theme.BG_MAIN)
             self.btn_append_new.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.TEXT_PRIMARY)
-            self.btn_apply_min_dur.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_CYBER)
+            self.btn_apply_fast.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
+            self.btn_apply_medium.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
+            self.btn_apply_slow.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
 
         # Update segment button styles
         self.update_segment_styles()
@@ -318,7 +346,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         """Resets panel state when no element is selected anymore."""
         self._set_inspector_state("disabled")
         self.lbl_inspector_title.configure(text="No Waypoint Selected", text_color=theme.TEXT_MUTED, font=theme.FONT_NORMAL)
-        self.lbl_min_duration.configure(text="Fast Limit: --s", text_color=theme.TEXT_MUTED)
+        self.lbl_min_duration.configure(text="Fast: --s | Med: --s | Slow: --s", text_color=theme.TEXT_MUTED)
 
     def load_inspector_data(self, data, index, predecessor_pos=None, run_poses=None, run_selected_idx=None):
         """Populates fields from selected row dictionaries."""
@@ -368,7 +396,10 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             
         wp_type = self.wp_type_var.get()
         if wp_type == "pause":
-            self.lbl_min_duration.configure(text="Fast Limit: -- (Pause Step)", text_color=theme.TEXT_MUTED)
+            self.lbl_min_duration.configure(text="Fast: --s | Med: --s | Slow: --s", text_color=theme.TEXT_MUTED)
+            self.btn_apply_fast.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+            self.btn_apply_medium.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+            self.btn_apply_slow.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
             return
 
         current_poses = []
@@ -383,28 +414,39 @@ class WaypointInspectorPanel(ctk.CTkFrame):
                     current_poses.append(0.0)
                     
         if hasattr(self, "_predecessor_pos") and len(self._predecessor_pos) == len(current_poses):
-            if wp_type == "action":
-                min_safe_dur = calculate_min_trajectory_duration(self._predecessor_pos, current_poses)
-            else:
-                # Use the full consecutive run context if available to get accurate continuous-run limits
-                if getattr(self, "_run_poses", None) is not None and getattr(self, "_run_selected_idx", None) is not None:
-                    modified_run_poses = list(self._run_poses)
-                    target_idx = self._run_selected_idx + 1
-                    if 0 <= target_idx < len(modified_run_poses):
-                        modified_run_poses[target_idx] = current_poses
-                    
-                    min_durs = calculate_waypoint_durations(modified_run_poses)
-                    if min_durs and 0 <= self._run_selected_idx < len(min_durs):
-                        min_safe_dur = min_durs[self._run_selected_idx]
-                    else:
-                        min_safe_dur = 0.6
+            durs = {}
+            for speed in ["fast", "medium", "slow"]:
+                if wp_type == "action":
+                    durs[speed] = calculate_min_trajectory_duration(self._predecessor_pos, current_poses, speed=speed)
                 else:
-                    min_durs = calculate_waypoint_durations([self._predecessor_pos, current_poses])
-                    min_safe_dur = min_durs[0] if min_durs else 0.6
-                
-            self.lbl_min_duration.configure(text=f"Fast Limit: {min_safe_dur:.2f}s", text_color=theme.ACCENT_CYBER)
+                    # Use the full consecutive run context if available to get accurate continuous-run limits
+                    if getattr(self, "_run_poses", None) is not None and getattr(self, "_run_selected_idx", None) is not None:
+                        modified_run_poses = list(self._run_poses)
+                        target_idx = self._run_selected_idx + 1
+                        if 0 <= target_idx < len(modified_run_poses):
+                            modified_run_poses[target_idx] = current_poses
+                        
+                        min_durs = calculate_waypoint_durations(modified_run_poses, speed=speed)
+                        if min_durs and 0 <= self._run_selected_idx < len(min_durs):
+                            durs[speed] = min_durs[self._run_selected_idx]
+                        else:
+                            durs[speed] = 0.6
+                    else:
+                        min_durs = calculate_waypoint_durations([self._predecessor_pos, current_poses], speed=speed)
+                        durs[speed] = min_durs[0] if min_durs else 0.6
+                        
+            self._calculated_durations = durs
+            self.lbl_min_duration.configure(
+                text=f"Fast: {durs['fast']:.2f}s | Med: {durs['medium']:.2f}s | Slow: {durs['slow']:.2f}s",
+                text_color=theme.ACCENT_CYBER
+            )
+            
+            # Make sure buttons are enabled since we are not in pause type
+            self.btn_apply_fast.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
+            self.btn_apply_medium.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
+            self.btn_apply_slow.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
         else:
-            self.lbl_min_duration.configure(text="Fast Limit: 0.50s", text_color=theme.ACCENT_CYBER)
+            self.lbl_min_duration.configure(text="Fast: --s | Med: --s | Slow: --s", text_color=theme.ACCENT_CYBER)
 
     def enter_bulk_edit_mode(self, indices):
         """Enables a bulk-edit state for editing duration and type across multiple waypoints."""
@@ -423,7 +465,8 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.update_segment_styles()
         
         disable_widgets = [
-            self.btn_preview, self.btn_append_new
+            self.btn_preview, self.btn_append_new,
+            self.btn_apply_fast, self.btn_apply_medium, self.btn_apply_slow
         ] + self.ent_wp_vels + self.insp_entries
         
         for w in disable_widgets:
@@ -431,6 +474,9 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             
         self.btn_preview.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
         self.btn_append_new.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+        self.btn_apply_fast.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+        self.btn_apply_medium.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+        self.btn_apply_slow.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
         
         # Clear duration and target inputs
         self.ent_duration.configure(state="normal")
