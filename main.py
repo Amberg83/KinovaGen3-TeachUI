@@ -11,6 +11,7 @@ from model import SequenceModel
 from view import RobotView, ConnectionDialog
 from controller import RobotController
 from utils.sound_coordinator import SoundCoordinator
+from utils.udp_transmitter import UDPTransmitter
 from view import theme
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -148,8 +149,15 @@ def main():
     # Initialize the sound coordinator to listen to events and trigger audio feedback
     sound_coordinator = SoundCoordinator()
     
+    # Initialize UDP transmitter to stream joint angles to Unity on port 5005
+    udp_transmitter = UDPTransmitter()
+    
     def on_closing():
         logging.getLogger("Main").info("Closing application...")
+        try:
+            udp_transmitter.close()
+        except Exception as e:
+            logging.getLogger("Main").error(f"Error during UDP cleanup: {e}")
         hardware.disconnect(block_sound=True)
         root.destroy()
         
