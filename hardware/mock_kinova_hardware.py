@@ -30,7 +30,6 @@ class MockKinovaHardware:
         self._is_action_paused = False
         
         # Parity with physical robot
-        self.default_pose = [0.0, 50.0, 264.0, 0.0, 58.0, 90.0]
         self._last_action_success = True
         
         # Initialize default joint states
@@ -183,14 +182,35 @@ class MockKinovaHardware:
             self._last_action_success = False
             pager.set()
             return pager
+
+        # Measure distance for fail save (just like physical hardware)
+        current_deg = self.state.joint_angles_deg
+        max_diff = 0.0
+        if current_deg and len(current_deg) == len(target_pos_deg):
+            for p, c in zip(current_deg, target_pos_deg):
+                diff = c - p
+                diff = (diff + 180.0) % 360.0 - 180.0
+                max_diff = max(max_diff, abs(diff))
+                
+            if max_diff < 0.1:
+                self.logger.info(f"[Mock] Skipping '{action_name}': Destination already reached.")
+                pager.set()
+                return pager
+
+        # Construct safe time-frame for movement action (just like physical hardware)
+        min_safe_duration = calculate_min_trajectory_duration(current_deg, target_pos_deg)
+        if duration_s > 0.0:
+            actual_duration = max(float(duration_s), min_safe_duration)
+        else:
+            actual_duration = min_safe_duration
             
         self._active_movement_pager = pager
         self._is_action_paused = False
-        self.logger.info(f"[Mock] Action '{action_name}': Starting quintic smoothstep to {target_pos_deg} over {duration_s:.2f}s...")
+        self.logger.info(f"[Mock] Action '{action_name}': Starting quintic smoothstep to {target_pos_deg} over {actual_duration:.2f}s (requested: {duration_s:.2f}s, min safe: {min_safe_duration:.2f}s)...")
         
         threading.Thread(
             target=self._run_action_trajectory,
-            args=(list(self.state.joint_angles_deg), target_pos_deg, float(duration_s), pager),
+            args=(list(self.state.joint_angles_deg), target_pos_deg, float(actual_duration), pager),
             daemon=True
         ).start()
         
