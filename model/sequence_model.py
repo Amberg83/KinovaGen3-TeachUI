@@ -52,12 +52,20 @@ class SequenceModel:
         if 0 <= index < len(self.sequence):
             self._save_state()
             existing = self.sequence[index]
-            # Merge target_angles if present and containing None values (selective copy)
-            if "pos" in pose_data and "pos" in existing:
-                merged_angles = []
-                for target, orig in zip(pose_data["pos"], existing["pos"]):
-                    merged_angles.append(orig if target is None else target)
-                pose_data["pos"] = merged_angles
+            
+            # Prune joint position and velocity constraints for Pause and Gripper step types
+            if pose_data.get("type") in ("pause", "gripper"):
+                if "pos" in pose_data:
+                    del pose_data["pos"]
+                if "max_velocities" in pose_data:
+                    del pose_data["max_velocities"]
+            else:
+                # Merge target_angles if present and containing None values (selective copy)
+                if "pos" in pose_data and "pos" in existing:
+                    merged_angles = []
+                    for target, orig in zip(pose_data["pos"], existing["pos"]):
+                        merged_angles.append(orig if target is None else target)
+                    pose_data["pos"] = merged_angles
             
             self.sequence[index] = pose_data
             self.logger.info(f"Updated waypoint at index {index}.")
@@ -186,6 +194,40 @@ class SequenceModel:
                             step["max_velocities"] = [0.0]*6
                         if "speed_deg_s" in step:
                             del step["speed_deg_s"]
+                            
+                        # Backward compatibility migration for Robotiq gripper format:
+                        # Rename gripper_speed to gripper_duration and prune gripper_force entirely
+                        if step.get("type") == "gripper":
+                            if "gripper_force" in step:
+                                del step["gripper_force"]
+                            if "gripper_speed" in step:
+                                step["gripper_duration"] = step.pop("gripper_speed")
+                            step["gripper_state"] = step.get("gripper_state", "open")
+                            step["gripper_duration"] = step.get("gripper_duration", "medium")
+                            
+                            # Migrate custom target position percentage
+                            if "gripper_target_pos" not in step:
+                                state_lower = step["gripper_state"].lower()
+                                if state_lower == "open":
+                                    step["gripper_target_pos"] = 0.0
+                                elif state_lower == "closed":
+                                    step["gripper_target_pos"] = 100.0
+                                elif state_lower == "pickup":
+                                    step["gripper_target_pos"] = 50.0
+                                else:
+                                    step["gripper_target_pos"] = 0.0
+                                    
+                            # Migrate custom speed ratio override
+                            if "gripper_speed_ratio" not in step:
+                                dur_lower = step["gripper_duration"].lower()
+                                if dur_lower == "slow":
+                                    step["gripper_speed_ratio"] = 0.2
+                                elif dur_lower == "medium":
+                                    step["gripper_speed_ratio"] = 0.5
+                                elif dur_lower == "fast":
+                                    step["gripper_speed_ratio"] = 0.0
+                                else:
+                                    step["gripper_speed_ratio"] = 0.5
                             
                     self.sequence = data
                     self.current_filepath = filepath

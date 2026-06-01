@@ -124,6 +124,33 @@ class LiveStatePanel(ctk.CTkFrame):
             self.live_cart_vars[axis] = var
             self.cart_frames.append(f)
 
+        # ---------------- SECTION 2.5: GRIPPER TELEMETRY (Inside Scrollable Content) ----------------
+        self.gripper_telemetry_frame = theme.SectionFrame(self.scrollable_content, text="Robotiq 140 Gripper")
+        self.gripper_telemetry_frame.pack(fill="x", pady=6)
+        
+        self.gripper_telemetry_frame.content.columnconfigure(0, weight=1)
+        self.gripper_telemetry_frame.content.columnconfigure(1, weight=1)
+        
+        f_gpos = ctk.CTkFrame(self.gripper_telemetry_frame.content, fg_color="transparent")
+        f_gpos.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        theme.make_label(f_gpos, text="Pos:", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_MUTED, width=40, anchor="w").pack(side="left")
+        self.live_gpos_var = ctk.StringVar(value="0.0 %")
+        ent_gpos = ctk.CTkEntry(
+            f_gpos, textvariable=self.live_gpos_var, font=theme.FONT_MONO, state="readonly", width=80, height=28,
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR, corner_radius=4
+        )
+        ent_gpos.pack(side="right", fill="x", expand=True, padx=(4, 0))
+        
+        f_gcur = ctk.CTkFrame(self.gripper_telemetry_frame.content, fg_color="transparent")
+        f_gcur.grid(row=0, column=1, sticky="nsew", padx=4, pady=4)
+        theme.make_label(f_gcur, text="Cur:", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_MUTED, width=40, anchor="w").pack(side="left")
+        self.live_gcur_var = ctk.StringVar(value="0.00 A")
+        ent_gcur = ctk.CTkEntry(
+            f_gcur, textvariable=self.live_gcur_var, font=theme.FONT_MONO, state="readonly", width=80, height=28,
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR, corner_radius=4
+        )
+        ent_gcur.pack(side="right", fill="x", expand=True, padx=(4, 0))
+
         # ---------------- SECTION 3: ARM DIAGNOSTICS (Inside Scrollable Content) ----------------
         self.diag_frame = theme.SectionFrame(self.scrollable_content, text="Arm Diagnostics")
         self.diag_frame.pack(fill="both", expand=True, pady=6)
@@ -313,6 +340,12 @@ class LiveStatePanel(ctk.CTkFrame):
             keys = ["X", "Y", "Z", "Rx", "Ry", "Rz"]
             for k, v in zip(keys, vals):
                 self.live_cart_vars[k].set(f"{v:.3f}")
+
+        # Update Gripper Telemetry
+        g_pos = getattr(state, "gripper_position", 0.0)
+        g_cur = getattr(state, "gripper_current", 0.0)
+        self.live_gpos_var.set(f"{g_pos:.1f} %")
+        self.live_gcur_var.set(f"{g_cur:.2f} A")
                 
         # Update Control Mode
         ctrl_modes = {

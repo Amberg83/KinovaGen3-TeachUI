@@ -143,6 +143,22 @@ class ReplayEngine:
                     if not getattr(self.hardware, '_last_action_success', True):
                         raise RuntimeError("Action execution failed!")
 
+                elif stype == "gripper":
+                    flush_waypoints()
+                    self.logger.info(f"[STEP {idx}] Send gripper action to hardware...")
+                    completion_event = self.hardware.execute_gripper_action(
+                        step.get("gripper_state", "open"),
+                        step.get("gripper_duration", "medium"),
+                        step.get("gripper_target_pos", None),
+                        step.get("gripper_speed_ratio", None)
+                    )
+                    
+                    if completion_event:
+                        completion_event.wait(timeout=step.get("duration_s", 1.5) + 5.0)
+                        
+                    if not getattr(self.hardware, '_last_action_success', True):
+                        raise RuntimeError("Gripper action failed!")
+
                 elif stype == "pause":
                     flush_waypoints()
                     p_time = step["duration_s"]

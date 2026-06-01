@@ -19,6 +19,10 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.wide_mode = True
         self.is_bulk_editing = False
         
+        # Declare variables for Robotiq 140 Gripper settings
+        self.gripper_state_var = ctk.StringVar(value="open")
+        self.gripper_duration_var = ctk.StringVar(value="medium")
+        
         self.setup_ui()
         self._set_inspector_state("disabled")
         # self.bind("<Configure>", self.on_resize)  # Driven directly by parent MainView
@@ -68,7 +72,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
 
         theme.make_label(self.scrollable_content, text="Type:", font=theme.FONT_BOLD, fg_color=theme.BG_CARD, text_color=theme.TEXT_PRIMARY).pack(anchor="w", pady=(0, 5))
         
-        # Segmented Control Frame
+        # Segmented Control Frame (only Action and Waypoint types; Pause and Gripper cannot be cross-swapped)
         type_frame = ctk.CTkFrame(self.scrollable_content, fg_color=theme.BORDER_COLOR, corner_radius=4) 
         type_frame.pack(fill="x", pady=(0, 10))
 
@@ -78,9 +82,6 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         
         self.lbl_waypoint = self.make_segment_btn(type_frame, "WAYPOINT", "angularwaypoint")
         self.lbl_waypoint.pack(side="left", fill="x", expand=True, padx=1, pady=1)
-        
-        self.lbl_pause = self.make_segment_btn(type_frame, "PAUSE", "pause")
-        self.lbl_pause.pack(side="left", fill="x", expand=True, padx=1, pady=1)
 
         # ---------------- SECTION 1: JOINT TARGETS (Over other adjustments!) ----------------
         self.joint_frame = theme.SectionFrame(self.scrollable_content, text="Joint Angles (°)")
@@ -116,8 +117,8 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             self.ent_wp_vels.append(ent)
             self.vel_frames.append(f)
 
-        # ---------------- SECTION 3: DURATION / WAIT TIME (Pause Editor always at the bottom!) ----------------
-        self.duration_frame = theme.SectionFrame(self.scrollable_content, text="Duration / Wait Time (s)")
+        # ---------------- SECTION 3: DURATION (s) ----------------
+        self.duration_frame = theme.SectionFrame(self.scrollable_content, text="Duration (s)")
         
         self.ent_duration = ctk.CTkEntry(
             self.duration_frame.content, font=theme.FONT_MONO, height=30,
@@ -149,6 +150,76 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             bg_color=theme.BG_INPUT, fg_color=theme.ACCENT_GREEN, hover_bg=theme.BORDER_COLOR
         )
         self.btn_apply_slow.pack(fill="x", pady=2, padx=5)
+
+        # ---------------- SECTION 3b: WAIT TIME (s) (Pause Editor) ----------------
+        self.wait_time_frame = theme.SectionFrame(self.scrollable_content, text="Wait Time (s)")
+        self.ent_wait_time = ctk.CTkEntry(
+            self.wait_time_frame.content, font=theme.FONT_MONO, height=30,
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR, corner_radius=4
+        )
+        self.ent_wait_time.pack(fill="x", pady=4, padx=5)
+
+        # ---------------- SECTION 4: GRIPPER SETTINGS (New) ----------------
+        self.gripper_frame = theme.SectionFrame(self.scrollable_content, text="Gripper Settings")
+        
+        # State segment
+        theme.make_label(self.gripper_frame.content, text="State:", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_PRIMARY).pack(anchor="w", pady=(4, 2))
+        state_seg = ctk.CTkFrame(self.gripper_frame.content, fg_color=theme.BORDER_COLOR, corner_radius=4)
+        state_seg.pack(fill="x", pady=(0, 6))
+        state_seg.columnconfigure(0, weight=1)
+        state_seg.columnconfigure(1, weight=1)
+        state_seg.columnconfigure(2, weight=1)
+        
+        self.lbl_g_open = self.make_gripper_segment_btn(state_seg, "OPEN", "open", "state")
+        self.lbl_g_open.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+        self.lbl_g_closed = self.make_gripper_segment_btn(state_seg, "CLOSED", "closed", "state")
+        self.lbl_g_closed.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+        self.lbl_g_pickup = self.make_gripper_segment_btn(state_seg, "PICKUP", "pickup", "state")
+        self.lbl_g_pickup.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+
+        # Duration segment
+        theme.make_label(self.gripper_frame.content, text="Duration:", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_PRIMARY).pack(anchor="w", pady=(4, 2))
+        duration_seg = ctk.CTkFrame(self.gripper_frame.content, fg_color=theme.BORDER_COLOR, corner_radius=4)
+        duration_seg.pack(fill="x", pady=(0, 2))
+        duration_seg.columnconfigure(0, weight=1)
+        duration_seg.columnconfigure(1, weight=1)
+        duration_seg.columnconfigure(2, weight=1)
+        
+        self.lbl_g_slow = self.make_gripper_segment_btn(duration_seg, "SLOW", "slow", "duration")
+        self.lbl_g_slow.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+        self.lbl_g_med = self.make_gripper_segment_btn(duration_seg, "MEDIUM", "medium", "duration")
+        self.lbl_g_med.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+        self.lbl_g_fast = self.make_gripper_segment_btn(duration_seg, "FAST", "fast", "duration")
+        self.lbl_g_fast.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+
+        # Custom inputs separator/label
+        theme.make_label(self.gripper_frame.content, text="Custom Settings (Overrides):", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.ACCENT_CYBER).pack(anchor="w", pady=(8, 4))
+        
+        # Position Custom Entry
+        theme.make_label(self.gripper_frame.content, text="Target Position (%):", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_PRIMARY).pack(anchor="w", pady=(2, 1))
+        
+        pos_entry_frame = ctk.CTkFrame(self.gripper_frame.content, fg_color="transparent")
+        pos_entry_frame.pack(fill="x", pady=(0, 4))
+        
+        self.ent_g_target_pos = ctk.CTkEntry(pos_entry_frame, fg_color=theme.BG_INPUT, border_color=theme.BORDER_COLOR, font=theme.FONT_MONO, height=28)
+        self.ent_g_target_pos.pack(fill="x")
+        self.ent_g_target_pos.bind("<KeyRelease>", lambda e: self._on_gripper_entry_changed())
+        
+        self.lbl_g_pos_desc = theme.make_label(self.gripper_frame.content, text="* Accepts 0 to 100 (0% is fully opened, 100% is fully closed)", font=("Arial", 8, "italic"), text_color=theme.TEXT_MUTED)
+        self.lbl_g_pos_desc.pack(anchor="w", pady=(0, 6))
+
+        # Speed Ratio Custom Entry
+        theme.make_label(self.gripper_frame.content, text="Speed Ratio (0.0 to 1.0):", font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.TEXT_PRIMARY).pack(anchor="w", pady=(2, 1))
+        
+        speed_entry_frame = ctk.CTkFrame(self.gripper_frame.content, fg_color="transparent")
+        speed_entry_frame.pack(fill="x", pady=(0, 4))
+        
+        self.ent_g_speed_ratio = ctk.CTkEntry(speed_entry_frame, fg_color=theme.BG_INPUT, border_color=theme.BORDER_COLOR, font=theme.FONT_MONO, height=28)
+        self.ent_g_speed_ratio.pack(fill="x")
+        self.ent_g_speed_ratio.bind("<KeyRelease>", lambda e: self._on_gripper_entry_changed())
+        
+        self.lbl_g_speed_desc = theme.make_label(self.gripper_frame.content, text="* Accepts 0.01 to 1.0 (velocity limit ratio; 0.0 implies fast position mode)", font=("Arial", 8, "italic"), text_color=theme.TEXT_MUTED)
+        self.lbl_g_speed_desc.pack(anchor="w", pady=(0, 6))
 
         # Traces for live recalculation of min duration
         self._disable_joint_traces = False
@@ -219,15 +290,21 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         lbl.configure(cursor="hand2")
         
         def on_enter(e):
-            if (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and self.wp_type_var.get() != value:
+            current_type = self.wp_type_var.get()
+            is_type_locked = current_type in ["pause", "gripper"]
+            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and current_type != value:
                 lbl.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_PRIMARY)
                 
         def on_leave(e):
-            if (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and self.wp_type_var.get() != value:
+            current_type = self.wp_type_var.get()
+            is_type_locked = current_type in ["pause", "gripper"]
+            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and current_type != value:
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
                 
         def on_click(e):
-            if self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False):
+            current_type = self.wp_type_var.get()
+            is_type_locked = current_type in ["pause", "gripper"]
+            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)):
                 self.set_wp_type(value)
                 
         lbl.bind("<Enter>", on_enter)
@@ -246,21 +323,172 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         """Renders solid accent cyan backgrounds on active toggle buttons and grey on disabled entries."""
         mapping = {
             "action": self.lbl_action,
-            "angularwaypoint": self.lbl_waypoint,
-            "pause": self.lbl_pause
+            "angularwaypoint": self.lbl_waypoint
         }
+        
+        current_type = self.wp_type_var.get()
+        is_type_locked = current_type in ["pause", "gripper"]
+        
         for val, lbl in mapping.items():
-            if self.inspector_state == "disabled" and not getattr(self, 'is_bulk_editing', False):
+            if (self.inspector_state == "disabled" and not getattr(self, 'is_bulk_editing', False)) or is_type_locked:
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED, cursor="arrow")
             else:
                 lbl.configure(cursor="hand2")
-                if self.wp_type_var.get() == val:
+                if current_type == val:
                     lbl.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.BG_MAIN)
                 else:
                     lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
 
+    def make_gripper_segment_btn(self, parent, text, value, field_name):
+        """Builds custom label-based segmented toggle buttons for gripper fields."""
+        lbl = theme.make_label(
+            parent, text=text, font=("Arial", 8, "bold"),
+            fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
+            pady=8, corner_radius=0
+        )
+        lbl.configure(cursor="hand2")
+        
+        var_map = {
+            "state": self.gripper_state_var,
+            "duration": self.gripper_duration_var
+        }
+        var = var_map[field_name]
+        
+        def on_enter(e):
+            if self.inspector_state != "disabled" and var.get() != value:
+                lbl.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_PRIMARY)
+                
+        def on_leave(e):
+            if self.inspector_state != "disabled" and var.get() != value:
+                lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
+                
+        def on_click(e):
+            if self.inspector_state != "disabled":
+                var.set(value)
+                
+                # Sync custom manual entry boxes dynamically on segment selection
+                self._disable_joint_traces = True
+                if field_name == "state":
+                    state_val = value.lower()
+                    pos_map = {"open": "0.0", "closed": "100.0", "pickup": "50.0"}
+                    self.ent_g_target_pos.delete(0, tk.END)
+                    self.ent_g_target_pos.insert(0, pos_map.get(state_val, "0.0"))
+                    self.ent_g_target_pos.configure(border_color=theme.BORDER_COLOR)
+                elif field_name == "duration":
+                    dur_val = value.lower()
+                    dur_map = {"slow": "0.20", "medium": "0.50", "fast": "0.00"}
+                    self.ent_g_speed_ratio.delete(0, tk.END)
+                    self.ent_g_speed_ratio.insert(0, dur_map.get(dur_val, "0.00"))
+                    self.ent_g_speed_ratio.configure(border_color=theme.BORDER_COLOR)
+                self._disable_joint_traces = False
+                
+                self.update_gripper_segment_styles()
+                # instant auto-save
+                if hasattr(self, "commands") and self.commands.get("save_settings"):
+                    self.commands["save_settings"]()
+                
+        lbl.bind("<Enter>", on_enter)
+        lbl.bind("<Leave>", on_leave)
+        lbl.bind("<Button-1>", on_click)
+        return lbl
+
+    def update_gripper_segment_styles(self):
+        """Renders active gripper buttons with accent cyan and others with normal state."""
+        state_mapping = {
+            "open": self.lbl_g_open,
+            "closed": self.lbl_g_closed,
+            "pickup": self.lbl_g_pickup
+        }
+        duration_mapping = {
+            "slow": self.lbl_g_slow,
+            "medium": self.lbl_g_med,
+            "fast": self.lbl_g_fast
+        }
+        
+        def set_styles(mapping, current_val):
+            for val, lbl in mapping.items():
+                if self.inspector_state == "disabled":
+                    lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED, cursor="arrow")
+                else:
+                    lbl.configure(cursor="hand2")
+                    if current_val == val:
+                        lbl.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.BG_MAIN)
+                    else:
+                        lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
+
+        set_styles(state_mapping, self.gripper_state_var.get())
+        set_styles(duration_mapping, self.gripper_duration_var.get())
+
+    def _on_gripper_entry_changed(self):
+        """Called when manual target position or speed ratio entries are typed."""
+        if getattr(self, "_disable_joint_traces", False) or self.inspector_state == "disabled":
+            return
+        
+        # Validate Position
+        pos_valid = False
+        try:
+            val = float(self.ent_g_target_pos.get().strip())
+            if 0.0 <= val <= 100.0:
+                pos_valid = True
+        except ValueError:
+            pass
+            
+        if pos_valid:
+            self.ent_g_target_pos.configure(border_color=theme.BORDER_COLOR)
+        else:
+            self.ent_g_target_pos.configure(border_color=theme.ACCENT_RED)
+            
+        # Validate Speed Ratio
+        speed_valid = False
+        try:
+            val = float(self.ent_g_speed_ratio.get().strip())
+            if 0.0 <= val <= 1.0:
+                speed_valid = True
+        except ValueError:
+            pass
+            
+        if speed_valid:
+            self.ent_g_speed_ratio.configure(border_color=theme.BORDER_COLOR)
+        else:
+            self.ent_g_speed_ratio.configure(border_color=theme.ACCENT_RED)
+            
+        # Try to sync Segmented buttons
+        if pos_valid:
+            pos_val = float(self.ent_g_target_pos.get().strip())
+            if abs(pos_val - 0.0) < 0.01:
+                self.gripper_state_var.set("open")
+            elif abs(pos_val - 100.0) < 0.01:
+                self.gripper_state_var.set("closed")
+            elif abs(pos_val - 50.0) < 0.01:
+                self.gripper_state_var.set("pickup")
+            else:
+                self.gripper_state_var.set("") # Unselect segments if custom value
+        else:
+            self.gripper_state_var.set("")
+            
+        if speed_valid:
+            speed_val = float(self.ent_g_speed_ratio.get().strip())
+            if abs(speed_val - 0.2) < 0.01:
+                self.gripper_duration_var.set("slow")
+            elif abs(speed_val - 0.5) < 0.01:
+                self.gripper_duration_var.set("medium")
+            elif abs(speed_val - 0.0) < 0.01:
+                self.gripper_duration_var.set("fast")
+            else:
+                self.gripper_duration_var.set("") # Unselect
+        else:
+            self.gripper_duration_var.set("")
+            
+        self.update_gripper_segment_styles()
+        
+        # If valid, instant auto-save to model
+        if pos_valid and speed_valid:
+            if hasattr(self, "commands") and self.commands.get("save_settings"):
+                self.commands["save_settings"]()
+
     def bind_commands(self, commands):
         """Binds commands relating to Column 3 operations."""
+        self.commands = commands
         self.btn_preview.configure(command=commands.get("preview_pose"))
         self.btn_save_settings.configure(command=commands.get("save_settings"))
         self.btn_append_new.configure(command=commands.get("append_pose"))
@@ -272,7 +500,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         
         # Bind <Return> (Enter key) on all entry fields to trigger save settings
         self._save_settings_cb = commands.get("save_settings")
-        for ent in self.insp_entries + self.ent_wp_vels + [self.ent_duration]:
+        for ent in self.insp_entries + self.ent_wp_vels + [self.ent_duration, self.ent_wait_time]:
             ent.bind("<Return>", lambda event: self._on_enter_pressed())
 
     def _on_apply_speed(self, cmd_cb, speed):
@@ -296,7 +524,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         tk_state = "normal" if state == "normal" else "disabled"
         
         # Simple list of elements
-        widgets = [self.ent_duration] + self.ent_wp_vels + self.insp_entries + [
+        widgets = [self.ent_duration, self.ent_wait_time] + self.ent_wp_vels + self.insp_entries + [
             self.btn_save_settings, self.btn_preview, self.btn_append_new,
             self.btn_apply_fast, self.btn_apply_medium, self.btn_apply_slow
         ]
@@ -322,6 +550,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
 
         # Update segment button styles
         self.update_segment_styles()
+        self.update_gripper_segment_styles()
 
         for i in range(6): 
             self.insp_joint_vars[i].set("0.0" if state == "disabled" else self.insp_joint_vars[i].get())
@@ -333,14 +562,38 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             self.joint_frame.pack(fill="x", pady=5)
             self.frame_wp_vels.pack_forget()
             self.duration_frame.pack(fill="x", pady=5)
+            self.wait_time_frame.pack_forget()
+            self.gripper_frame.pack_forget()
+            
+            # Enable preview button
+            self.btn_preview.configure(state="normal", fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
         elif wp_type == "angularwaypoint":
             self.joint_frame.pack(fill="x", pady=5)
             self.frame_wp_vels.pack_forget()
             self.duration_frame.pack(fill="x", pady=5)
+            self.wait_time_frame.pack_forget()
+            self.gripper_frame.pack_forget()
+            
+            # Enable preview button
+            self.btn_preview.configure(state="normal", fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
         elif wp_type == "pause":
             self.joint_frame.pack_forget()
             self.frame_wp_vels.pack_forget()
-            self.duration_frame.pack(fill="x", pady=5)
+            self.duration_frame.pack_forget()
+            self.wait_time_frame.pack(fill="x", pady=5)
+            self.gripper_frame.pack_forget()
+            
+            # Disable preview button for pause!
+            self.btn_preview.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+        elif wp_type == "gripper":
+            self.joint_frame.pack_forget()
+            self.frame_wp_vels.pack_forget()
+            self.duration_frame.pack_forget()
+            self.wait_time_frame.pack_forget()
+            self.gripper_frame.pack(fill="x", pady=5)
+            
+            # Enable preview button for gripper
+            self.btn_preview.configure(state="normal", fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
 
     def clear_inspector(self):
         """Resets panel state when no element is selected anymore."""
@@ -358,11 +611,27 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self._disable_joint_traces = True
         
         self.wp_type_var.set(data.get("type", "action"))
+        self.gripper_state_var.set(data.get("gripper_state", "open"))
+        # Failsafe migration: load gripper_duration, falling back to gripper_speed if present in older files
+        self.gripper_duration_var.set(data.get("gripper_duration", data.get("gripper_speed", "medium")))
+        
+        # Populate custom gripper inputs
+        self.ent_g_target_pos.delete(0, tk.END)
+        self.ent_g_target_pos.insert(0, str(data.get("gripper_target_pos", 0.0)))
+        self.ent_g_speed_ratio.delete(0, tk.END)
+        self.ent_g_speed_ratio.insert(0, str(data.get("gripper_speed_ratio", 0.0)))
+        self.ent_g_target_pos.configure(border_color=theme.BORDER_COLOR)
+        self.ent_g_speed_ratio.configure(border_color=theme.BORDER_COLOR)
+        
         self.update_segment_styles()
+        self.update_gripper_segment_styles()
         self.toggle_wp_settings()
         
         self.ent_duration.delete(0, tk.END)
         self.ent_duration.insert(0, str(data.get("duration_s", 3.0)))
+        
+        self.ent_wait_time.delete(0, tk.END)
+        self.ent_wait_time.insert(0, str(data.get("duration_s", 2.0)))
         
         vels = data.get("max_velocities", [0.0]*6)
         for i, ent in enumerate(self.ent_wp_vels):
@@ -395,7 +664,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             return
             
         wp_type = self.wp_type_var.get()
-        if wp_type == "pause":
+        if wp_type in ["pause", "gripper"]:
             self.lbl_min_duration.configure(text="Fast: --s | Med: --s | Slow: --s", text_color=theme.TEXT_MUTED)
             self.btn_apply_fast.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
             self.btn_apply_medium.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
@@ -463,10 +732,10 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.inspector_state = "disabled"
         self.wp_type_var.set("action")
         self.update_segment_styles()
+        self.gripper_frame.pack_forget()
         
         disable_widgets = [
-            self.btn_preview, self.btn_append_new,
-            self.btn_apply_fast, self.btn_apply_medium, self.btn_apply_slow
+            self.btn_preview, self.btn_append_new
         ] + self.ent_wp_vels + self.insp_entries
         
         for w in disable_widgets:
@@ -474,9 +743,11 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             
         self.btn_preview.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
         self.btn_append_new.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
-        self.btn_apply_fast.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
-        self.btn_apply_medium.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
-        self.btn_apply_slow.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+        
+        # Keep apply buttons active and colored in bulk edit mode
+        self.btn_apply_fast.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
+        self.btn_apply_medium.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
+        self.btn_apply_slow.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
         
         # Clear duration and target inputs
         self.ent_duration.configure(state="normal")
@@ -493,12 +764,31 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         """Retrieves edits as a step parameter dictionary."""
         wp_type = self.wp_type_var.get()
         max_vels = [0.0] * 6
-        try: 
-            dur_s = float(self.ent_duration.get() or 3.0)
-        except ValueError: 
-            dur_s = 3.0
-
-        return {"type": wp_type, "duration_s": dur_s, "max_velocities": max_vels, "pause_s": 0.0}
+        
+        if wp_type == "pause":
+            try:
+                dur_s = float(self.ent_wait_time.get() or 2.0)
+            except ValueError:
+                dur_s = 2.0
+            params = {"type": wp_type, "duration_s": dur_s, "pause_s": dur_s}
+        else:
+            try: 
+                dur_s = float(self.ent_duration.get() or 3.0)
+            except ValueError: 
+                dur_s = 3.0
+            params = {"type": wp_type, "duration_s": dur_s, "max_velocities": max_vels, "pause_s": 0.0}
+            if wp_type == "gripper":
+                params["gripper_state"] = self.gripper_state_var.get()
+                params["gripper_duration"] = self.gripper_duration_var.get()
+                try:
+                    params["gripper_target_pos"] = float(self.ent_g_target_pos.get().strip() or 0.0)
+                except ValueError:
+                    params["gripper_target_pos"] = 0.0
+                try:
+                    params["gripper_speed_ratio"] = float(self.ent_g_speed_ratio.get().strip() or 0.0)
+                except ValueError:
+                    params["gripper_speed_ratio"] = 0.0
+        return params
 
     def get_inspector_poses(self):
         """Retrieves editor coordinates as float or None array for selective copying."""

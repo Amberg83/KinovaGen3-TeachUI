@@ -27,8 +27,12 @@ class TimelineRowCard(ctk.CTkFrame):
         if type_str == "PAUSE":
             pos_str = "--- (WAITING) ---"
             param_str = f"Wait: {dur}s"
+        elif type_str == "GRIPPER":
+            pos_str = f"GRIPPER: {self.step.get('gripper_state', 'open').upper()}"
+            duration_val = self.step.get('gripper_duration', self.step.get('gripper_speed', 'medium'))
+            param_str = f"Duration: {duration_val.upper()}"
         else:
-            pos_str = [f"{v:.1f}" for v in self.step["pos"]]
+            pos_str = [f"{v:.1f}" for v in self.step.get("pos", [0.0]*6)]
             param_str = f"Duration: {dur}s"
         
         # Labels (sized to current adjustable column widths)

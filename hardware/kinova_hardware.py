@@ -122,8 +122,17 @@ class KinovaHardware:
             return False, str(e)
  
     def move_to_default(self):
+        # Calculate speed and start the arm trajectory first
         speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose, speed="medium")
-        return self.execute_action_pose(self.default_pose, speed, "Origin")
+        pager = self.execute_action_pose(self.default_pose, speed, "Origin")
+        
+        # Give a small settling delay (e.g. 0.2s) to let the arm trajectory start,
+        # then execute the gripper open action. This prevents Kortex from canceling/preempting
+        # the gripper command when the trajectory action is initiated.
+        time.sleep(0.2)
+        self.execute_gripper_action("open", "medium")
+        
+        return pager
  
     def disconnect(self, block_sound=False):
         """Stops polling threads and closes all API sessions."""
@@ -330,6 +339,23 @@ class KinovaHardware:
             self.state.joint_currents =   [round(getattr(a, 'current_motor', 0.0), 2) for a in feedback.actuators]
             self.state.joint_temperatures = [round(getattr(a, 'temperature_motor', 0.0), 1) for a in feedback.actuators]
             
+            # Read tool gripper feedback if available
+            try:
+                if hasattr(feedback, 'interconnect') and hasattr(feedback.interconnect, 'gripper_feedback'):
+                    g_feedback = feedback.interconnect.gripper_feedback
+                    if g_feedback.motor:
+                        self.state.gripper_position = round(g_feedback.motor[0].position, 1)
+                        self.state.gripper_current = round(g_feedback.motor[0].current_motor, 2)
+                    else:
+                        self.state.gripper_position = 0.0
+                        self.state.gripper_current = 0.0
+                else:
+                    self.state.gripper_position = 0.0
+                    self.state.gripper_current = 0.0
+            except Exception:
+                self.state.gripper_position = 0.0
+                self.state.gripper_current = 0.0
+
             self.notify_observers()
             
             return True
@@ -516,6 +542,126 @@ class KinovaHardware:
         except Exception as e:
             self.logger.error(f"Failed to set admittance mode '{mode_str}': {e}")
             return False
+
+    def execute_gripper_action(self, state_str, duration_str="medium", target_pos=None, speed_ratio=None):
+        """Sends gripper command to Kortex API. Returns a waitable event."""
+        pager = threading.Event()
+        self._last_action_success = True
+        
+        if not self.state.is_connected or not self.base:
+            self._last_action_success = False
+            pager.set()
+            return pager
+
+        # 1. Resolve target position (percentage between 0.0 and 100.0)
+        if target_pos is not None:
+            resolved_target = float(target_pos)
+        else:
+            pos_map = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
+            resolved_target = pos_map.get(state_str.lower(), 0.0)
+
+        # 2. Resolve speed ratio (between 0.0 and 1.0)
+        if speed_ratio is not None:
+            resolved_speed = float(speed_ratio)
+        else:
+            dur_map = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
+            resolved_speed = dur_map.get(duration_str.lower(), 0.5)
+
+        def gripper_worker():
+            try:
+                self.logger.info(f"Sending gripper command: State={state_str}, Duration={duration_str}, target_pos={resolved_target}, speed_ratio={resolved_speed}")
+                
+                # A. Fast Movement: use standard GRIPPER_POSITION mode (resolved_speed == 0.0)
+                if resolved_speed == 0.0:
+                    gripper_command = Base_pb2.GripperCommand()
+                    gripper_command.mode = Base_pb2.GRIPPER_POSITION
+                    
+                    # Convert percentage (0-100) to normalized fraction where 1.0 is fully open and 0.0 is fully closed
+                    normalized_pos = max(0.0, min(1.0, 1.0 - (resolved_target / 100.0)))
+                    
+                    finger = gripper_command.gripper.finger.add()
+                    finger.finger_identifier = 1
+                    finger.value = normalized_pos
+                    
+                    self.base.SendGripperCommand(gripper_command)
+                    time.sleep(1.2) # Fast movement mechanical transit time
+                    pager.set()
+                    return
+                
+                # B. Velocity Control Mode: use GRIPPER_SPEED (resolved_speed > 0.0)
+                speed_mag = max(0.01, min(1.0, resolved_speed))
+                current_pos = self.state.gripper_position
+                
+                # Determine command velocity sign (positive speed opens towards 0%, negative speed closes towards 100%)
+                if resolved_target < current_pos:
+                    cmd_speed = speed_mag
+                elif resolved_target > current_pos:
+                    cmd_speed = -speed_mag
+                else:
+                    self.logger.info(f"Gripper already at target position ({resolved_target}%). No movement needed.")
+                    pager.set()
+                    return
+                        
+                # Start speed command
+                self.logger.info(f"Starting GRIPPER_SPEED mode movement at speed {cmd_speed} towards target {resolved_target}%")
+                gripper_command = Base_pb2.GripperCommand()
+                gripper_command.mode = Base_pb2.GRIPPER_SPEED
+                finger = gripper_command.gripper.finger.add()
+                finger.finger_identifier = 1
+                finger.value = cmd_speed
+                
+                self.base.SendGripperCommand(gripper_command)
+                
+                # Monitor position telemetry feedback at 20Hz (50ms cycles)
+                last_positions = []
+                max_loop_cycles = 160 # Fail-safe timeout after 8.0s (160 * 50ms)
+                
+                for cycle in range(max_loop_cycles):
+                    time.sleep(0.05)
+                    current_pos = self.state.gripper_position
+                    
+                    # Check if destination reached (with 3.5% headroom to handle 20Hz latency)
+                    is_reached = False
+                    if cmd_speed > 0: # Opening (moving towards smaller percentage)
+                        if current_pos <= (resolved_target + 3.5):
+                            is_reached = True
+                    else: # Closing (moving towards larger percentage)
+                        if current_pos >= (resolved_target - 3.5):
+                            is_reached = True
+                            
+                    if is_reached:
+                        self.logger.info(f"Target position reached (current={current_pos}%, target={resolved_target}%). Stopping.")
+                        break
+                            
+                    # Stalled / End limit check
+                    last_positions.append(current_pos)
+                    if len(last_positions) > 5:
+                        last_positions.pop(0)
+                        
+                        # Detect if the position has stopped changing (absolute variation < 0.15%)
+                        if len(last_positions) == 5:
+                            max_diff = max(last_positions) - min(last_positions)
+                            if max_diff < 0.15:
+                                self.logger.info(f"Gripper movement stalled/completed at {current_pos}%. Stopping.")
+                                break
+                                
+                # Send the stop command (velocity = 0.0) to hold position
+                stop_command = Base_pb2.GripperCommand()
+                stop_command.mode = Base_pb2.GRIPPER_SPEED
+                stop_finger = stop_command.gripper.finger.add()
+                stop_finger.finger_identifier = 1
+                stop_finger.value = 0.0
+                
+                self.base.SendGripperCommand(stop_command)
+                self.logger.info("GRIPPER_SPEED movement stopped.")
+                pager.set()
+            except Exception as e:
+                self.logger.error(f"Error during physical GRIPPER_SPEED loop execution: {e}")
+                self._last_action_success = False
+                pager.set()
+
+        threading.Thread(target=gripper_worker, daemon=True).start()
+        return pager
     
     def validate_waypoint_list(self, waypoint_list):
         """Validates a WaypointList against the robot's kinematic and safety limits. Currently not in use."""

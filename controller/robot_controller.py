@@ -28,6 +28,7 @@ class RobotController:
         # Loose Decoupled wiring: View listens to events on the EventBus.
         EventBus.subscribe("sequence_updated", self.view.on_sequence_changed)
         EventBus.subscribe("hardware_telemetry_updated", self.view.on_hardware_state_changed)
+        EventBus.subscribe("play_predefined_gesture", self.handle_play_predefined_gesture)
         
         # Bind abstract intents from the View to Controller actions
         self.view.bind_commands({
@@ -37,6 +38,7 @@ class RobotController:
             "capture_pose": self.handle_append_pose,
             "save_waypoint": self.handle_save_waypoint_changes,
             "preview_pose": self.handle_preview_inspector_pose,
+            "preview_gripper": self.handle_preview_gripper,
             "append_inspector_pose": self.handle_append_inspector_pose,
             "move_up": self.handle_move_up,
             "move_down": self.handle_move_down,
@@ -57,7 +59,9 @@ class RobotController:
             "duplicate": self.handle_duplicate_poses,
             "move_entry": self.handle_move_entry,
             "apply_min_durations": self.handle_apply_min_durations,
-            "move_default": self.handle_move_default
+            "move_default": self.handle_move_default,
+            "add_pause": self.handle_add_pause,
+            "add_gripper": self.handle_add_gripper
         })
 
         # Study Mode Setup
@@ -123,11 +127,8 @@ class RobotController:
             if prev_step.get("type", "action") != "pause" and "pos" in prev_step:
                 predecessor_pos = prev_step["pos"]
         else:
-            # For first step, compare with current live position if available, or default to Origin
-            if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
-                predecessor_pos = self.hardware.state.joint_angles_deg
-            else:
-                predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+            # For first step (Pos 0), predecessor is always the Default Position!
+            predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
         # Find consecutive run context for angularwaypoint
         run_poses = None
@@ -151,19 +152,25 @@ class RobotController:
                         run_predecessor_pos = step["pos"]
                         break
             if run_predecessor_pos is None:
-                if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
-                    run_predecessor_pos = self.hardware.state.joint_angles_deg
-                else:
-                    run_predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                run_predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                     
             run_poses = [run_predecessor_pos] + [self.model.sequence[k]["pos"] for k in range(start_run_idx, end_run_idx + 1)]
             run_selected_idx = idx - start_run_idx
             
         self.view.load_inspector_data(step_data, idx, predecessor_pos, run_poses, run_selected_idx)
 
+        # Publish preview override angles to Unity simulation
+        if step_data.get("type", "action") != "pause" and "pos" in step_data:
+            EventBus.publish("set_preview_angles", step_data["pos"])
+        else:
+            EventBus.publish("clear_preview_angles")
+
     def handle_preview_inspector_pose(self, poses):
         if not self.hardware.state.is_connected: return
         self.logger.info("Previewing pose from Inspector...")
+        
+        # Clear preview angles so it follows live movement
+        EventBus.publish("clear_preview_angles")
         
         # Calculate duration dynamically in medium speed based on the difference from current position:
         try:
@@ -175,6 +182,11 @@ class RobotController:
             duration = 10.0
             
         threading.Thread(target=self.hardware.execute_action_pose, args=(poses, duration, "Preview Pose"), daemon=True).start()
+
+    def handle_preview_gripper(self, state, duration, target_pos=None, speed_ratio=None):
+        if not self.hardware.state.is_connected: return
+        self.logger.info(f"Previewing gripper action: state={state}, duration={duration}, target_pos={target_pos}, speed_ratio={speed_ratio}...")
+        threading.Thread(target=self.hardware.execute_gripper_action, args=(state, duration, target_pos, speed_ratio), daemon=True).start()
 
     def handle_append_inspector_pose(self, params, poses):
         """Creates a new entry at the end of the sequence using Inspector data."""
@@ -247,10 +259,7 @@ class RobotController:
                     break
                     
         if predecessor_pos is None:
-            if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
-                predecessor_pos = self.hardware.state.joint_angles_deg
-            else:
-                predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+            predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
         # 2. Calculate duration in medium speed
         try:
@@ -286,7 +295,7 @@ class RobotController:
             idx = idx_or_indices
             if poses is not None:
                 params["pos"] = poses
-            else:
+            elif "pos" in self.model.sequence[idx]:
                 params["pos"] = self.model.sequence[idx]["pos"] 
                 
             self.model.update_pose(idx, params)
@@ -325,14 +334,11 @@ class RobotController:
             predecessor_pos = None
             for k in range(r_start - 1, -1, -1):
                 step = self.model.sequence[k]
-                if step.get("type", "action") != "pause" and "pos" in step:
+                if step.get("type", "action") not in ["pause", "gripper"] and "pos" in step:
                     predecessor_pos = step["pos"]
                     break
             if predecessor_pos is None:
-                if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
-                    predecessor_pos = self.hardware.state.joint_angles_deg
-                else:
-                    predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                     
             run_waypoints = [predecessor_pos] + [self.model.sequence[k]["pos"] for k in range(r_start, r_end + 1)]
             segment_durations = calculate_waypoint_durations(run_waypoints, speed=speed)
@@ -351,22 +357,19 @@ class RobotController:
             step_data = self.model.sequence[idx]
             step_type = step_data.get("type", "action")
             
-            if step_type == "pause":
-                continue # Skip pause steps
+            if step_type in ["pause", "gripper"]:
+                continue # Skip pause and gripper steps
                 
             if step_type == "action":
                 # Compute predecessor pos for this single action step
                 predecessor_pos = None
                 for k in range(idx - 1, -1, -1):
                     step = self.model.sequence[k]
-                    if step.get("type", "action") != "pause" and "pos" in step:
+                    if step.get("type", "action") not in ["pause", "gripper"] and "pos" in step:
                         predecessor_pos = step["pos"]
                         break
                 if predecessor_pos is None:
-                    if self.hardware.state.is_connected and getattr(self.hardware.state, "joint_angles_deg", None):
-                        predecessor_pos = self.hardware.state.joint_angles_deg
-                    else:
-                        predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                    predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
                 target_pos = step_data.get("pos", [0.0] * 6)
                 min_dur = calculate_min_trajectory_duration(predecessor_pos, target_pos, speed=speed)
@@ -421,6 +424,7 @@ class RobotController:
     def handle_media_stop(self):
         if not self.hardware.state.is_connected: return
         self.logger.info("Soft-STOP requested.")
+        EventBus.publish("clear_preview_angles")
         self.replay_engine.stop()
         self.hardware.stop()
         if getattr(self.hardware, '_is_action_paused', False):
@@ -430,6 +434,7 @@ class RobotController:
     def handle_start_replay(self):
         if not self.model.sequence or not self.hardware.state.is_connected: return
         self.logger.info("Starting full sequence replay...")
+        EventBus.publish("clear_preview_angles")
         self.replay_engine.start(self.model.sequence)
 
     def handle_start_replay_selection(self):
@@ -442,6 +447,7 @@ class RobotController:
         subset = [self.model.sequence[i] for i in selected_indices if 0 <= i < len(self.model.sequence)]
         if subset:
             self.logger.info(f"Starting partial selection replay of {len(subset)} waypoint(s)...")
+            EventBus.publish("clear_preview_angles")
             self.replay_engine.start(subset)
 
     def handle_task_completed(self):
@@ -530,4 +536,50 @@ class RobotController:
         params = {"type": "action", "duration_s": 5.0, "max_velocities": [0.0]*6, "pause_s": 0.0}
         pose_data = {"pos": poses, **params}
         self.model.append_pose(pose_data)
+        self._auto_save()
+
+    def handle_play_predefined_gesture(self, filepath):
+        """Loads a predefined gesture file and immediately plays it."""
+        if not os.path.exists(filepath):
+            self.logger.error(f"Gesture file '{filepath}' does not exist.")
+            return
+            
+        try:
+            self.logger.info(f"Loading and playing predefined gesture: '{filepath}'")
+            self.model.load_from_json(filepath)
+            
+            # Start replay after minor UI draw delay
+            self.root.after(100, self.handle_start_replay)
+        except Exception as e:
+            self.logger.error(f"Error playing predefined gesture: {e}")
+
+    def handle_add_pause(self, after_idx):
+        """Inserts a clean Pause step immediately after the specified index (or at the end)."""
+        pause_data = {
+            "type": "pause",
+            "duration_s": 2.0,
+            "pause_s": 2.0
+        }
+        if after_idx is None:
+            self.model.append_pose(pause_data)
+        else:
+            self.model.insert_pose(pause_data, after_idx)
+        self.logger.info(f"Inserted Pause step after index {after_idx}.")
+        self._auto_save()
+
+    def handle_add_gripper(self, after_idx):
+        """Inserts a clean Gripper step immediately after the specified index (or at the end)."""
+        gripper_data = {
+            "type": "gripper",
+            "gripper_state": "open",       # "open", "closed", "pickup"
+            "gripper_duration": "medium",  # "slow", "medium", "fast"
+            "gripper_target_pos": 0.0,     # default 0% (fully open)
+            "gripper_speed_ratio": 0.5,    # default medium speed
+            "duration_s": 1.5              # internal mechanical wait duration
+        }
+        if after_idx is None:
+            self.model.append_pose(gripper_data)
+        else:
+            self.model.insert_pose(gripper_data, after_idx)
+        self.logger.info(f"Inserted Gripper step after index {after_idx}.")
         self._auto_save()

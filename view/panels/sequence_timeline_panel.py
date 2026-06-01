@@ -181,6 +181,22 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.btn_duplicate = make_tool_btn(list_ops, "duplicate", "Duplicate Selection (Ctrl+D)")
         self.btn_duplicate.pack(side="left", padx=2)
         
+        self.btn_add_pause = theme.make_flat_button(
+            list_ops, text="+ Pause", bg_color=theme.BG_INPUT, 
+            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
+            width=70, height=36, font_style=theme.FONT_BOLD
+        )
+        ToolTip(self.btn_add_pause, "Insert Pause Entry after selection")
+        self.btn_add_pause.pack(side="left", padx=(10, 2))
+
+        self.btn_add_gripper = theme.make_flat_button(
+            list_ops, text="+ Gripper", bg_color=theme.BG_INPUT, 
+            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, 
+            width=80, height=36, font_style=theme.FONT_BOLD
+        )
+        ToolTip(self.btn_add_gripper, "Insert Gripper Entry after selection")
+        self.btn_add_gripper.pack(side="left", padx=2)
+        
         self.btn_undo = make_tool_btn(list_ops, "undo", "Undo Step (Ctrl+Z)")
         self.btn_undo.pack(side="right", padx=2)
         
@@ -269,6 +285,9 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self.btn_duplicate.configure(command=commands.get("duplicate"))
         self._move_entry_cb = commands.get("move_entry")
         
+        self.btn_add_pause.configure(command=commands.get("add_pause"))
+        self.btn_add_gripper.configure(command=commands.get("add_gripper"))
+        
         self.btn_undo.configure(command=commands.get("undo"))
         self.btn_redo.configure(command=commands.get("redo"))
         
@@ -298,6 +317,31 @@ class SequenceTimelinePanel(ctk.CTkFrame):
             cells["frame"].destroy()
         self.row_widgets.clear()
         self.widget_to_idx.clear()
+
+        # If sequence is empty (e.g. cleared), reset view settings before adding anything new!
+        if not sequence:
+            self.selected_indices.clear()
+            self.last_clicked_idx = None
+            self.logs_ratio = 0.75
+            
+            # Reset scrollbar to the very top
+            if hasattr(self.scroll_frame, "_parent_canvas"):
+                try:
+                    self.scroll_frame._parent_canvas.yview_moveto(0.0)
+                except Exception:
+                    pass
+            elif hasattr(self.scroll_frame, "_canvas"):
+                try:
+                    self.scroll_frame._canvas.yview_moveto(0.0)
+                except Exception:
+                    pass
+                    
+            # Force relayout the panels to their default heights
+            try:
+                scaling = self._get_window_scaling()
+                self.layout_vertical_panels(self.winfo_width() / scaling, self.winfo_height() / scaling)
+            except Exception:
+                pass
 
         # Update select_index if passed, otherwise preserve valid current selections
         if select_index is not None:

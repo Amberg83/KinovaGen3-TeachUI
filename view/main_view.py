@@ -159,7 +159,9 @@ class RobotView:
             "pause_media": self.on_pause_media,
             "stop_media": self.commands.get("stop_media"),
             "estop": self.commands.get("estop"),
-            "tree_select": self.on_tree_select
+            "tree_select": self.on_tree_select,
+            "add_pause": self.on_add_pause,
+            "add_gripper": self.on_add_gripper
         })
         
         # Bind Column 3
@@ -225,6 +227,21 @@ class RobotView:
                 self.commands["save_waypoint"](indices[0], params, poses)
 
     def on_preview_pose(self):
+        wp_type = self.panel_insp.wp_type_var.get()
+        if wp_type == "pause":
+            return
+            
+        if wp_type == "gripper":
+            params = self.panel_insp.get_waypoint_params()
+            state = params.get("gripper_state", "open")
+            duration = params.get("gripper_duration", "medium")
+            target_pos = params.get("gripper_target_pos", 0.0)
+            speed_ratio = params.get("gripper_speed_ratio", 0.0)
+            
+            if "preview_gripper" in self.commands:
+                self.commands["preview_gripper"](state, duration, target_pos, speed_ratio)
+            return
+
         poses = self.panel_insp.get_inspector_poses()
         if poses and "preview_pose" in self.commands:
             self.commands["preview_pose"](poses)
@@ -254,10 +271,24 @@ class RobotView:
         if not indices: return
         if len(indices) > 1:
             # Enter bulk editing mode in Inspector
+            from utils.event_bus import EventBus
+            EventBus.publish("clear_preview_angles")
             self.panel_insp.enter_bulk_edit_mode(indices)
         else:
             if "tree_select" in self.commands:
                 self.commands["tree_select"](indices[0])
+
+    def on_add_pause(self):
+        indices = self.panel_seq.get_selected_indices()
+        target_idx = indices[-1] if indices else None
+        if "add_pause" in self.commands:
+            self.commands["add_pause"](target_idx)
+
+    def on_add_gripper(self):
+        indices = self.panel_seq.get_selected_indices()
+        target_idx = indices[-1] if indices else None
+        if "add_gripper" in self.commands:
+            self.commands["add_gripper"](target_idx)
 
     def on_move_up(self, event=None):
         indices = self.panel_seq.get_selected_indices()
@@ -306,12 +337,20 @@ class RobotView:
     # ================= OBSERVER CALLBACKS (MODEL -> VIEW) =================
 
     def on_sequence_changed(self, sequence, filepath, select_index=None):
-        """Dispatched from sequence model changes. Updates Column 2 & resets Column 3."""
+        """Dispatched from sequence model changes. Updates Column 2 and synchronizes Column 3 selection."""
         self.panel_seq.update_sequence(sequence, filepath, select_index)
 
-        # Clear inspector if the timeline list was wiped out
-        if not sequence:
+        # Clear or synchronize inspector based on current selections after sequence updates
+        indices = self.panel_seq.get_selected_indices()
+        if not sequence or not indices:
             self.panel_insp.clear_inspector()
+        elif len(indices) == 1:
+            if "tree_select" in self.commands:
+                self.commands["tree_select"](indices[0])
+        else:
+            from utils.event_bus import EventBus
+            EventBus.publish("clear_preview_angles")
+            self.panel_insp.enter_bulk_edit_mode(indices)
 
     # ================= OBSERVER CALLBACKS (HARDWARE -> VIEW) =================
     
@@ -438,13 +477,65 @@ class RobotView:
         )
         self.btn_study_next.grid(row=0, column=2, sticky="e", padx=15, pady=10)
 
+        # Predefined Gestures buttons frame initialization
+        self.gestures_btn_frame = None
+        self._check_and_create_tutorial_buttons(first_task, inst_frame)
+
+    def _check_and_create_tutorial_buttons(self, task, parent_frame):
+        # Scan predefined_gestures/ directory if task ID is 101
+        if task and task.get("id") == 101:
+            import os
+            gestures_dir = "predefined_gestures"
+            if not os.path.exists(gestures_dir):
+                return
+                
+            json_files = [f for f in os.listdir(gestures_dir) if f.endswith(".json")]
+            if not json_files:
+                return
+                
+            self.gestures_btn_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
+            self.gestures_btn_frame.pack(anchor="w", pady=(8, 0))
+            
+            theme.make_label(
+                self.gestures_btn_frame, text="Predefined Gestures: ", 
+                font=theme.FONT_BOLD, fg_color="transparent", text_color=theme.ACCENT_CYBER
+            ).pack(side="left")
+            
+            from utils.event_bus import EventBus
+            for f in sorted(json_files):
+                gesture_name = f.replace(".json", "").capitalize()
+                filepath = os.path.join(gestures_dir, f)
+                
+                btn = theme.make_flat_button(
+                    self.gestures_btn_frame, text=gesture_name,
+                    bg_color=theme.BG_INPUT, fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR,
+                    font_style=theme.FONT_NORMAL,
+                    command=lambda fp=filepath: EventBus.publish("play_predefined_gesture", fp)
+                )
+                btn.pack(side="left", padx=4)
+
+    def _destroy_tutorial_buttons(self):
+        if hasattr(self, "gestures_btn_frame") and self.gestures_btn_frame is not None:
+            try:
+                self.gestures_btn_frame.destroy()
+            except Exception:
+                pass
+            self.gestures_btn_frame = None
+
     def update_study_task(self, task, current_idx, total_count):
         """Transitions study banner details smoothly to the next task sequence."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
             return
+        
+        # Destroy previous buttons first
+        self._destroy_tutorial_buttons()
+        
         self.lbl_study_counter.configure(text=f" Task {current_idx}/{total_count}")
         self.lbl_task_name.configure(text=f"Active Referent: {task['name']}")
         self.lbl_task_desc.configure(text=task["instructions"])
+        
+        # Check and create new ones
+        self._check_and_create_tutorial_buttons(task, self.lbl_task_name.master)
 
     def show_study_completed(self):
         """Displays a beautiful celebration state and informs user of task completions."""

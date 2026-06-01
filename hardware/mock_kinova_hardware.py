@@ -80,7 +80,14 @@ class MockKinovaHardware:
     def move_to_default(self):
         """Moves simulated robot back to its home default pose."""
         speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose)
-        return self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
+        pager = self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
+        
+        # Give a small settling delay (e.g. 0.2s) to let the arm trajectory start,
+        # then execute the gripper open action. This prevents controller command clashes.
+        time.sleep(0.2)
+        self.execute_gripper_action("open", "medium")
+        
+        return pager
 
     def apply_emergency_stop(self):
         if self.state.is_connected:
@@ -464,6 +471,69 @@ class MockKinovaHardware:
             
         self._active_movement_pager = None
         pager.set()
+
+    def execute_gripper_action(self, state_str, duration_str="medium", target_pos=None, speed_ratio=None):
+        """Simulates sending a gripper command. Returns a waitable event."""
+        pager = threading.Event()
+        self._last_action_success = True
+        
+        if not self.state.is_connected or self.state.has_fault:
+            self._last_action_success = False
+            pager.set()
+            return pager
+
+        # 1. Resolve target position (percentage between 0.0 and 100.0)
+        if target_pos is not None:
+            resolved_target = float(target_pos)
+        else:
+            pos_map = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
+            resolved_target = pos_map.get(state_str.lower(), 0.0)
+
+        # 2. Resolve speed ratio (between 0.0 and 1.0)
+        if speed_ratio is not None:
+            resolved_speed = float(speed_ratio)
+        else:
+            dur_map = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
+            resolved_speed = dur_map.get(duration_str.lower(), 0.5)
+
+        def gripper_worker():
+            try:
+                self.logger.info(f"[Mock] Sending gripper command: State={state_str}, Duration={duration_str}, target_pos={resolved_target}, speed_ratio={resolved_speed}")
+                start_pos = self.state.gripper_position
+                
+                # Dynamic simulation speed based on speed_ratio
+                if resolved_speed == 0.0:
+                    duration = 0.6  # Fast mode
+                else:
+                    duration = max(0.2, 0.6 / resolved_speed)
+                
+                steps = 20
+                dt = duration / steps
+                import random
+                for step in range(steps):
+                    if not self.state.is_connected or self.state.has_fault:
+                        break
+                    
+                    # Smooth interpolation
+                    self.state.gripper_position = round(start_pos + (resolved_target - start_pos) * ((step + 1) / steps), 1)
+                    # Simulated motor current transit load
+                    self.state.gripper_current = round(0.75 + random.uniform(-0.15, 0.15), 2)
+                    
+                    self._publish_state()
+                    time.sleep(dt)
+                
+                self.state.gripper_current = 0.0
+                self._publish_state()
+                
+                self.logger.info(f"[Mock] Gripper action completed.")
+                pager.set()
+            except Exception as e:
+                self.logger.error(f"[Mock] Error during simulated gripper: {e}")
+                self._last_action_success = False
+                pager.set()
+
+        threading.Thread(target=gripper_worker, daemon=True).start()
+        return pager
 
     def _mock_polling_worker(self):
         """Generates realistic telemetry waveforms (20Hz) to keep the GUI feeling alive."""

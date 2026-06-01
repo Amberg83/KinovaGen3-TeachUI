@@ -35,3 +35,7 @@ class RobotState:
     joint_currents: List[float] = field(default_factory=list)
     joint_temperatures: List[float] = field(default_factory=list)
     joint_voltage: List[float] = field(default_factory=list)
+
+    # Gripper Telemetry
+    gripper_position: float = 0.0
+    gripper_current: float = 0.0
