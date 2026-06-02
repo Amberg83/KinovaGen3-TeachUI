@@ -28,6 +28,8 @@ def calculate_min_safe_duration(target_pos, predecessor_pos):
     return T_OVERHEAD + (max_diff / V_MAX)
 
 from enum import Enum
+import json
+import os
 
 class DurationSpeed(str, Enum):
     FAST = "fast"
@@ -36,13 +38,7 @@ class DurationSpeed(str, Enum):
 
     @property
     def multiplier(self) -> float:
-        if self == DurationSpeed.FAST:
-            return 1.0
-        elif self == DurationSpeed.MEDIUM:
-            return 2.0
-        elif self == DurationSpeed.SLOW:
-            return 4.0
-        return 1.0
+        return self._custom_multipliers.get(self.value, 1.0)
 
 class DurationConfig:
     """
@@ -64,6 +60,44 @@ class DurationConfig:
     # Small actuators (Joints 4-6)
     VEL_SMALL = 70.0
     ACCEL_SMALL = 572.96
+
+
+def load_duration_config():
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config_path = os.path.join(base_dir, "config", "robot_config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                
+                # Update arm multipliers
+                multipliers = cfg.get("arm_speed_multipliers", {})
+                DurationSpeed._custom_multipliers = {
+                    "fast": float(multipliers.get("fast", 1.0)),
+                    "medium": float(multipliers.get("medium", 2.0)),
+                    "slow": float(multipliers.get("slow", 4.0))
+                }
+                
+                # Update DurationConfig constants
+                constants = cfg.get("arm_constants", {})
+                if "vel_large_actuators" in constants:
+                    DurationConfig.VEL_LARGE = float(constants["vel_large_actuators"])
+                if "accel_large_actuators" in constants:
+                    DurationConfig.ACCEL_LARGE = float(constants["accel_large_actuators"])
+                if "vel_small_actuators" in constants:
+                    DurationConfig.VEL_SMALL = float(constants["vel_small_actuators"])
+                if "accel_small_actuators" in constants:
+                    DurationConfig.ACCEL_SMALL = float(constants["accel_small_actuators"])
+                if "safety_factor_action" in constants:
+                    DurationConfig.SAFETY_FACTOR_ACTION = float(constants["safety_factor_action"])
+                if "safety_factor_waypoint" in constants:
+                    DurationConfig.SAFETY_FACTOR_WAYPOINT = float(constants["safety_factor_waypoint"])
+        except Exception:
+            pass
+
+# Initialize static multipliers fallback
+DurationSpeed._custom_multipliers = {"fast": 1.0, "medium": 2.0, "slow": 4.0}
+load_duration_config()
 
 
 def calculate_min_trajectory_duration(start_angles, end_angles, time_buffer=None, speed="fast"):

@@ -21,7 +21,46 @@ class KinovaHardware:
         self.ip = ip
         self.username = username
         self.password = password
-        self.default_pose = [0.0,50.0,264.0,0.0,58.0,90.0]
+        
+        # Load configurable defaults from config/ files
+        self.default_pose = [0.0, 50.0, 264.0, 0.0, 58.0, 90.0]
+        self.default_gripper_pos = 0.0
+        self.polling_frequency_hz = 20
+        self.gripper_presets = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
+        self.gripper_speed_presets = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
+        self.connection_timeout_ms = 10000
+        
+        import os
+        import json
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # 1. Load Network configuration
+        net_path = os.path.join(base_dir, "config", "network_config.json")
+        if os.path.exists(net_path):
+            try:
+                with open(net_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.polling_frequency_hz = int(cfg.get("polling_frequency_hz", 20))
+                self.logger.info(f"Loaded polling frequency: {self.polling_frequency_hz}Hz")
+            except Exception as e:
+                self.logger.error(f"Failed to load network config in Hardware: {e}")
+                
+        # 2. Load Robot configuration
+        rob_path = os.path.join(base_dir, "config", "robot_config.json")
+        if os.path.exists(rob_path):
+            try:
+                with open(rob_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.default_pose = list(cfg.get("default_pose", self.default_pose))
+                    self.default_gripper_pos = float(cfg.get("default_gripper_pos", 0.0))
+                    self.gripper_presets = cfg.get("gripper_presets", self.gripper_presets)
+                    self.gripper_speed_presets = cfg.get("gripper_speed_presets", self.gripper_speed_presets)
+                    
+                    conn = cfg.get("hardware_connection", {})
+                    self.connection_timeout_ms = int(conn.get("connection_timeout_ms", 10000))
+                self.logger.info(f"Loaded robot settings from {rob_path}")
+            except Exception as e:
+                self.logger.error(f"Failed to load robot config in Hardware: {e}")
         
         self.base = None
         self.base_cyclic = None
@@ -122,16 +161,28 @@ class KinovaHardware:
             return False, str(e)
  
     def move_to_default(self):
-        # Calculate speed and start the arm trajectory first
-        speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose, speed="medium")
-        pager = self.execute_action_pose(self.default_pose, speed, "Origin")
+        pager = threading.Event()
         
-        # Give a small settling delay (e.g. 0.2s) to let the arm trajectory start,
-        # then execute the gripper open action. This prevents Kortex from canceling/preempting
-        # the gripper command when the trajectory action is initiated.
-        time.sleep(0.2)
-        self.execute_gripper_action("open", "medium")
-        
+        def worker():
+            # Calculate speed and start the arm trajectory first
+            speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose, speed="medium")
+            movement_pager = self.execute_action_pose(self.default_pose, speed, "Origin")
+            
+            # Wait for joint movement to fully complete (timeout safe-guard of 15 seconds)
+            movement_pager.wait(timeout=15.0)
+            
+            # As soon as the listener sets movement_pager (meaning the arm has finished moving),
+            # adjust the gripper to the custom default gripper position.
+            gripper_pager = self.execute_gripper_action("", "medium", target_pos=self.default_gripper_pos)
+            # Wait for gripper movement to settle/complete (timeout 3 seconds)
+            gripper_pager.wait(timeout=3.0)
+            
+            # Movement completed fully: play the replay completion chime!
+            EventBus.publish("replay_finished")
+            
+            pager.set()
+            
+        threading.Thread(target=worker, daemon=True).start()
         return pager
  
     def disconnect(self, block_sound=False):
@@ -279,14 +330,15 @@ class KinovaHardware:
             self._polling_thread = None
 
     def _hardware_polling_worker(self):
-        """Autonomous thread continuously fetching telemetry data (20Hz Polling, faster polling yields smoother rendering)."""
+        """Autonomous thread continuously fetching telemetry data (polling frequency configurable, faster yields smoother rendering)."""
+        dt = 1.0 / self.polling_frequency_hz
         while self._is_polling:
             try:
                 if self.state.is_connected:
                     self.refresh_state_from_robot()
             except Exception as e:
                 self.logger.debug(f"Hardware polling missed a cycle: {e}")
-            time.sleep(0.05) 
+            time.sleep(dt) 
 
     def refresh_state_from_robot(self):
         """Fetches telemetry data and profiles network latency."""
@@ -294,16 +346,20 @@ class KinovaHardware:
             return False
 
         try:
-            # Set a strict 35ms RPC timeout options block.
-            # Running at 20Hz leaves a tight 50ms total cycle time.
-            # Limiting to 35ms ensures we never overflow the 50ms loop budget if a packet drops!
+            # Dynamically calculate RPC timeout (ms) based on the configured polling loop budget
+            # Timeout = clamp(10ms, 70% of loop budget, 35ms)
+            loop_budget_ms = (1.0 / self.polling_frequency_hz) * 1000.0
+            timeout_ms = max(10, min(35, int(loop_budget_ms * 0.7)))
+            
             options = RouterClientSendOptions()
-            options.timeout_ms = 35
+            options.timeout_ms = timeout_ms
             feedback = self.base_cyclic.RefreshFeedback(options=options)
             self.missed_feedback_count = 0 
         except Exception as e:
             self.missed_feedback_count += 1
-            if self.missed_feedback_count > 60: # Support up to 3 seconds of transient UDP jitter (60 cycles @ 20Hz)
+            # Support up to 3.0 seconds of transient UDP jitter (scaled based on polling rate)
+            max_missed = int(3.0 * self.polling_frequency_hz)
+            if self.missed_feedback_count > max_missed:
                 self.logger.error(f"Connection lost: Exceeded UDP timeout limit. Error: {e}")
                 self.state.is_connected = False
                 self.notify_observers()
@@ -557,15 +613,13 @@ class KinovaHardware:
         if target_pos is not None:
             resolved_target = float(target_pos)
         else:
-            pos_map = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
-            resolved_target = pos_map.get(state_str.lower(), 0.0)
+            resolved_target = self.gripper_presets.get(state_str.lower(), 0.0)
 
         # 2. Resolve speed ratio (between 0.0 and 1.0)
         if speed_ratio is not None:
             resolved_speed = float(speed_ratio)
         else:
-            dur_map = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
-            resolved_speed = dur_map.get(duration_str.lower(), 0.5)
+            resolved_speed = self.gripper_speed_presets.get(duration_str.lower(), 0.5)
 
         def gripper_worker():
             try:
@@ -576,8 +630,8 @@ class KinovaHardware:
                     gripper_command = Base_pb2.GripperCommand()
                     gripper_command.mode = Base_pb2.GRIPPER_POSITION
                     
-                    # Convert percentage (0-100) to normalized fraction where 1.0 is fully open and 0.0 is fully closed
-                    normalized_pos = max(0.0, min(1.0, 1.0 - (resolved_target / 100.0)))
+                    # Convert percentage (0-100) to normalized fraction where 0.0 is fully open and 1.0 is fully closed
+                    normalized_pos = max(0.0, min(1.0, resolved_target / 100.0))
                     
                     finger = gripper_command.gripper.finger.add()
                     finger.finger_identifier = 1

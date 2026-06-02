@@ -19,7 +19,27 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.wide_mode = True
         self.is_bulk_editing = False
         
-        # Declare variables for Robotiq 140 Gripper settings
+        # Load custom gripper presets and speed presets dynamically from robot_config.json
+        self.gripper_presets = {"open": "0.0", "closed": "100.0", "pickup": "50.0"}
+        self.gripper_speed_presets = {"slow": "0.20", "medium": "0.50", "fast": "0.00"}
+        
+        import os
+        import json
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        rob_path = os.path.join(base_dir, "config", "robot_config.json")
+        if os.path.exists(rob_path):
+            try:
+                with open(rob_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    presets = cfg.get("gripper_presets", {})
+                    self.gripper_presets = {k: f"{float(v):.1f}" for k, v in presets.items()}
+                    
+                    speeds = cfg.get("gripper_speed_presets", {})
+                    self.gripper_speed_presets = {k: f"{float(v):.2f}" for k, v in speeds.items()}
+            except Exception:
+                pass
+                
+        # Declare variables for Robotiq 2F-140 Gripper settings
         self.gripper_state_var = ctk.StringVar(value="open")
         self.gripper_duration_var = ctk.StringVar(value="medium")
         
@@ -370,15 +390,13 @@ class WaypointInspectorPanel(ctk.CTkFrame):
                 self._disable_joint_traces = True
                 if field_name == "state":
                     state_val = value.lower()
-                    pos_map = {"open": "0.0", "closed": "100.0", "pickup": "50.0"}
                     self.ent_g_target_pos.delete(0, tk.END)
-                    self.ent_g_target_pos.insert(0, pos_map.get(state_val, "0.0"))
+                    self.ent_g_target_pos.insert(0, self.gripper_presets.get(state_val, "0.0"))
                     self.ent_g_target_pos.configure(border_color=theme.BORDER_COLOR)
                 elif field_name == "duration":
                     dur_val = value.lower()
-                    dur_map = {"slow": "0.20", "medium": "0.50", "fast": "0.00"}
                     self.ent_g_speed_ratio.delete(0, tk.END)
-                    self.ent_g_speed_ratio.insert(0, dur_map.get(dur_val, "0.00"))
+                    self.ent_g_speed_ratio.insert(0, self.gripper_speed_presets.get(dur_val, "0.00"))
                     self.ent_g_speed_ratio.configure(border_color=theme.BORDER_COLOR)
                 self._disable_joint_traces = False
                 
@@ -455,27 +473,29 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         # Try to sync Segmented buttons
         if pos_valid:
             pos_val = float(self.ent_g_target_pos.get().strip())
-            if abs(pos_val - 0.0) < 0.01:
-                self.gripper_state_var.set("open")
-            elif abs(pos_val - 100.0) < 0.01:
-                self.gripper_state_var.set("closed")
-            elif abs(pos_val - 50.0) < 0.01:
-                self.gripper_state_var.set("pickup")
-            else:
-                self.gripper_state_var.set("") # Unselect segments if custom value
+            matched_state = ""
+            for k, v in self.gripper_presets.items():
+                try:
+                    if abs(pos_val - float(v)) < 0.01:
+                        matched_state = k
+                        break
+                except ValueError:
+                    pass
+            self.gripper_state_var.set(matched_state)
         else:
             self.gripper_state_var.set("")
             
         if speed_valid:
             speed_val = float(self.ent_g_speed_ratio.get().strip())
-            if abs(speed_val - 0.2) < 0.01:
-                self.gripper_duration_var.set("slow")
-            elif abs(speed_val - 0.5) < 0.01:
-                self.gripper_duration_var.set("medium")
-            elif abs(speed_val - 0.0) < 0.01:
-                self.gripper_duration_var.set("fast")
-            else:
-                self.gripper_duration_var.set("") # Unselect
+            matched_dur = ""
+            for k, v in self.gripper_speed_presets.items():
+                try:
+                    if abs(speed_val - float(v)) < 0.01:
+                        matched_dur = k
+                        break
+                except ValueError:
+                    pass
+            self.gripper_duration_var.set(matched_dur)
         else:
             self.gripper_duration_var.set("")
             
@@ -770,13 +790,13 @@ class WaypointInspectorPanel(ctk.CTkFrame):
                 dur_s = float(self.ent_wait_time.get() or 2.0)
             except ValueError:
                 dur_s = 2.0
-            params = {"type": wp_type, "duration_s": dur_s, "pause_s": dur_s}
+            params = {"type": wp_type, "duration_s": dur_s}
         else:
             try: 
                 dur_s = float(self.ent_duration.get() or 3.0)
             except ValueError: 
                 dur_s = 3.0
-            params = {"type": wp_type, "duration_s": dur_s, "max_velocities": max_vels, "pause_s": 0.0}
+            params = {"type": wp_type, "duration_s": dur_s, "max_velocities": max_vels}
             if wp_type == "gripper":
                 params["gripper_state"] = self.gripper_state_var.get()
                 params["gripper_duration"] = self.gripper_duration_var.get()

@@ -125,7 +125,7 @@ class LiveStatePanel(ctk.CTkFrame):
             self.cart_frames.append(f)
 
         # ---------------- SECTION 2.5: GRIPPER TELEMETRY (Inside Scrollable Content) ----------------
-        self.gripper_telemetry_frame = theme.SectionFrame(self.scrollable_content, text="Robotiq 140 Gripper")
+        self.gripper_telemetry_frame = theme.SectionFrame(self.scrollable_content, text="Robotiq 2F-140 Gripper")
         self.gripper_telemetry_frame.pack(fill="x", pady=6)
         
         self.gripper_telemetry_frame.content.columnconfigure(0, weight=1)

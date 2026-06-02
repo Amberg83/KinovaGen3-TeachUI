@@ -1,0 +1,34 @@
+{
+    "default_pose": [0.0, 50.0, 264.0, 0.0, 58.0, 90.0],
+    "default_gripper_pos": 0.0,
+    "gripper_limits": {
+        "open_angle_deg": 0.0,
+        "closed_angle_deg": 40.0
+    },
+    "gripper_presets": {
+        "open": 0.0,
+        "closed": 100.0,
+        "pickup": 50.0
+    },
+    "gripper_speed_presets": {
+        "slow": 0.2,
+        "medium": 0.5,
+        "fast": 0.0
+    },
+    "arm_speed_multipliers": {
+        "fast": 1.0,
+        "medium": 2.0,
+        "slow": 4.0
+    },
+    "arm_constants": {
+        "vel_large_actuators": 80.0,
+        "accel_large_actuators": 297.94,
+        "vel_small_actuators": 70.0,
+        "accel_small_actuators": 572.96,
+        "safety_factor_action": 1.0,
+        "safety_factor_waypoint": 1.6
+    },
+    "hardware_connection": {
+        "connection_timeout_ms": 10000
+    }
+}

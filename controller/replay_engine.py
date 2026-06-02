@@ -59,8 +59,17 @@ class ReplayEngine:
                 time.sleep(0.1)
                 slept += 0.1
                 
-            # 3. Play start chime and begin sequence
+            # 3. Play start chime and delay physical execution by 1.0 second
             EventBus.publish("replay_started")
+            self.logger.info("Replay start chime played, waiting 1.0s warning countdown before execution...")
+            slept = 0.0
+            while slept < 1.0:
+                if self.stop_requested:
+                    self.logger.info("Replay aborted during pre-execution warning delay.")
+                    return
+                time.sleep(0.1)
+                slept += 0.1
+
             self.logger.info("Replay sequence starting...")
 
             batch_waypoints = []

@@ -181,8 +181,28 @@ class SequenceModel:
             except Exception as e:
                 self.logger.error(f"Failed to save JSON to '{path_to_save}': {e}")
 
+    def _load_robot_presets(self):
+        """Loads custom gripper presets and speed presets dynamically from robot_config.json."""
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        config_path = os.path.join(base_dir, "config", "robot_config.json")
+        
+        presets = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
+        speeds = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
+        
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    presets.update(cfg.get("gripper_presets", {}))
+                    speeds.update(cfg.get("gripper_speed_presets", {}))
+            except Exception:
+                pass
+        return presets, speeds
+
     def load_from_json(self, filepath):
         try:
+            presets, speeds = self._load_robot_presets()
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 if isinstance(data, list):
@@ -190,10 +210,17 @@ class SequenceModel:
                         if "type" not in step:
                             step["type"] = "action"
                             step["duration_s"] = 3.0
-                            step["pause_s"] = 0.0
                             step["max_velocities"] = [0.0]*6
                         if "speed_deg_s" in step:
                             del step["speed_deg_s"]
+                            
+                        # Backward compatibility migration for Pause steps:
+                        # Migrate pause_s to duration_s if duration_s is missing or 0, then delete pause_s
+                        if step.get("type") == "pause":
+                            if "pause_s" in step and ("duration_s" not in step or step.get("duration_s", 0.0) == 0.0):
+                                step["duration_s"] = step["pause_s"]
+                        if "pause_s" in step:
+                            del step["pause_s"]
                             
                         # Backward compatibility migration for Robotiq gripper format:
                         # Rename gripper_speed to gripper_duration and prune gripper_force entirely
@@ -208,26 +235,12 @@ class SequenceModel:
                             # Migrate custom target position percentage
                             if "gripper_target_pos" not in step:
                                 state_lower = step["gripper_state"].lower()
-                                if state_lower == "open":
-                                    step["gripper_target_pos"] = 0.0
-                                elif state_lower == "closed":
-                                    step["gripper_target_pos"] = 100.0
-                                elif state_lower == "pickup":
-                                    step["gripper_target_pos"] = 50.0
-                                else:
-                                    step["gripper_target_pos"] = 0.0
+                                step["gripper_target_pos"] = presets.get(state_lower, 0.0)
                                     
                             # Migrate custom speed ratio override
                             if "gripper_speed_ratio" not in step:
                                 dur_lower = step["gripper_duration"].lower()
-                                if dur_lower == "slow":
-                                    step["gripper_speed_ratio"] = 0.2
-                                elif dur_lower == "medium":
-                                    step["gripper_speed_ratio"] = 0.5
-                                elif dur_lower == "fast":
-                                    step["gripper_speed_ratio"] = 0.0
-                                else:
-                                    step["gripper_speed_ratio"] = 0.5
+                                step["gripper_speed_ratio"] = speeds.get(dur_lower, 0.5)
                             
                     self.sequence = data
                     self.current_filepath = filepath

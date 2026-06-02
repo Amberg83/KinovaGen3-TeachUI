@@ -198,8 +198,9 @@ class StudyManager:
             self.logger.warning("Could not locate active log file handler to archive.")
 
     def _load_or_create_referents(self):
-        """Loads study tasks from referents.json, creating a default file if missing."""
-        path = "referents.json"
+        """Loads study tasks from study_referents.json, creating a default file if missing."""
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path = os.path.join(base_dir, "config", "study_referents.json")
         default_tasks = [
             {
                 "id": 1,
@@ -225,26 +226,28 @@ class StudyManager:
         
         if not os.path.exists(path):
             try:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(default_tasks, f, indent=2, ensure_ascii=False)
-                self.logger.info("Created default referents.json configuration file.")
+                self.logger.info("Created default study_referents.json configuration file.")
                 return default_tasks
             except Exception as e:
-                self.logger.error(f"Failed to write default referents.json: {e}")
+                self.logger.error(f"Failed to write default study_referents.json: {e}")
                 return default_tasks
         else:
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     tasks = json.load(f)
-                self.logger.info(f"Successfully loaded {len(tasks)} tasks from referents.json.")
+                self.logger.info(f"Successfully loaded {len(tasks)} tasks from study_referents.json.")
                 return tasks
             except Exception as e:
-                self.logger.error(f"Failed to read referents.json: {e}. Using defaults.")
+                self.logger.error(f"Failed to read study_referents.json: {e}. Using defaults.")
                 return default_tasks
 
     def _load_or_create_tutorials(self):
-        """Loads tutorial tasks from tutorials.json, creating a default file if missing."""
-        path = "tutorials.json"
+        """Loads tutorial tasks from study_tutorials.json, creating a default file if missing."""
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path = os.path.join(base_dir, "config", "study_tutorials.json")
         default_tutorials = [
             {
                 "id": 101,
@@ -260,21 +263,22 @@ class StudyManager:
         
         if not os.path.exists(path):
             try:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(default_tutorials, f, indent=2, ensure_ascii=False)
-                self.logger.info("Created default tutorials.json configuration file.")
+                self.logger.info("Created default study_tutorials.json configuration file.")
                 return default_tutorials
             except Exception as e:
-                self.logger.error(f"Failed to write default tutorials.json: {e}")
+                self.logger.error(f"Failed to write default study_tutorials.json: {e}")
                 return default_tutorials
         else:
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     tutorials = json.load(f)
-                self.logger.info(f"Successfully loaded {len(tutorials)} tutorials from tutorials.json.")
+                self.logger.info(f"Successfully loaded {len(tutorials)} tutorials from study_tutorials.json.")
                 return tutorials
             except Exception as e:
-                self.logger.error(f"Failed to read tutorials.json: {e}. Using defaults.")
+                self.logger.error(f"Failed to read study_tutorials.json: {e}. Using defaults.")
                 return default_tutorials
 
     def _generate_balanced_latin_square_order(self, pid_int, n_tasks):

@@ -19,7 +19,46 @@ class MockKinovaHardware:
         self.username = username
         self.password = password
         self.logger = logging.getLogger("MockHardware")
+        
+        # Load configurable defaults from config/ files
         self.default_pose = [0.0, 50.0, 264.0, 0.0, 58.0, 90.0]
+        self.default_gripper_pos = 0.0
+        self.polling_frequency_hz = 20
+        self.gripper_presets = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
+        self.gripper_speed_presets = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
+        self.connection_timeout_ms = 10000
+        
+        import os
+        import json
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # 1. Load Network configuration
+        net_path = os.path.join(base_dir, "config", "network_config.json")
+        if os.path.exists(net_path):
+            try:
+                with open(net_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.polling_frequency_hz = int(cfg.get("polling_frequency_hz", 20))
+                self.logger.info(f"Loaded polling frequency in Mock: {self.polling_frequency_hz}Hz")
+            except Exception as e:
+                self.logger.error(f"Failed to load network config in Mock: {e}")
+                
+        # 2. Load Robot configuration
+        rob_path = os.path.join(base_dir, "config", "robot_config.json")
+        if os.path.exists(rob_path):
+            try:
+                with open(rob_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.default_pose = list(cfg.get("default_pose", self.default_pose))
+                    self.default_gripper_pos = float(cfg.get("default_gripper_pos", 0.0))
+                    self.gripper_presets = cfg.get("gripper_presets", self.gripper_presets)
+                    self.gripper_speed_presets = cfg.get("gripper_speed_presets", self.gripper_speed_presets)
+                    
+                    conn = cfg.get("hardware_connection", {})
+                    self.connection_timeout_ms = int(conn.get("connection_timeout_ms", 10000))
+                self.logger.info(f"Loaded robot settings in Mock from {rob_path}")
+            except Exception as e:
+                self.logger.error(f"Failed to load robot config in Mock: {e}")
         
         self.state = RobotState()
         self._is_polling = False
@@ -79,14 +118,26 @@ class MockKinovaHardware:
 
     def move_to_default(self):
         """Moves simulated robot back to its home default pose."""
-        speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose)
-        pager = self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
+        pager = threading.Event()
         
-        # Give a small settling delay (e.g. 0.2s) to let the arm trajectory start,
-        # then execute the gripper open action. This prevents controller command clashes.
-        time.sleep(0.2)
-        self.execute_gripper_action("open", "medium")
-        
+        def worker():
+            speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose)
+            movement_pager = self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
+            
+            # Wait for simulated joint movement to fully complete
+            movement_pager.wait(timeout=15.0)
+            
+            # As soon as the arm is finished, adjust the gripper to the custom default gripper position
+            gripper_pager = self.execute_gripper_action("", "medium", target_pos=self.default_gripper_pos)
+            # Wait for simulated gripper movement to settle/complete
+            gripper_pager.wait(timeout=3.0)
+            
+            # play completion sound
+            EventBus.publish("replay_finished")
+            
+            pager.set()
+            
+        threading.Thread(target=worker, daemon=True).start()
         return pager
 
     def apply_emergency_stop(self):
@@ -486,15 +537,13 @@ class MockKinovaHardware:
         if target_pos is not None:
             resolved_target = float(target_pos)
         else:
-            pos_map = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
-            resolved_target = pos_map.get(state_str.lower(), 0.0)
+            resolved_target = self.gripper_presets.get(state_str.lower(), 0.0)
 
         # 2. Resolve speed ratio (between 0.0 and 1.0)
         if speed_ratio is not None:
             resolved_speed = float(speed_ratio)
         else:
-            dur_map = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
-            resolved_speed = dur_map.get(duration_str.lower(), 0.5)
+            resolved_speed = self.gripper_speed_presets.get(duration_str.lower(), 0.5)
 
         def gripper_worker():
             try:
@@ -536,8 +585,9 @@ class MockKinovaHardware:
         return pager
 
     def _mock_polling_worker(self):
-        """Generates realistic telemetry waveforms (20Hz) to keep the GUI feeling alive."""
+        """Generates realistic telemetry waveforms (polling frequency configurable) to keep the GUI feeling alive."""
         count = 0
+        dt = 1.0 / self.polling_frequency_hz
         while self._is_polling:
             if self.state.is_connected and not self._active_movement_pager:
                 # Add tiny natural noise oscillation to joint parameters, voltages, and currents
@@ -553,7 +603,7 @@ class MockKinovaHardware:
                 self.state.torque = [0.1 * osc, -0.05 * osc, 0.15 * osc]
                 
             self._publish_state()
-            time.sleep(0.05)
+            time.sleep(dt)
 
     def _publish_state(self):
         """Thread-safe event broadcast of an isolated snapshot copy."""

@@ -6,6 +6,7 @@ import json
 from .replay_engine import ReplayEngine
 from utils.event_bus import EventBus
 from model import StudyManager
+from view import theme
 
 class RobotController:
     """Orchestrates application logic, linking View panels to Model and Hardware layers."""
@@ -120,14 +121,16 @@ class RobotController:
         """Passes model data to the view for the inspector, including the predecessor's joint positions for dynamic min safe duration calculations."""
         step_data = self.model.sequence[idx]
         
-        # Calculate predecessor position
+        # Calculate predecessor position by searching backwards for the last step that actually has a position mapped to it
         predecessor_pos = None
         if idx > 0:
-            prev_step = self.model.sequence[idx - 1]
-            if prev_step.get("type", "action") != "pause" and "pos" in prev_step:
-                predecessor_pos = prev_step["pos"]
-        else:
-            # For first step (Pos 0), predecessor is always the Default Position!
+            for k in range(idx - 1, -1, -1):
+                prev_step = self.model.sequence[k]
+                if prev_step.get("type", "action") not in ["pause", "gripper"] and "pos" in prev_step:
+                    predecessor_pos = prev_step["pos"]
+                    break
+        if predecessor_pos is None:
+            # For first step (Pos 0) or if no predecessor has a pos, use Default Position!
             predecessor_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
                 
         # Find consecutive run context for angularwaypoint
@@ -143,12 +146,12 @@ class RobotController:
             while end_run_idx < len(self.model.sequence) - 1 and self.model.sequence[end_run_idx + 1].get("type", "action") == "angularwaypoint":
                 end_run_idx += 1
                 
-            # Determine predecessor for the run
+            # Determine predecessor for the run by searching backwards for the last step that actually has a position mapped to it
             run_predecessor_pos = None
             if start_run_idx > 0:
                 for k in range(start_run_idx - 1, -1, -1):
                     step = self.model.sequence[k]
-                    if step.get("type", "action") != "pause" and "pos" in step:
+                    if step.get("type", "action") not in ["pause", "gripper"] and "pos" in step:
                         run_predecessor_pos = step["pos"]
                         break
             if run_predecessor_pos is None:
@@ -160,10 +163,28 @@ class RobotController:
         self.view.load_inspector_data(step_data, idx, predecessor_pos, run_poses, run_selected_idx)
 
         # Publish preview override angles to Unity simulation
-        if step_data.get("type", "action") != "pause" and "pos" in step_data:
-            EventBus.publish("set_preview_angles", step_data["pos"])
+        # If the selected step does not have a position mapped (e.g. pause or gripper),
+        # use the last step in the sequence that actually has a position mapped to it.
+        preview_pos = None
+        preview_gripper = None
+        if "pos" in step_data and step_data.get("type", "action") not in ["pause", "gripper"]:
+            preview_pos = step_data["pos"]
         else:
-            EventBus.publish("clear_preview_angles")
+            # Search backwards from the selected index to find the last step with a position
+            for k in range(idx - 1, -1, -1):
+                prev_step = self.model.sequence[k]
+                if prev_step.get("type", "action") not in ["pause", "gripper"] and "pos" in prev_step:
+                    preview_pos = prev_step["pos"]
+                    break
+            if preview_pos is None:
+                # If no previous step has a position, fall back to Default Position
+                preview_pos = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
+                
+        # If the selected step is a gripper step, preview its target gripper position
+        if step_data.get("type", "action") == "gripper":
+            preview_gripper = step_data.get("gripper_target_pos", 0.0)
+            
+        EventBus.publish("set_preview_angles", preview_pos, preview_gripper)
 
     def handle_preview_inspector_pose(self, poses):
         if not self.hardware.state.is_connected: return
@@ -181,7 +202,14 @@ class RobotController:
         except Exception:
             duration = 10.0
             
-        threading.Thread(target=self.hardware.execute_action_pose, args=(poses, duration, "Preview Pose"), daemon=True).start()
+        def worker():
+            pager = self.hardware.execute_action_pose(poses, duration, "Preview Pose")
+            # Wait for movement to fully complete
+            pager.wait(timeout=15.0)
+            # play completion sound
+            EventBus.publish("replay_finished")
+            
+        threading.Thread(target=worker, daemon=True).start()
 
     def handle_preview_gripper(self, state, duration, target_pos=None, speed_ratio=None):
         if not self.hardware.state.is_connected: return
@@ -557,8 +585,7 @@ class RobotController:
         """Inserts a clean Pause step immediately after the specified index (or at the end)."""
         pause_data = {
             "type": "pause",
-            "duration_s": 2.0,
-            "pause_s": 2.0
+            "duration_s": 2.0
         }
         if after_idx is None:
             self.model.append_pose(pause_data)

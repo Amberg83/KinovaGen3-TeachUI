@@ -15,7 +15,7 @@ from utils.udp_transmitter import UDPTransmitter
 from view import theme
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "connection_config.json")
+CONFIG_FILE = os.path.join(BASE_DIR, "config", "connection_config.json")
 
 class UITextHandler(logging.Handler):
     """Routes log messages to Tkinter safely using a Queue to prevent freezes."""
@@ -109,6 +109,7 @@ def save_config(ip, username, password):
 
 def main():
     """Application entry point: Prompts for connection and builds MVC structure."""
+    os.makedirs(os.path.join(BASE_DIR, "config"), exist_ok=True)
     config = load_config()
     
     # Run setup login screen as standalone root CTk window
@@ -125,6 +126,10 @@ def main():
         
     ip, username, password, participant_id, is_review_mode = dialog.result
     save_config(ip, username, password)
+
+    # Clear theme's icon cache to prevent _tkinter.TclError: image "pyimageX" doesn't exist
+    # which is caused by recreating Tkinter root windows (ConnectionDialog -> Main Root)
+    theme._icon_cache.clear()
 
     # Initialize main dashboard application root
     root = ctk.CTk()

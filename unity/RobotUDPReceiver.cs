@@ -13,10 +13,17 @@ public class RobotUDPReceiver : MonoBehaviour
     [Header("Robot Links")]
     public ArticulationBody[] robotJoints = new ArticulationBody[6];
 
+    [Header("Gripper Links (Optional)")]
+    public ArticulationBody[] gripperJoints = new ArticulationBody[0];
+    public float gripperOpenAngle = 0f;
+    public float gripperCloseAngle = 40f;
+
     private UdpClient udpClient;
     private Thread receiveThread;
     private float[] incomingPythonAngles = new float[6];
+    private float incomingPythonGripper = 0f; // 0% = open, 100% = closed
     private float[] activeTargets = new float[6]; // Smoothly tracking targets
+    private float activeGripperTarget = 0f;
     private bool isRunning = true;
     private bool isInitialized = false;
     private int packetCount = 0;
@@ -25,6 +32,7 @@ public class RobotUDPReceiver : MonoBehaviour
     void Start()
     {
         Debug.Log("[UDP Receiver] System initializing...");
+        LoadConfigurations();
 
         // Ensure joints have sufficient force capacity to track targets precisely
         foreach (ArticulationBody joint in robotJoints)
@@ -34,6 +42,17 @@ public class RobotUDPReceiver : MonoBehaviour
                 var drive = joint.xDrive;
                 drive.forceLimit = 1000f; // High force limit overrides low editor limits (like 9)
                 joint.xDrive = drive;
+            }
+        }
+
+        // Initialize gripper force limits
+        foreach (ArticulationBody finger in gripperJoints)
+        {
+            if (finger != null)
+            {
+                var drive = finger.xDrive;
+                drive.forceLimit = 1000f;
+                finger.xDrive = drive;
             }
         }
 
@@ -66,9 +85,10 @@ public class RobotUDPReceiver : MonoBehaviour
                 string csvString = Encoding.UTF8.GetString(data);
                 string[] tokens = csvString.Split(',');
                 
-                if (tokens != null && tokens.Length == 6)
+                if (tokens != null && (tokens.Length == 6 || tokens.Length == 7))
                 {
                     float[] receivedAngles = new float[6];
+                    float receivedGripper = 0f;
                     bool parseSuccess = true;
                     
                     for (int i = 0; i < 6; i++)
@@ -80,17 +100,36 @@ public class RobotUDPReceiver : MonoBehaviour
                         }
                     }
 
+                    if (tokens.Length == 7)
+                    {
+                        if (!float.TryParse(tokens[6], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out receivedGripper))
+                        {
+                            parseSuccess = false;
+                        }
+                    }
+
                     if (parseSuccess)
                     {
                         lock (lockObject)
                         {
                             Array.Copy(receivedAngles, incomingPythonAngles, 6);
+                            if (tokens.Length == 7)
+                            {
+                                incomingPythonGripper = receivedGripper;
+                            }
                         }
 
                         packetCount++;
                         if (packetCount % 10 == 0)
                         {
-                            Debug.Log($"[UDP Receiver] Telemetry incoming... Packet #{packetCount}. Joint Angles: [{string.Join(", ", receivedAngles)}]");
+                            if (tokens.Length == 7)
+                            {
+                                Debug.Log($"[UDP Receiver] Telemetry incoming... Packet #{packetCount}. Joint Angles: [{string.Join(", ", receivedAngles)}], Gripper: {receivedGripper}%");
+                            }
+                            else
+                            {
+                                Debug.Log($"[UDP Receiver] Telemetry incoming... Packet #{packetCount}. Joint Angles: [{string.Join(", ", receivedAngles)}]");
+                            }
                         }
                     }
                 }
@@ -102,9 +141,11 @@ public class RobotUDPReceiver : MonoBehaviour
     void Update()
     {
         float[] latestAngles = new float[6];
+        float latestGripper = 0f;
         lock (lockObject)
         {
             Array.Copy(incomingPythonAngles, latestAngles, 6);
+            latestGripper = incomingPythonGripper;
         }
 
         // Initialize active targets to incoming angles on the first received packet
@@ -138,8 +179,22 @@ public class RobotUDPReceiver : MonoBehaviour
                 robotJoints[i].xDrive = drive;
             }
 
+            // Snap gripper instantly on startup to match first package
+            float targetGripperAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, latestGripper / 100f);
+            activeGripperTarget = targetGripperAngle;
+            foreach (ArticulationBody finger in gripperJoints)
+            {
+                if (finger == null) continue;
+                
+                var drive = finger.xDrive;
+                drive.target = targetGripperAngle;
+                finger.xDrive = drive;
+                
+                finger.jointPosition = new ArticulationReducedSpace(targetGripperAngle * Mathf.Deg2Rad);
+            }
+
             isInitialized = true;
-            Debug.Log("[UDP Receiver] Telemetry tracking initialized and physical joints snapped smoothly to home pose.");
+            Debug.Log("[UDP Receiver] Telemetry tracking initialized and physical joints/gripper snapped smoothly to home pose.");
         }
 
         // Software Virtual Damping: Smoothly interpolate activeTargets towards latestAngles
@@ -163,6 +218,18 @@ public class RobotUDPReceiver : MonoBehaviour
             drive.target = activeTargets[i];
             robotJoints[i].xDrive = drive;
         }
+
+        // Smoothly interpolate active gripper target and apply to links
+        float goalGripperAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, latestGripper / 100f);
+        activeGripperTarget = Mathf.Lerp(activeGripperTarget, goalGripperAngle, Mathf.Clamp01(lerpFactor));
+
+        foreach (ArticulationBody finger in gripperJoints)
+        {
+            if (finger == null) continue;
+            var drive = finger.xDrive;
+            drive.target = activeGripperTarget;
+            finger.xDrive = drive;
+        }
     }
 
     void OnApplicationQuit()
@@ -170,5 +237,64 @@ public class RobotUDPReceiver : MonoBehaviour
         isRunning = false;
         if (udpClient != null) udpClient.Close();
         if (receiveThread != null && receiveThread.IsAlive) receiveThread.Interrupt();
+    }
+
+    private void LoadConfigurations()
+    {
+        // Search in parent or current working directories
+        string[] searchPaths = new string[] {
+            System.IO.Path.Combine(Application.dataPath, "..", "config"),
+            System.IO.Path.Combine(Application.dataPath, "config"),
+            "config"
+        };
+
+        foreach (string dir in searchPaths)
+        {
+            string netPath = System.IO.Path.Combine(dir, "network_config.json");
+            string robPath = System.IO.Path.Combine(dir, "robot_config.json");
+
+            if (System.IO.File.Exists(netPath))
+            {
+                try
+                {
+                    string json = System.IO.File.ReadAllText(netPath);
+                    System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(json, @"""udp_port""\s*:\s*(\d+)");
+                    if (match.Success)
+                    {
+                        port = int.Parse(match.Groups[1].Value);
+                        Debug.Log($"[UDP Receiver] Dynamically loaded Port from config: {port}");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[UDP Receiver] Failed to read network config: {e.Message}");
+                }
+            }
+
+            if (System.IO.File.Exists(robPath))
+            {
+                try
+                {
+                    string json = System.IO.File.ReadAllText(robPath);
+                    System.Text.RegularExpressions.Match matchOpen = System.Text.RegularExpressions.Regex.Match(json, @"""open_angle_deg""\s*:\s*([0-9.]+)");
+                    if (matchOpen.Success)
+                    {
+                        gripperOpenAngle = float.Parse(matchOpen.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    }
+                    
+                    System.Text.RegularExpressions.Match matchClosed = System.Text.RegularExpressions.Regex.Match(json, @"""closed_angle_deg""\s*:\s*([0-9.]+)");
+                    if (matchClosed.Success)
+                    {
+                        gripperCloseAngle = float.Parse(matchClosed.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    }
+                    
+                    Debug.Log($"[UDP Receiver] Dynamically loaded gripper limits: Open={gripperOpenAngle}°, Closed={gripperCloseAngle}°");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[UDP Receiver] Failed to read robot config: {e.Message}");
+                }
+            }
+        }
     }
 }

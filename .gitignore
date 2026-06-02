@@ -18,7 +18,7 @@ __pycache__/
 .mypy_cache/
 
 # Local Configurations & Auto-saves (Personal Credentials/IPs)
-connection_config.json
+config/connection_config.json
 
 # User Study Log Database & Participant Waveforms
 log/

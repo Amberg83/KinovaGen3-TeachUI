@@ -3,7 +3,8 @@ import urllib.request
 import urllib.error
 import shutil
 
-SOUNDS_ROOT = "sounds"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SOUNDS_ROOT = os.path.join(BASE_DIR, "sounds")
 APPLE_DIR = os.path.join(SOUNDS_ROOT, "apple")
 
 os.makedirs(APPLE_DIR, exist_ok=True)

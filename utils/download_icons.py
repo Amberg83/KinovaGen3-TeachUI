@@ -3,7 +3,8 @@ import urllib.request
 import urllib.error
 
 # Directory to save assets
-ASSETS_DIR = os.path.join("view", "assets")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ASSETS_DIR = os.path.join(BASE_DIR, "view", "assets")
 os.makedirs(ASSETS_DIR, exist_ok=True)
 
 # Icons to download

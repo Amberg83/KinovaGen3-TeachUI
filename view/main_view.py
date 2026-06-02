@@ -3,6 +3,7 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from view.panels import LiveStatePanel, SequenceTimelinePanel, WaypointInspectorPanel
 from view import theme
+from view.referent_window import ReferentDisplayWindow
 
 class RobotView:
     def __init__(self, root):
@@ -425,6 +426,12 @@ class RobotView:
 
     def enable_study_mode(self, pid, first_task, current_idx, total_count, on_completed_callback):
         """Builds a beautiful premium banner panel representing participant task progress."""
+        # Instantiate secondary projector window
+        self.referent_window = ReferentDisplayWindow(self.root)
+        self.referent_window.update_task(
+            first_task["name"], first_task["instructions"], current_idx, total_count
+        )
+
         self.study_banner = ctk.CTkFrame(
             self.root, fg_color=theme.BG_CARD, corner_radius=6,
             border_color=theme.ACCENT_CYBER, border_width=1
@@ -469,18 +476,35 @@ class RobotView:
         )
         self.lbl_task_desc.pack(anchor="w", pady=(2, 0))
         
+        # Group study control buttons side-by-side in a container
+        btn_control_frame = ctk.CTkFrame(self.study_banner, fg_color="transparent")
+        btn_control_frame.grid(row=0, column=2, sticky="e", padx=15, pady=10)
+        
+        self.btn_show_presenter = theme.make_flat_button(
+            btn_control_frame, text=" Presenter Screen", image=theme.get_icon("lightbulb"), compound="left",
+            bg_color=theme.BG_INPUT, fg_color=theme.TEXT_PRIMARY,
+            hover_bg=theme.BORDER_COLOR, font_style=theme.FONT_BOLD,
+            command=self.show_presenter_window
+        )
+        self.btn_show_presenter.pack(side="left", padx=(0, 10))
+
         self.btn_study_next = theme.make_flat_button(
-            self.study_banner, text=" Task Completed / Next Referent", image=theme.get_icon("play"), compound="left",
+            btn_control_frame, text=" Task Completed / Next Referent", image=theme.get_icon("play"), compound="left",
             bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, 
             hover_bg="#059669", font_style=theme.FONT_BOLD, 
             command=on_completed_callback
         )
-        self.btn_study_next.grid(row=0, column=2, sticky="e", padx=15, pady=10)
-
+        self.btn_study_next.pack(side="left")
+ 
         # Predefined Gestures buttons frame initialization
         self.gestures_btn_frame = None
         self._check_and_create_tutorial_buttons(first_task, inst_frame)
 
+    def show_presenter_window(self):
+        """Displays and focuses the presenter window for beamers/projectors."""
+        if hasattr(self, "referent_window") and self.referent_window is not None:
+            self.referent_window.show_window()
+ 
     def _check_and_create_tutorial_buttons(self, task, parent_frame):
         # Scan predefined_gestures/ directory if task ID is 101
         if task and task.get("id") == 101:
@@ -513,7 +537,7 @@ class RobotView:
                     command=lambda fp=filepath: EventBus.publish("play_predefined_gesture", fp)
                 )
                 btn.pack(side="left", padx=4)
-
+ 
     def _destroy_tutorial_buttons(self):
         if hasattr(self, "gestures_btn_frame") and self.gestures_btn_frame is not None:
             try:
@@ -521,7 +545,7 @@ class RobotView:
             except Exception:
                 pass
             self.gestures_btn_frame = None
-
+ 
     def update_study_task(self, task, current_idx, total_count):
         """Transitions study banner details smoothly to the next task sequence."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
@@ -537,6 +561,12 @@ class RobotView:
         # Check and create new ones
         self._check_and_create_tutorial_buttons(task, self.lbl_task_name.master)
 
+        # Update secondary projector window
+        if hasattr(self, "referent_window") and self.referent_window is not None:
+            self.referent_window.update_task(
+                task["name"], task["instructions"], current_idx, total_count
+            )
+ 
     def show_study_completed(self):
         """Displays a beautiful celebration state and informs user of task completions."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
@@ -546,6 +576,10 @@ class RobotView:
         self.lbl_task_desc.configure(text="The study data and JSON state sequences have been successfully saved to /log/ and /expressions/.\nPlease close the application to reset.")
         self.btn_study_next.configure(state="disabled", text="Done!", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
         
+        # Update secondary projector window
+        if hasattr(self, "referent_window") and self.referent_window is not None:
+            self.referent_window.show_completed()
+            
         # Visual alert popup
         messagebox.showinfo(
             "Study Completed", 
