@@ -22,8 +22,7 @@ config/connection_config.json
 
 # User Study Log Database & Participant Waveforms
 log/
-expressions/PID_*/
-expressions/*_*.json
+expressions/
 study_results/
 
 # OS Specific Files
