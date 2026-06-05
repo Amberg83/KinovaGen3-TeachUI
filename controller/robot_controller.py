@@ -87,21 +87,6 @@ class RobotController:
             else:
                 # Automatically move to default and save initial pose on startup for normal study
                 self._move_to_default_and_save_pose()
-        else:
-            # Expert Mode / Standard Start: load first tutorial referent with the preinserted Default position
-            filepath = os.path.join("predefined_gestures", "1.json")
-            if os.path.exists(filepath):
-                self.logger.info(f"Expert Mode Startup: Loading first tutorial referent from '{filepath}'")
-                try:
-                    self.model.load_from_json(filepath)
-                    default_pose = getattr(self.hardware, 'default_pose', [0.0, 50.0, 264.0, 0.0, 58.0, 90.0])
-                    if len(self.model.sequence) > 0:
-                        first_step = self.model.sequence[0]
-                        if "pos" in first_step:
-                            first_step["pos"] = list(default_pose)
-                            self.model._notify_observers()
-                except Exception as e:
-                    self.logger.error(f"Failed to load first tutorial referent on startup: {e}")
 
         self.logger.info("Application initialized. Dashboard active.")
         self.root.after(100, self.handle_initial_connect)
