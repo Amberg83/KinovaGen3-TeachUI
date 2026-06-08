@@ -23,7 +23,7 @@ public class RobotUDPReceiver : MonoBehaviour
     private float[] incomingPythonAngles = new float[6];
     private float incomingPythonGripper = 0f; // 0% = open, 100% = closed
     private float[] activeTargets = new float[6]; // Smoothly tracking targets
-    private float activeGripperTarget = 0f;
+    private float activeGripperNormalized = 0f; // 0% = open, 100% = closed (0.0 to 1.0)
     private bool isRunning = true;
     private bool isInitialized = false;
     private int packetCount = 0;
@@ -180,17 +180,39 @@ public class RobotUDPReceiver : MonoBehaviour
             }
 
             // Snap gripper instantly on startup to match first package
-            float targetGripperAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, latestGripper / 100f);
-            activeGripperTarget = targetGripperAngle;
+            activeGripperNormalized = latestGripper / 100f;
             foreach (ArticulationBody finger in gripperJoints)
             {
                 if (finger == null) continue;
                 
                 var drive = finger.xDrive;
-                drive.target = targetGripperAngle;
+                float targetAngle;
+                string jointName = finger.gameObject.name.ToLower();
+
+                if (drive.upperLimit == 0 && drive.lowerLimit == 0)
+                {
+                    if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+                    {
+                        targetAngle = Mathf.Lerp(gripperOpenAngle, -gripperCloseAngle, activeGripperNormalized);
+                    }
+                    else
+                    {
+                        targetAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, activeGripperNormalized);
+                    }
+                }
+                else if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+                {
+                    targetAngle = Mathf.Lerp(drive.upperLimit, drive.lowerLimit, activeGripperNormalized);
+                }
+                else
+                {
+                    targetAngle = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, activeGripperNormalized);
+                }
+
+                drive.target = targetAngle;
                 finger.xDrive = drive;
                 
-                finger.jointPosition = new ArticulationReducedSpace(targetGripperAngle * Mathf.Deg2Rad);
+                finger.jointPosition = new ArticulationReducedSpace(targetAngle * Mathf.Deg2Rad);
             }
 
             isInitialized = true;
@@ -219,15 +241,39 @@ public class RobotUDPReceiver : MonoBehaviour
             robotJoints[i].xDrive = drive;
         }
 
-        // Smoothly interpolate active gripper target and apply to links
-        float goalGripperAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, latestGripper / 100f);
-        activeGripperTarget = Mathf.Lerp(activeGripperTarget, goalGripperAngle, Mathf.Clamp01(lerpFactor));
+        // Smoothly interpolate active gripper normalized state and apply to links based on their side (left/right name checks)
+        float goalNormalized = latestGripper / 100f;
+        activeGripperNormalized = Mathf.Lerp(activeGripperNormalized, goalNormalized, Mathf.Clamp01(lerpFactor));
 
         foreach (ArticulationBody finger in gripperJoints)
         {
             if (finger == null) continue;
             var drive = finger.xDrive;
-            drive.target = activeGripperTarget;
+            
+            float targetAngle;
+            string jointName = finger.gameObject.name.ToLower();
+
+            if (drive.upperLimit == 0 && drive.lowerLimit == 0)
+            {
+                if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+                {
+                    targetAngle = Mathf.Lerp(gripperOpenAngle, -gripperCloseAngle, activeGripperNormalized);
+                }
+                else
+                {
+                    targetAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, activeGripperNormalized);
+                }
+            }
+            else if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+            {
+                targetAngle = Mathf.Lerp(drive.upperLimit, drive.lowerLimit, activeGripperNormalized);
+            }
+            else
+            {
+                targetAngle = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, activeGripperNormalized);
+            }
+
+            drive.target = targetAngle;
             finger.xDrive = drive;
         }
     }
