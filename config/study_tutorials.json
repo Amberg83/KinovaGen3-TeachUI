@@ -2,11 +2,11 @@
   {
     "id": 101,
     "name": "SS Tutorial",
-    "instructions": "Imagine you are assembling something together with another person. While you are working, you notice that the other person needs a tool that is placed right next to you. How would you signal to the other person that you can hand it over?"
+    "instructions": "Imagine you are at home assembling something together with another person. While you are working, you need something from the other person. How would you signal that you need some attention?"
   },
   {
     "id": 102,
     "name": "SD Tutorial",
-    "instructions": "Imagine you are assembling something while another person in the same room is doing something else. You notice that the other person is struggling with the weight of the object they are holding. How would you signal to the other person that you want to help them?"
+    "instructions": "Imagine you are in the kitchen at home cooking something while another person in the same room is doing something else. While you are monitoring the stove, you see a pot dangerously close to boiling over. How would you signal this imminent danger to the other person?"
   }
 ]

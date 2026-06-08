@@ -53,6 +53,9 @@ public class RobotUDPReceiver : MonoBehaviour
                 var drive = finger.xDrive;
                 drive.forceLimit = 1000f;
                 finger.xDrive = drive;
+
+                bool isRight = IsRightSide(finger.gameObject);
+                Debug.Log($"[UDP Receiver] Gripper Joint: '{finger.gameObject.name}' -> Classified as {(isRight ? "RIGHT" : "LEFT")} side.");
             }
         }
 
@@ -187,11 +190,11 @@ public class RobotUDPReceiver : MonoBehaviour
                 
                 var drive = finger.xDrive;
                 float targetAngle;
-                string jointName = finger.gameObject.name.ToLower();
+                bool isRight = IsRightSide(finger.gameObject);
 
                 if (drive.upperLimit == 0 && drive.lowerLimit == 0)
                 {
-                    if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+                    if (isRight)
                     {
                         targetAngle = Mathf.Lerp(gripperOpenAngle, -gripperCloseAngle, activeGripperNormalized);
                     }
@@ -200,7 +203,7 @@ public class RobotUDPReceiver : MonoBehaviour
                         targetAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, activeGripperNormalized);
                     }
                 }
-                else if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+                else if (isRight)
                 {
                     targetAngle = Mathf.Lerp(drive.upperLimit, drive.lowerLimit, activeGripperNormalized);
                 }
@@ -251,11 +254,11 @@ public class RobotUDPReceiver : MonoBehaviour
             var drive = finger.xDrive;
             
             float targetAngle;
-            string jointName = finger.gameObject.name.ToLower();
+            bool isRight = IsRightSide(finger.gameObject);
 
             if (drive.upperLimit == 0 && drive.lowerLimit == 0)
             {
-                if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+                if (isRight)
                 {
                     targetAngle = Mathf.Lerp(gripperOpenAngle, -gripperCloseAngle, activeGripperNormalized);
                 }
@@ -264,7 +267,7 @@ public class RobotUDPReceiver : MonoBehaviour
                     targetAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, activeGripperNormalized);
                 }
             }
-            else if (jointName.Contains("right") || jointName.Contains("r_") || jointName.Contains("_r"))
+            else if (isRight)
             {
                 targetAngle = Mathf.Lerp(drive.upperLimit, drive.lowerLimit, activeGripperNormalized);
             }
@@ -276,6 +279,33 @@ public class RobotUDPReceiver : MonoBehaviour
             drive.target = targetAngle;
             finger.xDrive = drive;
         }
+    }
+
+    private bool IsRightSide(GameObject go)
+    {
+        if (go == null) return false;
+        
+        Transform current = go.transform;
+        int depth = 0;
+        while (current != null && depth < 5)
+        {
+            string name = current.name.ToLower();
+            
+            if (name.Contains("right")) return true;
+            if (name.Contains("left")) return false;
+            
+            string[] tokens = name.Split('_', '-', ' ', '/');
+            foreach (string token in tokens)
+            {
+                if (token == "r") return true;
+                if (token == "l") return false;
+            }
+            
+            current = current.parent;
+            depth++;
+        }
+        
+        return false;
     }
 
     void OnApplicationQuit()
