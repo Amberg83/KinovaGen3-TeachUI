@@ -59,6 +59,19 @@ public class RobotUDPReceiver : MonoBehaviour
             }
         }
 
+        try
+        {
+            udpClient = new UdpClient();
+            udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+            Debug.Log($"[UDP Receiver] Socket bound successfully to port {port}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[UDP Receiver] Port error during binding: {e.Message}");
+            return;
+        }
+
         receiveThread = new Thread(ReceiveData)
         {
             IsBackground = true
@@ -68,23 +81,16 @@ public class RobotUDPReceiver : MonoBehaviour
 
     private void ReceiveData()
     {
-        try
-        {
-            udpClient = new UdpClient(port);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[UDP Receiver] Port error: {e.Message}");
-            return;
-        }
-
         IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
 
         while (isRunning)
         {
             try
             {
-                byte[] data = udpClient.Receive(ref anyIP);
+                UdpClient client = udpClient;
+                if (client == null) break;
+
+                byte[] data = client.Receive(ref anyIP);
                 string csvString = Encoding.UTF8.GetString(data);
                 string[] tokens = csvString.Split(',');
                 
@@ -308,11 +314,42 @@ public class RobotUDPReceiver : MonoBehaviour
         return false;
     }
 
+    void OnDisable()
+    {
+        Cleanup();
+    }
+
+    void OnDestroy()
+    {
+        Cleanup();
+    }
+
     void OnApplicationQuit()
     {
+        Cleanup();
+    }
+
+    private void Cleanup()
+    {
         isRunning = false;
-        if (udpClient != null) udpClient.Close();
-        if (receiveThread != null && receiveThread.IsAlive) receiveThread.Interrupt();
+        if (udpClient != null)
+        {
+            try
+            {
+                udpClient.Close();
+                udpClient = null;
+            }
+            catch (Exception) { }
+        }
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            try
+            {
+                receiveThread.Interrupt();
+                receiveThread = null;
+            }
+            catch (Exception) { }
+        }
     }
 
     private void LoadConfigurations()
