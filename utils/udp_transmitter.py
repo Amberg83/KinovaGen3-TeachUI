@@ -48,7 +48,7 @@ class UDPTransmitter:
             # Immediately transmit to Unity for instant teleportation preview
             g_pos = self.preview_gripper if self.preview_gripper is not None else self.last_gripper_position
             data = self.preview_angles + [g_pos]
-            self._transmit(data)
+            self._transmit(data, teleport=True)
  
     def clear_preview_angles(self):
         self.preview_angles = None
@@ -88,12 +88,13 @@ class UDPTransmitter:
                     return
         
         self.skipped_count = 0
-        self._transmit(data_to_send)
-
-    def _transmit(self, data):
+        self._transmit(data_to_send, teleport=False)
+ 
+    def _transmit(self, data, teleport=False):
         try:
-            # Send simple comma-separated floats (6 joints + 1 gripper) for maximum Unity parsing reliability
-            message = ",".join(map(str, data)).encode('utf-8')
+            # Append teleport flag as the 8th value (1.0 = teleport, 0.0 = smooth movement)
+            send_data = list(data) + [1.0 if teleport else 0.0]
+            message = ",".join(map(str, send_data)).encode('utf-8')
             self.socket.sendto(message, (self.host, self.port))
             self.last_sent_data = list(data)
         except Exception as e:

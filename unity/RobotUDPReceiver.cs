@@ -28,6 +28,7 @@ public class RobotUDPReceiver : MonoBehaviour
     private bool isInitialized = false;
     private int packetCount = 0;
     private readonly object lockObject = new object();
+    private bool pendingTeleport = false;
 
     void Start()
     {
@@ -94,10 +95,11 @@ public class RobotUDPReceiver : MonoBehaviour
                 string csvString = Encoding.UTF8.GetString(data);
                 string[] tokens = csvString.Split(',');
                 
-                if (tokens != null && (tokens.Length == 6 || tokens.Length == 7))
+                if (tokens != null && (tokens.Length == 6 || tokens.Length == 7 || tokens.Length == 8))
                 {
                     float[] receivedAngles = new float[6];
                     float receivedGripper = 0f;
+                    bool receivedTeleport = false;
                     bool parseSuccess = true;
                     
                     for (int i = 0; i < 6; i++)
@@ -109,11 +111,20 @@ public class RobotUDPReceiver : MonoBehaviour
                         }
                     }
 
-                    if (tokens.Length == 7)
+                    if (tokens.Length >= 7)
                     {
                         if (!float.TryParse(tokens[6], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out receivedGripper))
                         {
                             parseSuccess = false;
+                        }
+                    }
+
+                    if (tokens.Length == 8)
+                    {
+                        float telVal;
+                        if (float.TryParse(tokens[7], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out telVal))
+                        {
+                            receivedTeleport = (telVal > 0.5f);
                         }
                     }
 
@@ -122,16 +133,20 @@ public class RobotUDPReceiver : MonoBehaviour
                         lock (lockObject)
                         {
                             Array.Copy(receivedAngles, incomingPythonAngles, 6);
-                            if (tokens.Length == 7)
+                            if (tokens.Length >= 7)
                             {
                                 incomingPythonGripper = receivedGripper;
+                            }
+                            if (receivedTeleport)
+                            {
+                                pendingTeleport = true;
                             }
                         }
 
                         packetCount++;
                         if (packetCount % 10 == 0)
                         {
-                            if (tokens.Length == 7)
+                            if (tokens.Length >= 7)
                             {
                                 Debug.Log($"[UDP Receiver] Telemetry incoming... Packet #{packetCount}. Joint Angles: [{string.Join(", ", receivedAngles)}], Gripper: {receivedGripper}%");
                             }
@@ -147,14 +162,75 @@ public class RobotUDPReceiver : MonoBehaviour
         }
     }
 
+    private void SnapTo(float[] targetAngles, float targetGripperPercent)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (robotJoints[i] == null) continue;
+
+            float targetAngle = targetAngles[i];
+            while (targetAngle < -180f) targetAngle += 360f;
+            while (targetAngle > 180f) targetAngle -= 360f;
+
+            robotJoints[i].jointPosition = new ArticulationReducedSpace(targetAngle * Mathf.Deg2Rad);
+            activeTargets[i] = targetAngle;
+
+            var drive = robotJoints[i].xDrive;
+            drive.target = targetAngle;
+            robotJoints[i].xDrive = drive;
+        }
+
+        activeGripperNormalized = targetGripperPercent / 100f;
+        foreach (ArticulationBody finger in gripperJoints)
+        {
+            if (finger == null) continue;
+            
+            var drive = finger.xDrive;
+            float targetAngle;
+            bool isRight = IsRightSide(finger.gameObject);
+
+            if (drive.upperLimit == 0 && drive.lowerLimit == 0)
+            {
+                if (isRight)
+                {
+                    targetAngle = Mathf.Lerp(gripperOpenAngle, -gripperCloseAngle, activeGripperNormalized);
+                }
+                else
+                {
+                    targetAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, activeGripperNormalized);
+                }
+            }
+            else if (isRight)
+            {
+                targetAngle = Mathf.Lerp(drive.upperLimit, drive.lowerLimit, activeGripperNormalized);
+            }
+            else
+            {
+                targetAngle = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, activeGripperNormalized);
+            }
+
+            drive.target = targetAngle;
+            finger.xDrive = drive;
+            
+            finger.jointPosition = new ArticulationReducedSpace(targetAngle * Mathf.Deg2Rad);
+        }
+    }
+
     void Update()
     {
         float[] latestAngles = new float[6];
         float latestGripper = 0f;
+        bool doTeleport = false;
+
         lock (lockObject)
         {
             Array.Copy(incomingPythonAngles, latestAngles, 6);
             latestGripper = incomingPythonGripper;
+            if (pendingTeleport)
+            {
+                doTeleport = true;
+                pendingTeleport = false;
+            }
         }
 
         // Initialize active targets to incoming angles on the first received packet
@@ -171,61 +247,37 @@ public class RobotUDPReceiver : MonoBehaviour
             }
             if (allZeros && packetCount == 0) return;
 
-            // Snap physical joint positions instantly to the first telemetry packet to prevent violent startup whips
-            for (int i = 0; i < 6; i++)
-            {
-                if (robotJoints[i] == null) continue;
-
-                float targetAngle = latestAngles[i];
-                while (targetAngle < -180f) targetAngle += 360f;
-                while (targetAngle > 180f) targetAngle -= 360f;
-
-                robotJoints[i].jointPosition = new ArticulationReducedSpace(targetAngle * Mathf.Deg2Rad);
-                activeTargets[i] = targetAngle;
-
-                var drive = robotJoints[i].xDrive;
-                drive.target = targetAngle;
-                robotJoints[i].xDrive = drive;
-            }
-
-            // Snap gripper instantly on startup to match first package
-            activeGripperNormalized = latestGripper / 100f;
-            foreach (ArticulationBody finger in gripperJoints)
-            {
-                if (finger == null) continue;
-                
-                var drive = finger.xDrive;
-                float targetAngle;
-                bool isRight = IsRightSide(finger.gameObject);
-
-                if (drive.upperLimit == 0 && drive.lowerLimit == 0)
-                {
-                    if (isRight)
-                    {
-                        targetAngle = Mathf.Lerp(gripperOpenAngle, -gripperCloseAngle, activeGripperNormalized);
-                    }
-                    else
-                    {
-                        targetAngle = Mathf.Lerp(gripperOpenAngle, gripperCloseAngle, activeGripperNormalized);
-                    }
-                }
-                else if (isRight)
-                {
-                    targetAngle = Mathf.Lerp(drive.upperLimit, drive.lowerLimit, activeGripperNormalized);
-                }
-                else
-                {
-                    targetAngle = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, activeGripperNormalized);
-                }
-
-                drive.target = targetAngle;
-                finger.xDrive = drive;
-                
-                finger.jointPosition = new ArticulationReducedSpace(targetAngle * Mathf.Deg2Rad);
-            }
-
+            SnapTo(latestAngles, latestGripper);
             isInitialized = true;
             Debug.Log("[UDP Receiver] Telemetry tracking initialized and physical joints/gripper snapped smoothly to home pose.");
+        }
+        else
+        {
+            // Check for large jump threshold as an automatic fallback (e.g., > 15 degrees on any joint)
+            if (!doTeleport)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    if (robotJoints[i] == null) continue;
+                    float current = activeTargets[i];
+                    float target = latestAngles[i];
+                    float delta = target - current;
+                    while (delta < -180f) delta += 360f;
+                    while (delta > 180f) delta -= 360f;
+                    if (Mathf.Abs(delta) > 15f)
+                    {
+                        doTeleport = true;
+                        Debug.Log($"[UDP Receiver] Large jump detected on joint {i} ({Mathf.Abs(delta):F1}°). Triggering instant snap teleportation.");
+                        break;
+                    }
+                }
+            }
+
+            if (doTeleport)
+            {
+                SnapTo(latestAngles, latestGripper);
+                Debug.Log("[UDP Receiver] Teleported robot joints and gripper instantly to target/waypoint pose.");
+            }
         }
 
         // Software Virtual Damping: Smoothly interpolate activeTargets towards latestAngles
