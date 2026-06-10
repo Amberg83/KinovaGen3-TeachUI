@@ -12,5 +12,8 @@ customtkinter>=5.2.0
 # Python Imaging Library for loading and tinting interface icons
 Pillow>=10.0.0
 
+# Tkinter native SVG vector rendering support
+tksvg>=0.5.6
+
 # Kinova Gen3 Robotics API (Local wheel)
 ./kortex_api-2.8.0.post5-py3-none-any.whl

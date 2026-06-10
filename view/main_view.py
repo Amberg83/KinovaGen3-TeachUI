@@ -52,7 +52,7 @@ class RobotView:
 
         # Connection status badge (Center-aligned using geometric placement)
         self.lbl_status = theme.make_label(
-            status_frame, text=" DISCONNECTED", image=theme.get_icon("disconnected"),
+            status_frame, text=" DISCONNECTED", image=theme.get_icon("disconnected", tint=theme.TEXT_MUTED),
             compound="left", font=theme.FONT_BOLD, fg_color=theme.BG_INPUT,
             text_color=theme.TEXT_MUTED, padx=15, pady=4, corner_radius=4
         )
@@ -374,7 +374,7 @@ class RobotView:
             if state.is_connected:
                 self.lbl_status.configure(
                     text=f" CONNECTED: {current_conn_state[1]} ({current_conn_state[2]}-DOF)",
-                    image=theme.get_icon("connected"),
+                    image=theme.get_icon("connected", tint="#93c5fd"),
                     compound="left",
                     fg_color="#172554",   # Deep dark navy-blue background
                     text_color="#93c5fd"    # Bright sky-blue text
@@ -382,7 +382,7 @@ class RobotView:
             else:
                 self.lbl_status.configure(
                     text=" DISCONNECTED",
-                    image=theme.get_icon("disconnected"),
+                    image=theme.get_icon("disconnected", tint=theme.TEXT_MUTED),
                     compound="left",
                     fg_color=theme.BG_INPUT,
                     text_color=theme.TEXT_MUTED
@@ -398,7 +398,7 @@ class RobotView:
                 if state.has_fault:
                     self.lbl_fault_badge.configure(
                         text="ARM FAULT ACTIVE", 
-                        image=theme.get_icon("fault"),
+                        image=theme.get_icon("fault", tint=theme.TEXT_PRIMARY),
                         compound="left",
                         fg_color=theme.ACCENT_RED, 
                         text_color=theme.TEXT_PRIMARY
@@ -406,7 +406,7 @@ class RobotView:
                 else:
                     self.lbl_fault_badge.configure(
                         text="SYSTEM HEALTHY", 
-                        image=theme.get_icon("healthy"),
+                        image=theme.get_icon("healthy", tint="#a7f3d0"),
                         compound="left",
                         fg_color="#064e3b",   # Rich dark emerald background
                         text_color="#a7f3d0"    # Soft mint green foreground

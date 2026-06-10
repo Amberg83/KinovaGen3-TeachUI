@@ -4,7 +4,7 @@
             360.0,
             50.01,
             263.99,
-            360.0,
+            0.0,
             58.0,
             90.0
         ],
@@ -22,130 +22,15 @@
     },
     {
         "pos": [
-            3.1,
-            49.72,
-            263.93,
-            276.52,
-            87.85,
-            123.81
+            6.51,
+            42.64,
+            314.52,
+            4.21,
+            88.44,
+            176.25
         ],
         "type": "action",
-        "duration_s": 2.73,
-        "max_velocities": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-        ],
-        "pause_s": 0.0
-    },
-    {
-        "type": "pause",
-        "duration_s": 1.0,
-        "pause_s": 1.0
-    },
-    {
-        "pos": [
-            3.79,
-            49.04,
-            263.92,
-            293.77,
-            110.81,
-            128.37
-        ],
-        "type": "action",
-        "duration_s": 0.5,
-        "max_velocities": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-        ],
-        "pause_s": 0.0
-    },
-    {
-        "pos": [
-            3.98,
-            48.94,
-            263.93,
-            260.58,
-            71.62,
-            126.4
-        ],
-        "type": "action",
-        "duration_s": 0.73,
-        "max_velocities": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-        ],
-        "pause_s": 0.0
-    },
-    {
-        "pos": [
-            3.79,
-            49.04,
-            263.92,
-            293.77,
-            110.81,
-            128.37
-        ],
-        "type": "action",
-        "duration_s": 0.73,
-        "max_velocities": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-        ],
-        "pause_s": 0.0
-    },
-    {
-        "pos": [
-            3.98,
-            48.94,
-            263.93,
-            260.58,
-            71.62,
-            126.4
-        ],
-        "type": "action",
-        "duration_s": 0.73,
-        "max_velocities": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-        ],
-        "pause_s": 0.0
-    },
-    {
-        "type": "pause",
-        "duration_s": 1.0,
-        "pause_s": 1.0
-    },
-    {
-        "pos": [
-            359.29,
-            79.18,
-            320.07,
-            13.17,
-            4.63,
-            82.8
-        ],
-        "type": "action",
-        "duration_s": 1.78,
+        "duration_s": 1.4,
         "max_velocities": [
             0.0,
             0.0,
@@ -159,50 +44,6 @@
     {
         "type": "gripper",
         "duration_s": 1.5,
-        "pause_s": 0.0,
-        "gripper_state": "pickup",
-        "gripper_duration": "medium",
-        "gripper_target_pos": 50.0,
-        "gripper_speed_ratio": 0.5
-    },
-    {
-        "type": "gripper",
-        "gripper_state": "open",
-        "gripper_duration": "medium",
-        "gripper_target_pos": 0.0,
-        "gripper_speed_ratio": 0.5,
-        "duration_s": 1.5
-    },
-    {
-        "pos": [
-            8.06,
-            72.31,
-            286.96,
-            277.14,
-            87.98,
-            125.44
-        ],
-        "type": "action",
-        "duration_s": 1.54,
-        "max_velocities": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-        ],
-        "pause_s": 0.0
-    },
-    {
-        "type": "pause",
-        "duration_s": 1.5,
-        "pause_s": 1.5
-    },
-    {
-        "type": "gripper",
-        "duration_s": 1.5,
-        "pause_s": 0.0,
         "gripper_state": "closed",
         "gripper_duration": "fast",
         "gripper_target_pos": 100.0,
@@ -210,15 +51,15 @@
     },
     {
         "pos": [
-            24.5,
-            72.76,
-            291.56,
-            291.0,
-            77.91,
-            124.2
+            6.51,
+            42.41,
+            314.52,
+            4.21,
+            119.47,
+            176.25
         ],
         "type": "action",
-        "duration_s": 2.08,
+        "duration_s": 1.23,
         "max_velocities": [
             0.0,
             0.0,
@@ -231,15 +72,61 @@
     },
     {
         "pos": [
-            5.33,
-            68.75,
-            278.77,
-            275.6,
-            90.24,
-            118.33
+            6.51,
+            42.03,
+            314.52,
+            4.21,
+            52.84,
+            176.25
         ],
         "type": "action",
-        "duration_s": 2.23,
+        "duration_s": 2.25,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "type": "pause",
+        "duration_s": 4.0
+    },
+    {
+        "pos": [
+            6.51,
+            42.41,
+            314.52,
+            4.21,
+            119.47,
+            176.25
+        ],
+        "type": "action",
+        "duration_s": 2.25,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "pos": [
+            6.51,
+            42.03,
+            314.52,
+            4.21,
+            52.84,
+            176.25
+        ],
+        "type": "action",
+        "duration_s": 2.25,
         "max_velocities": [
             0.0,
             0.0,

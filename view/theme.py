@@ -3,6 +3,10 @@ from tkinter import ttk
 import os
 import customtkinter as ctk
 from PIL import Image
+import warnings
+
+# Suppress CustomTkinter warning since we handle vector SVG scaling manually in get_icon
+warnings.filterwarnings("ignore", category=UserWarning, message=".*Given image is not CTkImage.*")
 
 # Initialize customtkinter default dark styles
 ctk.set_appearance_mode("dark")
@@ -53,41 +57,48 @@ best_font_family = _get_best_font_family(FONT_NORMAL[0])
 TTK_FONT_NORMAL = (best_font_family, 10, "normal")
 TTK_FONT_BOLD = (best_font_family, 10, "bold")
 
+import tksvg
+
 # --- IMAGE / ICON CACHE MANAGER ---
 _icon_cache = {}
 current_scaling = 1.0
 
-def get_icon(name, tint=None):
-    """Retrieves a cached CTkImage by its asset filename, optionally tinting it on the fly using Pillow."""
-    cache_key = (name, tint)
+def get_icon(name, tint=None, size=(24, 24)):
+    """Retrieves a cached tksvg.SvgImage by its asset filename, optionally tinting it by modifying XML data."""
+    # Ensure name is clean and lacks extensions
+    name_base = name.replace(".png", "").replace(".svg", "")
+    tint_color = tint or TEXT_PRIMARY
+    
+    cache_key = (name_base, tint_color, size)
     if cache_key not in _icon_cache:
         assets_dir = os.path.join(os.path.dirname(__file__), "assets")
-        path = os.path.join(assets_dir, f"{name}.png")
+        path = os.path.join(assets_dir, f"{name_base}.svg")
         if os.path.exists(path):
             try:
-                img = Image.open(path).convert("RGBA")
-                if tint is not None:
-                    # Deconstruct hex color
-                    hex_color = tint.lstrip("#")
-                    r = int(hex_color[0:2], 16)
-                    g = int(hex_color[2:4], 16)
-                    b = int(hex_color[4:6], 16)
-                    
-                    # Split into channels
-                    r_chan, g_chan, b_chan, a_chan = img.split()
-                    # Create solid target color canvas
-                    color_img = Image.new("RGB", img.size, (r, g, b))
-                    # Composite color image onto transparent canvas using original alpha as mask
-                    img = Image.composite(color_img, Image.new("RGBA", img.size, (0, 0, 0, 0)), a_chan)
+                with open(path, "r", encoding="utf-8") as f:
+                    svg_xml = f.read()
                 
-                # Use CTkImage for native HiDPI vectorial scaling
-                # CTkImage handles scaling automatically on high-res displays
-                ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-                ctk_img._icon_name = name
-                ctk_img._icon_tint = tint
-                _icon_cache[cache_key] = ctk_img
+                # Apply dynamic tinting by injecting fill attribute in root <svg> tag
+                svg_xml = svg_xml.replace("<svg ", f'<svg fill="{tint_color}" ')
+                
+                # Calculate physical pixel size for DPI scaling
+                scaled_w = int(size[0] * current_scaling)
+                scaled_h = int(size[1] * current_scaling)
+                
+                # Dynamically resize the SVG canvas to scaled width and height in the XML markup
+                import re
+                svg_xml = re.sub(r'width="\d+"', f'width="{scaled_w}"', svg_xml)
+                svg_xml = re.sub(r'height="\d+"', f'height="{scaled_h}"', svg_xml)
+                
+                svg_img = tksvg.SvgImage(data=svg_xml)
+                
+                # Attach original icon metadata for FlatButton state updates
+                svg_img._icon_name = name_base
+                svg_img._icon_tint = tint
+                
+                _icon_cache[cache_key] = svg_img
             except Exception as e:
-                print(f"Error loading/tinting icon '{name}' with Pillow: {e}")
+                print(f"Error loading/tinting SVG icon '{name_base}': {e}")
                 _icon_cache[cache_key] = ""
         else:
             print(f"Icon asset path does not exist: {path}")

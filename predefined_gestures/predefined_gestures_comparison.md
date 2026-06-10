@@ -1,60 +1,62 @@
 # Predefined Gestures Comparison Analysis
 
-This document provides a highly detailed step-by-step structural and behavioral analysis comparing the transitions between the four core predefined gestures (`1.json` $\rightarrow$ `2.json` $\rightarrow$ `3.json` $\rightarrow$ `4.json`).
+This document provides a precise, step-by-step structural and behavioral analysis comparing the transitions between the four core predefined gestures (`1.json` $\rightarrow$ `2.json` $\rightarrow$ `3.json` $\rightarrow$ `4.json`).
 
 ---
 
 ## Workspace Directory & File Status
 *   **Path**: `predefined_gestures/`
 *   **Gestures Identified**:
-    *   `1.json`: 13 steps (raw stop-and-go trajectory actions)
-    *   `2.json`: 16 steps (restructured segments with 2.0s stabilization pauses)
-    *   `3.json`: 16 steps (time-optimized high-speed variant with accelerated gripper)
-    *   `4.json`: 16 steps (fully optimized using optimal blending and angular waypoints)
+    *   [1.json](file:///c:/Users/roman/Documents/GitProjects/KinovaGen3-TeachUI/predefined_gestures/1.json): **6 steps** (base trajectory sequence)
+    *   [2.json](file:///c:/Users/roman/Documents/GitProjects/KinovaGen3-TeachUI/predefined_gestures/2.json): **8 steps** (sequence with added gripper action and stabilization pause)
+    *   [3.json](file:///c:/Users/roman/Documents/GitProjects/KinovaGen3-TeachUI/predefined_gestures/3.json): **8 steps** (sequence with optimized trajectory duration, accelerated gripper, and lengthened pause)
+    *   [4.json](file:///c:/Users/roman/Documents/GitProjects/KinovaGen3-TeachUI/predefined_gestures/4.json): **8 steps** (sequence utilizing blended angular waypoints with optimized joint durations)
 
 ---
 
-## Detailed Transition Logs
+## Step-by-Step Step Mapping Table
 
-### 1. Gesture 1 $\rightarrow$ Gesture 2: Stabilization Pauses & Added End-Effector Operations
-Gesture 2 expands the sequence from **13 steps to 16 steps** by adding stabilization pauses and appending final retreat actions:
-
-*   **Stabilization Pauses (Sequence Separation)**:
-    *   **Step 2**: Converted from an `"action"` waypoint to a **`2.0` second pause step**. This separates the initial home pose setup from the head-nod motion.
-    *   **Step 7**: Converted from a gripper closed command to a **`2.0` second pause step** to stabilize the arm before performing pick/place telemetry.
-    *   **Step 12**: Converted from a waypoint movement `"action"` to a **`2.0` second pause step**.
-*   **Trajectory Restructuring & Added Motions**:
-    *   Steps 3, 4, 5, and 6 are adjusted to re-sequence the head-nod coordinates and durations (e.g., J4, J5 wrist alignments and a duration shift from `1.46s` down to `1.0s` on Step 3).
-    *   **Steps 13, 14, and 15 (ADDED)**: 
-        *   **Step 13**: Gripper closes (`100%`) at medium speed over `1.5s`.
-        *   **Step 14 & 15**: Added two final linear Cartesian `"action"` waypoints to smoothly complete the path and return the arm to its base.
+| Step Index | Gesture 1 (`1.json`) | Gesture 2 (`2.json`) | Gesture 3 (`3.json`) | Gesture 4 (`4.json`) |
+| :---: | :--- | :--- | :--- | :--- |
+| **1** | `action` (0.12s) | `action` (0.12s) | `action` (0.12s) | `action` (0.12s) |
+| **2** | `action` (2.81s) | `action` (2.81s) | `action` (1.40s) <br> *(Accelerated)* | `action` (1.40s) |
+| **3** | `action` (1.23s) | `gripper` (1.50s) <br> *(Medium speed)* | `gripper` (1.50s) <br> *(Fast speed)* | `gripper` (1.50s) |
+| **4** | `action` (2.25s) | `action` (1.23s) | `action` (1.23s) | `action` (1.23s) |
+| **5** | `action` (2.25s) | `action` (2.25s) | `action` (2.25s) | `action` (2.25s) |
+| **6** | `action` (2.25s) | `pause` (2.00s) <br> *(Added)* | `pause` (4.00s) <br> *(Lengthened)* | `pause` (4.00s) |
+| **7** | — | `action` (2.25s) | `action` (2.25s) | `angularwaypoint` (1.70s) <br> *(Blended & Fast)* |
+| **8** | — | `action` (2.25s) | `action` (2.25s) | `angularwaypoint` (1.70s) <br> *(Blended & Fast)* |
 
 ---
 
-### 2. Gesture 2 $\rightarrow$ Gesture 3: Speed Optimization & Gripper Acceleration
-Gesture 3 preserves the identical 16-step structure of Gesture 2 but dramatically scales the **durations and speed profiles** to make the gesture twice as fast:
+## Detailed Transition Breakdown
 
-*   **Duration Halving (2x Joint Speedup)**:
-    *   **Step 3** (nod entry): `1.0s` $\rightarrow$ **`0.5s`**
-    *   **Steps 4, 5, and 6** (head-nods): `1.46s` $\rightarrow$ **`0.73s`**
-    *   **Step 8** (telemetry approach): `3.56s` $\rightarrow$ **`1.78s`**
-    *   **Step 11** (post-pickup lift): `3.09s` $\rightarrow$ **`1.54s`**
-*   **Pause Tightening**:
-    *   **Step 2 & 7** pauses: `2.0s` $\rightarrow$ **`1.0s`**
-    *   **Step 12** pause: `2.0s` $\rightarrow$ **`1.5s`**
-*   **Gripper Acceleration**:
-    *   **Step 13** (pickup closure): The speed profile is accelerated from `"medium"` (`0.5` speed ratio) to **`"fast"` (`0.0` speed ratio, positioning mode)** for immediate mechanical reaction.
-*   **Final Cool-down Deceleration**:
-    *   **Steps 14 & 15**: The final retreat motions are slowed down to double their durations (`1.04s` $\rightarrow$ **`2.08s`**, `1.11s` $\rightarrow$ **`2.23s`**) to prevent high-velocity whips at sequence completion.
+### 1. Gesture 1 $\rightarrow$ Gesture 2: Added Gripper Control & Pause Separation
+Gesture 2 expands the sequence from **6 steps to 8 steps** by inserting physical interactions:
+*   **Step 3 (Inserted Gripper Command)**:
+    *   Adds a `"gripper"` step to close the fingers (`gripper_target_pos = 100.0%`).
+    *   Configured with `"medium"` speed duration (`gripper_speed_ratio = 0.5`).
+*   **Step 6 (Inserted Stabilization Pause)**:
+    *   Adds a `"pause"` step lasting **`2.0` seconds** right after the first motion segment, stabilizing the end-effector.
+*   *Note: Because of these insertions, the original motion steps shift down in index.*
 
 ---
 
-### 3. Gesture 3 $\rightarrow$ Gesture 4: Blended Trajectory Optimization
-Gesture 4 shares the identical speeds, gripper commands, and coordinates of Gesture 3. The key difference is a **motion controller optimization**:
+### 2. Gesture 2 $\rightarrow$ Gesture 3: Motion Speedups & Pause Adjustment
+Gesture 3 maintains the identical 8-step structure of Gesture 2 but optimizes velocities and time allocations:
+*   **Step 2 Acceleration**:
+    *   The second motion segment's duration is halved from `2.81`s to **`1.40`s** (approximately 2x speedup).
+*   **Step 3 Gripper Speedup**:
+    *   The gripper closure transition is accelerated from `"medium"` (`gripper_speed_ratio = 0.5`) to `"fast"` (`gripper_speed_ratio = 0.0`, direct positioning).
+*   **Step 6 Pause Extension**:
+    *   The stabilization pause is increased from `2.0` seconds to **`4.0` seconds** to allow more delay in the cycle.
 
-*   **`action` $\rightarrow$ `angularwaypoint` Conversion**:
-    *   **Steps 3, 4, 5, and 6** are transformed from standalone Cartesian `"action"` steps to **`"angularwaypoint"`** steps.
-    *   **Steps 14 and 15** are also transformed from `"action"` to **`"angularwaypoint"`** steps.
-*   **The Technical Impact**: 
-    *   Standard `"action"` waypoints execute as discrete stop-and-go targets, causing jerky, segment-by-segment movements.
-    *   Changing them to `"angularwaypoint"` enables the Kortex controller to apply **optimal blending algorithms** (`wp_list.use_optimal_blending = True` in `replay_engine.py`). This allows the robotic joint trajectories to flow continuously through points 3, 4, 5, and 6 without stopping, converting the jerky head-nod into a single, perfectly smooth, fluid gesture.
+---
+
+### 3. Gesture 3 $\rightarrow$ Gesture 4: Blended Trajectory Conversion
+Gesture 4 maintains the identical steps, gripper settings, and pauses of Gesture 3 but optimizes the final movements using joint-level path blending:
+*   **Steps 7 & 8 Controller Type Optimization**:
+    *   Changed from standard discrete `"action"` steps to **`"angularwaypoint"`** steps.
+    *   This enables the Kinova Kortex controller's **optimal blending algorithm** (`use_optimal_blending = True`), allowing the joints to transition fluidly between the two final poses without stopping.
+*   **Steps 7 & 8 Duration Reduction**:
+    *   The movement durations for both steps are reduced from `2.25`s to **`1.70`s**, further accelerating the final phase of the gesture.

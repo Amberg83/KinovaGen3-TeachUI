@@ -4,6 +4,7 @@ import json
 import time
 import logging
 import queue
+import threading
 import tkinter as tk
 import customtkinter as ctk
 from hardware import KinovaHardware, MockKinovaHardware
@@ -159,12 +160,25 @@ def main():
     
     def on_closing():
         logging.getLogger("Main").info("Closing application...")
-        try:
-            udp_transmitter.close()
-        except Exception as e:
-            logging.getLogger("Main").error(f"Error during UDP cleanup: {e}")
-        hardware.disconnect(block_sound=True)
+        # Hide the UI window immediately so the user sees it close instantly
+        root.withdraw()
         root.destroy()
+
+        # Start a background non-daemon thread to perform cleanup and disconnect the robot.
+        # A non-daemon thread ensures the Python process remains alive until it finishes.
+        def cleanup():
+            try:
+                udp_transmitter.close()
+            except Exception as e:
+                logging.getLogger("Main").error(f"Error during UDP cleanup: {e}")
+            try:
+                hardware.disconnect(block_sound=True)
+            except Exception as e:
+                logging.getLogger("Main").error(f"Error during hardware disconnect: {e}")
+            logging.getLogger("Main").info("Cleanup complete. Process exiting.")
+
+        cleanup_thread = threading.Thread(target=cleanup, daemon=False)
+        cleanup_thread.start()
         
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Control Cheat Sheet</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #f8fafc;
+            --container-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --primary: #0284c7;
+            --primary-dark: #0f172a;
+            --border-color: #e2e8f0;
+            --alert-bg: #f0f9ff;
+            --alert-border: #0284c7;
+            --card-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .cheat-sheet-container {
+            background-color: var(--container-bg);
+            width: 100%;
+            max-width: 900px;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--primary-dark);
+            margin-top: 0;
+            margin-bottom: 35px;
+            font-size: 34px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 28px;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .alert-box {
+            background-color: var(--alert-bg);
+            color: var(--text-muted);
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 16.5px;
+            margin-bottom: 30px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .custom-icon {
+            display: inline-block;
+            vertical-align: middle;
+            stroke: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .header-icon {
+            stroke: var(--primary-dark);
+        }
+
+        .material-symbols-outlined {
+            font-size: 28px;
+            display: inline-block;
+            vertical-align: middle;
+            color: var(--primary);
+            margin-right: 12px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .card-header .material-symbols-outlined {
+            font-size: 30px;
+            color: var(--primary-dark);
+            margin-right: 10px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 18px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: var(--card-bg);
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 17px;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .action-cell {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .pill {
+            display: inline-block;
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 13.5px;
+            font-weight: 600;
+            margin: 3px 2px;
+            white-space: nowrap;
+        }
+
+        .pill.fast {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pill.med {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .pill.slow {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        /* Dedicated print overrides optimized for A4 portrait */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+                min-height: auto !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .cheat-sheet-container {
+                max-width: 100% !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+
+            h1 {
+                font-size: 30px !important;
+                margin-bottom: 28px !important;
+                padding-bottom: 20px !important;
+                border-bottom: 2.5px solid #1e293b !important;
+            }
+
+            h2 {
+                font-size: 22px !important;
+                margin-top: 32px !important;
+                margin-bottom: 16px !important;
+                padding-bottom: 8px !important;
+                color: #0284c7 !important;
+                border-bottom: 1.5px solid #cbd5e1 !important;
+            }
+
+            .alert-box {
+                padding: 14px 20px !important;
+                font-size: 15.5px !important;
+                margin-bottom: 24px !important;
+                background-color: #f0f9ff !important;
+            }
+
+            .material-symbols-outlined {
+                font-size: 24px !important;
+                color: #0284c7 !important;
+                margin-right: 10px !important;
+            }
+
+            .card-header .material-symbols-outlined {
+                font-size: 26px !important;
+                color: #0f172a !important;
+                margin-right: 8px !important;
+            }
+
+            .mode-grid {
+                gap: 24px !important;
+            }
+
+            .card {
+                padding: 24px !important;
+                border: 1.5px solid #cbd5e1 !important;
+                background-color: #f8fafc !important;
+                border-radius: 10px !important;
+                page-break-inside: avoid !important;
+            }
+
+            .card-header {
+                font-size: 18px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .card p {
+                font-size: 15px !important;
+                line-height: 1.6 !important;
+            }
+
+            table {
+                margin-top: 15px !important;
+                page-break-inside: avoid !important;
+            }
+
+            th,
+            td {
+                padding: 16px 20px !important;
+                border-bottom: 1.5px solid #cbd5e1 !important;
+            }
+
+            th {
+                font-size: 14px !important;
+                background-color: #f8fafc !important;
+            }
+
+            td {
+                font-size: 15.5px !important;
+                line-height: 1.6 !important;
+            }
+
+            .pill {
+                padding: 5px 12px !important;
+                font-size: 12px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cheat-sheet-container">
+        <h1>
+            Robot Control Quick-Reference
+        </h1>
+
+        <h2>1. Control Modes</h2>
+        <div class="mode-grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="material-symbols-outlined">open_with</span>
+                    Free-Drive
+                </div>
+                <p><strong>Move joints freely.</strong> Unlocks all joints so you can manually guide the arm exactly how
+                    you want it.</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="material-symbols-outlined">sync_lock</span>
+                    Fixed-Angle
+                </div>
+                <p><strong>Lock orientation.</strong> Move the arm anywhere in space, but the gripper will stay pointing
+                    in its current direction.</p>
+            </div>
+        </div>
+
+        <h2>2. Movement & Gesture Settings</h2>
+        <div class="alert-box">
+            <span class="material-symbols-outlined">info</span>
+            Default Setting: Unless changed, all points are automatically saved at Medium Speed.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Settings Available</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="action-cell">
+                            <span class="material-symbols-outlined">step</span>
+                            Standard Move
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pill fast">Fast</span>
+                        <span class="pill med">Medium</span>
+                        <span class="pill slow">Slow</span>
+                    </td>
+                    <td>Direct, point-to-point movement.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="action-cell">
+                            <span class="material-symbols-outlined">timeline</span>
+                            Smooth Move
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pill fast">Fast</span>
+                        <span class="pill med">Medium</span>
+                        <span class="pill slow">Slow</span>
+                    </td>
+                    <td>Blended, curved movement for fluid transitions.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="action-cell">
+                            <span class="material-symbols-outlined">hourglass</span>
+                            Pause / Wait
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pill">__ Seconds</span>
+                    </td>
+                    <td>Tell the robot to hold its position for a set time.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="action-cell">
+                            <span class="material-symbols-outlined">precision_manufacturing</span>
+                            Gripper Action
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pill">Open</span>
+                        <span class="pill">Pick</span>
+                        <span class="pill">Close</span>
+                        <span class="pill fast">Fast</span>
+                        <span class="pill med">Medium</span>
+                        <span class="pill slow">Slow</span>
+                    </td>
+                    <td>Control the claws to grab or release objects.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>
