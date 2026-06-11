@@ -15,6 +15,7 @@ class RobotController:
         self.view = view
         self.model = model
         self.hardware = hardware
+        self._is_initial_connection = True
         
         # Instantiate encapsulated study manager
         self.study_manager = StudyManager(participant_id, is_review_mode=is_review_mode)
@@ -30,6 +31,7 @@ class RobotController:
         EventBus.subscribe("sequence_updated", self.view.on_sequence_changed)
         EventBus.subscribe("hardware_telemetry_updated", self.view.on_hardware_state_changed)
         EventBus.subscribe("play_predefined_gesture", self.handle_play_predefined_gesture)
+        EventBus.subscribe("robot_connected", self.handle_robot_connected)
         
         # Bind abstract intents from the View to Controller actions
         self.view.bind_commands({
@@ -86,10 +88,38 @@ class RobotController:
                     self.model.load_from_json(filepath)
             else:
                 # Automatically move to default and save initial pose on startup for normal study
-                self._move_to_default_and_save_pose()
+                # Homing and recording starting pose will be triggered by handle_robot_connected on connection
+                pass
 
         self.logger.info("Application initialized. Dashboard active.")
         self.root.after(100, self.handle_initial_connect)
+
+    def handle_robot_connected(self):
+        """Callback triggered automatically when the robot connects successfully."""
+        self.logger.info("Robot connected event received in Controller.")
+        
+        # Check if this is the initial startup connection
+        is_initial = self._is_initial_connection
+        self._is_initial_connection = False
+        
+        if self.study_manager.study_mode:
+            if getattr(self.study_manager, "review_mode", False):
+                # Review Mode: Never move to default or save initial pose
+                self.logger.info("Review Mode active: skipping automatic homing on connection.")
+                return
+                
+            if is_initial:
+                # Initial connection in Normal Study Mode: Move to default and save initial pose
+                self.logger.info("Initial study mode connection: Homing and recording starting pose...")
+                self._move_to_default_and_save_pose()
+            else:
+                # Reconnection during normal study mode: Home the robot but DO NOT append/save a new pose
+                self.logger.info("Reconnection during study mode: Homing robot (without appending pose)...")
+                threading.Thread(target=self.hardware.move_to_default, daemon=True).start()
+        else:
+            # Standard Mode (startup or reconnection): Automatically move to default position
+            self.logger.info("Standard mode connection/reconnection: Homing robot...")
+            self.handle_move_default()
 
     def handle_initial_connect(self):
         threading.Thread(target=self.hardware.connect, daemon=True).start()

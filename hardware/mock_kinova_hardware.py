@@ -98,7 +98,6 @@ class MockKinovaHardware:
         
         self.logger.info("[Mock] Connection successful! Simulated 6-DOF robotic arm ready.")
         EventBus.publish("robot_connected")
-        self.move_to_default()
         return True, "Successfully connected to mock robot"
 
     def disconnect(self, block_sound=False):

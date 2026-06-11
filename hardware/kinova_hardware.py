@@ -151,7 +151,6 @@ class KinovaHardware:
             
             self.logger.info(f"Connection successful! Hardware detected as a {self.state.dof}-DOF robotic arm.")
             EventBus.publish("robot_connected")
-            self.move_to_default()
             return True, f"Successfully connected to {self.ip}"
             
         except Exception as e:

@@ -284,7 +284,7 @@ class StudyManager:
     def _generate_balanced_latin_square_order(self, pid_int, n_tasks):
         """
         Generates a balanced Latin Square sequence using Williams' design.
-        Williams' Latin Square requires N to be even (which is always true for this study: N=4).
+        Williams' Latin Square requires N to be even.
         """
         if n_tasks <= 0 or n_tasks % 2 != 0:
             # Fallback to cyclic shift if N is somehow not even
