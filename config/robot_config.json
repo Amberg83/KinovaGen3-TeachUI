@@ -1,5 +1,12 @@
 {
-    "default_pose": [0.0, 50.0, 264.0, 0.0, 58.0, 90.0],
+    "default_pose": [
+        0.0,
+        70.0,
+        264.0,
+        0.0,
+        58.0,
+        90.0
+    ],
     "default_gripper_pos": 0.0,
     "gripper_limits": {
         "open_angle_deg": 0.0,
