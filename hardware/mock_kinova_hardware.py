@@ -50,9 +50,14 @@ class MockKinovaHardware:
                 with open(rob_path, "r", encoding="utf-8") as f:
                     cfg = json.load(f)
                     self.default_pose = list(cfg.get("default_pose", self.default_pose))
-                    self.default_gripper_pos = float(cfg.get("default_gripper_pos", 0.0))
                     self.gripper_presets = cfg.get("gripper_presets", self.gripper_presets)
                     self.gripper_speed_presets = cfg.get("gripper_speed_presets", self.gripper_speed_presets)
+                    
+                    default_g = cfg.get("default_gripper_pos", 0.0)
+                    if isinstance(default_g, str):
+                        self.default_gripper_pos = float(self.gripper_presets.get(default_g.lower(), 0.0))
+                    else:
+                        self.default_gripper_pos = float(default_g)
                     
                     conn = cfg.get("hardware_connection", {})
                     self.connection_timeout_ms = int(conn.get("connection_timeout_ms", 10000))

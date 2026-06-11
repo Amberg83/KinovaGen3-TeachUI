@@ -7,7 +7,7 @@
         58.0,
         90.0
     ],
-    "default_gripper_pos": 0.0,
+    "default_gripper_pos": "pickup",
     "gripper_limits": {
         "open_angle_deg": 0.0,
         "closed_angle_deg": 40.0

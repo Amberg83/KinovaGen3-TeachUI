@@ -424,28 +424,31 @@ class RobotView:
 
     # ================= STUDY MODE WIDGET DECORATIONS =================
 
-    def enable_study_mode(self, pid, first_task, current_idx, total_count, on_completed_callback):
+    def enable_study_mode(self, pid, first_task, counter_text, on_completed_callback):
         """Builds a beautiful premium banner panel representing participant task progress."""
         # Instantiate secondary projector window
         self.referent_window = ReferentDisplayWindow(self.root)
         self.referent_window.update_task(
-            first_task["name"], first_task["instructions"], current_idx, total_count
+            first_task["name"], first_task["instructions"], counter_text
         )
 
         self.study_banner = ctk.CTkFrame(
             self.root, fg_color=theme.BG_CARD, corner_radius=6,
-            border_color=theme.ACCENT_CYBER, border_width=1
+            border_color=theme.ACCENT_CYBER, border_width=1,
+            height=120
         )
+        self.study_banner.grid_propagate(False)
         # Pack right beneath the main status_frame
         self.study_banner.pack(fill="x", before=self.root.pack_slaves()[1], padx=10, pady=(5, 0))
         
         # Grid layout for high-density information
-        self.study_banner.columnconfigure(0, weight=1)
-        self.study_banner.columnconfigure(1, weight=3)
+        self.study_banner.rowconfigure(0, weight=1)
+        self.study_banner.columnconfigure(0, weight=0)
+        self.study_banner.columnconfigure(1, weight=1)
         self.study_banner.columnconfigure(2, weight=0)
         
         info_frame = ctk.CTkFrame(self.study_banner, fg_color=theme.BG_CARD, corner_radius=0)
-        info_frame.grid(row=0, column=0, sticky="w", padx=15, pady=10)
+        info_frame.grid(row=0, column=0, sticky="w", padx=15, pady=5)
         
         self.lbl_study_p = theme.make_label(
             info_frame, text=f" Participant: #{pid}", image=theme.get_icon("participant"), compound="left",
@@ -454,31 +457,45 @@ class RobotView:
         self.lbl_study_p.pack(anchor="w")
         
         self.lbl_study_counter = theme.make_label(
-            info_frame, text=f" Task {current_idx}/{total_count}", image=theme.get_icon("task"), compound="left",
+            info_frame, text=f" {counter_text}", image=theme.get_icon("task"), compound="left",
             font=theme.FONT_BOLD, fg_color=theme.BG_CARD, text_color=theme.ACCENT_CYBER
         )
         self.lbl_study_counter.pack(anchor="w", pady=(2, 0))
         
-        inst_frame = ctk.CTkFrame(self.study_banner, fg_color=theme.BG_CARD, corner_radius=0)
-        inst_frame.grid(row=0, column=1, sticky="w", padx=20, pady=10)
+        # Scrollable container for active task name and instructions (prevents overflow, allows scaling)
+        self.inst_frame = ctk.CTkScrollableFrame(
+            self.study_banner, fg_color=theme.BG_CARD, height=60, orientation="vertical"
+        )
+        self.inst_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=5)
         
         self.lbl_task_name = theme.make_label(
-            inst_frame, text=f"Active Referent: {first_task['name']}", 
+            self.inst_frame, text=f"Active Referent: {first_task['name']}", 
             font=(theme.FONT_NORMAL[0], theme.FONT_NORMAL[1] + 1, "bold"), 
-            fg_color=theme.BG_CARD, text_color=theme.TEXT_PRIMARY
+            fg_color="transparent", text_color=theme.TEXT_PRIMARY
         )
-        self.lbl_task_name.pack(anchor="w")
+        self.lbl_task_name.pack(anchor="w", fill="x")
         
         self.lbl_task_desc = theme.make_label(
-            inst_frame, text=first_task["instructions"], 
-            font=theme.FONT_NORMAL, fg_color=theme.BG_CARD, text_color=theme.TEXT_MUTED,
-            justify="left", wraplength=800
+            self.inst_frame, text=first_task["instructions"], 
+            font=theme.FONT_NORMAL, fg_color="transparent", text_color=theme.TEXT_MUTED,
+            justify="left"
         )
-        self.lbl_task_desc.pack(anchor="w", pady=(2, 0))
+        self.lbl_task_desc.pack(anchor="w", pady=(2, 0), fill="x")
         
-        # Group study control buttons side-by-side in a container
+        # Bind resize configuration event to dynamically wrap labels inside this scrollable frame
+        def adjust_wrap(event):
+            scaling = self.root._get_window_scaling()
+            logical_width = event.width / scaling
+            # Allocate space for padding and scrollbar
+            wrap_w = max(200, int(logical_width - 40))
+            self.lbl_task_name.configure(wraplength=wrap_w)
+            self.lbl_task_desc.configure(wraplength=wrap_w)
+            
+        self.inst_frame.bind("<Configure>", adjust_wrap)
+        
+        # Group study control buttons stacked vertically in a container
         btn_control_frame = ctk.CTkFrame(self.study_banner, fg_color="transparent")
-        btn_control_frame.grid(row=0, column=2, sticky="e", padx=15, pady=10)
+        btn_control_frame.grid(row=0, column=2, sticky="e", padx=15, pady=5)
         
         self.btn_show_presenter = theme.make_flat_button(
             btn_control_frame, text=" Presenter Screen", image=theme.get_icon("lightbulb"), compound="left",
@@ -486,19 +503,19 @@ class RobotView:
             hover_bg=theme.BORDER_COLOR, font_style=theme.FONT_BOLD,
             command=self.show_presenter_window
         )
-        self.btn_show_presenter.pack(side="left", padx=(0, 10))
-
+        self.btn_show_presenter.pack(side="top", fill="x", pady=(0, 4))
+ 
         self.btn_study_next = theme.make_flat_button(
             btn_control_frame, text=" Task Completed / Next Referent", image=theme.get_icon("play"), compound="left",
             bg_color=theme.ACCENT_GREEN, fg_color=theme.BG_MAIN, 
             hover_bg="#059669", font_style=theme.FONT_BOLD, 
             command=on_completed_callback
         )
-        self.btn_study_next.pack(side="left")
- 
+        self.btn_study_next.pack(side="top", fill="x")
+  
         # Predefined Gestures buttons frame initialization
         self.gestures_btn_frame = None
-        self._check_and_create_tutorial_buttons(first_task, inst_frame)
+        self._check_and_create_tutorial_buttons(first_task, self.inst_frame)
 
     def show_presenter_window(self):
         """Displays and focuses the presenter window for beamers/projectors."""
@@ -546,7 +563,7 @@ class RobotView:
                 pass
             self.gestures_btn_frame = None
  
-    def update_study_task(self, task, current_idx, total_count):
+    def update_study_task(self, task, counter_text):
         """Transitions study banner details smoothly to the next task sequence."""
         if not hasattr(self, "study_banner") or self.study_banner is None:
             return
@@ -554,7 +571,7 @@ class RobotView:
         # Destroy previous buttons first
         self._destroy_tutorial_buttons()
         
-        self.lbl_study_counter.configure(text=f" Task {current_idx}/{total_count}")
+        self.lbl_study_counter.configure(text=f" {counter_text}")
         self.lbl_task_name.configure(text=f"Active Referent: {task['name']}")
         self.lbl_task_desc.configure(text=task["instructions"])
         
@@ -564,7 +581,7 @@ class RobotView:
         # Update secondary projector window
         if hasattr(self, "referent_window") and self.referent_window is not None:
             self.referent_window.update_task(
-                task["name"], task["instructions"], current_idx, total_count
+                task["name"], task["instructions"], counter_text
             )
  
     def show_study_completed(self):
@@ -597,12 +614,6 @@ class RobotView:
         logical_W = event.width / scaling
         logical_H = event.height / scaling
         self.layout_panels(logical_W, logical_H)
-        
-        # Dynamically adjust the wrap length of study banner instructions
-        if hasattr(self, "lbl_task_desc") and self.lbl_task_desc is not None:
-            # Prevent overflowing Column 2 (Next button) by allocating the responsive width
-            wrap_w = max(400, int(logical_W - 500))
-            self.lbl_task_desc.configure(wraplength=wrap_w)
 
     def layout_panels(self, W, H):
         """Precisely calculates and places columns and vertical separators using absolute pixels."""

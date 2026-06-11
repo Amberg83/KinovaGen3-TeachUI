@@ -74,9 +74,18 @@ class RobotController:
             # Display custom participant ID indicator including Review Mode flag in the view
             pid_display = f"{self.study_manager.participant_id} (REVIEW MODE)" if getattr(self.study_manager, "review_mode", False) else self.study_manager.participant_id
             
+            # Construct formatted counter text
+            is_tutorial = (active_task in self.study_manager.tutorials)
+            if is_tutorial:
+                tutorial_idx = self.study_manager.tutorials.index(active_task) + 1
+                counter_text = f"Tutorial {tutorial_idx}"
+            else:
+                main_idx = self.study_manager.current_task_index - len(self.study_manager.tutorials) + 1
+                counter_text = f"Task {main_idx} of {len(self.study_manager.experimental_tasks)}"
+                
             self.view.enable_study_mode(
                 pid_display, active_task, 
-                self.study_manager.current_task_index + 1, self.study_manager.get_total_tasks(), 
+                counter_text, 
                 self.handle_task_completed
             )
             
@@ -521,12 +530,21 @@ class RobotController:
         if not study_completed:
             # Clear current sequence timeline for the next task
             self.model.clear()
+            
+            # Construct formatted counter text
+            is_tutorial = (next_task in self.study_manager.tutorials)
+            if is_tutorial:
+                tutorial_idx = self.study_manager.tutorials.index(next_task) + 1
+                counter_text = f"Tutorial {tutorial_idx}"
+            else:
+                main_idx = self.study_manager.current_task_index - len(self.study_manager.tutorials) + 1
+                counter_text = f"Task {main_idx} of {len(self.study_manager.experimental_tasks)}"
+                
             self.view.update_study_task(
                 next_task, 
-                self.study_manager.current_task_index + 1, 
-                self.study_manager.get_total_tasks()
+                counter_text
             )
-            self.logger.info(f"Transitioned to study task {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()}.")
+            self.logger.info(f"Transitioned to study task index {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()} ({counter_text}).")
             
             # If in Review Mode, load recorded gesture if a file exists, but NEVER move to default or save initial pose
             if getattr(self.study_manager, "review_mode", False):
@@ -619,6 +637,7 @@ class RobotController:
         else:
             self.model.insert_pose(pause_data, after_idx)
         self.logger.info(f"Inserted Pause step after index {after_idx}.")
+        EventBus.publish("waypoint_captured")
         self._auto_save()
 
     def handle_add_gripper(self, after_idx):
@@ -636,4 +655,5 @@ class RobotController:
         else:
             self.model.insert_pose(gripper_data, after_idx)
         self.logger.info(f"Inserted Gripper step after index {after_idx}.")
+        EventBus.publish("waypoint_captured")
         self._auto_save()

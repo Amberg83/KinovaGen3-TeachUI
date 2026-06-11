@@ -42,12 +42,12 @@ class ReferentDisplayWindow(ctk.CTkToplevel):
         # Bind resize event to dynamically adjust wraplength
         self.bind("<Configure>", self._on_resize)
         
-    def update_task(self, name, instructions, current_idx, total_count):
+    def update_task(self, name, instructions, counter_text):
         """Updates the referent display with new details and brings it to front."""
         self.deiconify()  # Ensure window is visible
         self.lift()       # Bring to front
         
-        self.lbl_task_counter.configure(text=f"Task {current_idx} of {total_count}")
+        self.lbl_task_counter.configure(text=counter_text)
         self.lbl_task_desc.configure(text=instructions)
         self._update_wraplength()
 
