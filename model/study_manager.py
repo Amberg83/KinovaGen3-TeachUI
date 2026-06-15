@@ -3,6 +3,7 @@ import json
 import time
 import logging
 import shutil
+import csv
 
 class StudyManager:
     """
@@ -38,18 +39,64 @@ class StudyManager:
                         self.session_creation_timestamp = int(parts[1])
                         self.logger.info(f"Parsed original PID: '{self.participant_id}' and Session Timestamp: {self.session_creation_timestamp}")
             
-            self.tutorials = self._load_or_create_tutorials()
-            self.experimental_tasks = self._load_or_create_referents()
+            # If in review mode, attempt to load the task sequence from the CSV inside the folder
+            csv_loaded = False
+            if self.review_mode:
+                csv_filename = f"study_log-{self.participant_id}-{self.session_creation_timestamp}.csv"
+                session_folder = f"{self.participant_id}-{self.session_creation_timestamp}"
+                csv_path = os.path.join("study_results", session_folder, csv_filename)
+                
+                if os.path.exists(csv_path):
+                    try:
+                        loaded_tasks = []
+                        with open(csv_path, "r", encoding="utf-8") as f:
+                            reader = csv.DictReader(f)
+                            # Strip whitespace from headers
+                            reader.fieldnames = [name.strip() for name in reader.fieldnames] if reader.fieldnames else []
+                            
+                            # Fallbacks for instructions if not present in CSV
+                            normal_ref = {t["id"]: t for t in self._load_or_create_referents()}
+                            normal_tut = {t["id"]: t for t in self._load_or_create_tutorials()}
+                            
+                            for row in reader:
+                                rid_str = row.get("RID", "").strip()
+                                rid = int(rid_str) if rid_str.isdigit() else 0
+                                rname = row.get("RName", "").strip()
+                                
+                                # Use instructions from CSV if available, otherwise fall back to matching configuration
+                                rinstructions = row.get("RInstructions", None)
+                                if rinstructions is not None:
+                                    rinstructions = rinstructions.strip()
+                                else:
+                                    config_task = normal_ref.get(rid) or normal_tut.get(rid)
+                                    rinstructions = config_task["instructions"] if config_task else ""
+                                    
+                                loaded_tasks.append({
+                                    "id": rid,
+                                    "name": rname,
+                                    "instructions": rinstructions,
+                                    "gesture_file": row.get("GestureFile", "").strip()
+                                })
+                        if loaded_tasks:
+                            self.tasks = loaded_tasks
+                            csv_loaded = True
+                            self.logger.info(f"Successfully loaded {len(self.tasks)} tasks from session log CSV at {csv_path}")
+                    except Exception as e:
+                        self.logger.error(f"Error reading session log CSV at {csv_path}: {e}. Falling back to default order.")
             
-            n_experimental = len(self.experimental_tasks)
-            pid_int = int(self.participant_id) if self.participant_id.isdigit() else 1
-            
-            # Reorder experimental tasks first using the balanced Latin Square
-            latin_order = self._generate_balanced_latin_square_order(pid_int, n_experimental)
-            ordered_experimental = [self.experimental_tasks[idx] for idx in latin_order]
-            
-            # Combine tutorials and ordered experimental tasks directly
-            self.tasks = self.tutorials + ordered_experimental
+            if not csv_loaded:
+                self.tutorials = self._load_or_create_tutorials()
+                self.experimental_tasks = self._load_or_create_referents()
+                
+                n_experimental = len(self.experimental_tasks)
+                pid_int = int(self.participant_id) if self.participant_id.isdigit() else 1
+                
+                # Reorder experimental tasks first using the balanced Latin Square
+                latin_order = self._generate_balanced_latin_square_order(pid_int, n_experimental)
+                ordered_experimental = [self.experimental_tasks[idx] for idx in latin_order]
+                
+                # Combine tutorials and ordered experimental tasks directly
+                self.tasks = self.tutorials + ordered_experimental
             
             self.current_task_index = 0
             self.task_start_time = time.time()
@@ -74,6 +121,13 @@ class StudyManager:
         
         # If in Review Mode, find the existing gesture file
         if getattr(self, "review_mode", False) and os.path.exists(pid_dir):
+            gesture_file = active_task.get("gesture_file")
+            if gesture_file:
+                path = os.path.join(pid_dir, gesture_file)
+                if os.path.exists(path):
+                    self.current_task_filepath = path
+                    return
+            # Fallback to scanning if gesture_file is missing or not found
             for filename in os.listdir(pid_dir):
                 if filename.startswith(f"task_{task_id}_") and filename.endswith(".json"):
                     self.current_task_filepath = os.path.join(pid_dir, filename)
@@ -151,10 +205,23 @@ class StudyManager:
         end_time_unix = int(time.time())
         
         try:
-            with open(log_path, "a", encoding="utf-8") as f:
+            # Note: newline="" is recommended when writing files using python's csv module
+            with open(log_path, "a", encoding="utf-8", newline="") as f:
+                writer = csv.writer(f)
                 if write_header:
-                    f.write("PID,Starttime,Endtime,RID,RName,PresentationOrder,GestureFile\n")
-                f.write(f'"{self.participant_id}",{start_time_unix},{end_time_unix},{task_id},"{task_name}",{presentation_order},"{backup_filename}"\n')
+                    writer.writerow(["PID", "Starttime", "Endtime", "RID", "RName", "RInstructions", "PresentationOrder", "GestureFile"])
+                
+                instructions = active_task.get("instructions", "")
+                writer.writerow([
+                    self.participant_id,
+                    start_time_unix,
+                    end_time_unix,
+                    task_id,
+                    task_name,
+                    instructions,
+                    presentation_order,
+                    backup_filename
+                ])
             self.logger.info(f"Logged task {presentation_order} metrics to {log_path}")
         except Exception as e:
             self.logger.error(f"Failed to write participant study log: {e}")
