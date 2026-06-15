@@ -127,7 +127,8 @@ class StudyManager:
         
         # 1. Back up current timeline JSON inside separate folder for the PID
         if self.current_task_filepath:
-            os.makedirs(os.path.dirname(self.current_task_filepath), exist_ok=True)
+            pid_dir = os.path.dirname(self.current_task_filepath)
+            os.makedirs(pid_dir, exist_ok=True)
             current_sequence_model.save_to_json(self.current_task_filepath)
             backup_filename = os.path.basename(self.current_task_filepath)
         else:
@@ -140,11 +141,8 @@ class StudyManager:
             current_sequence_model.save_to_json(backup_path)
         
         # 2. Append to participant-specific CSV log file
-        participants_dir = os.path.join("study_results", "Participants")
-        os.makedirs(participants_dir, exist_ok=True)
-        
         log_filename = f"study_log-{self.participant_id}-{self.session_creation_timestamp}.csv"
-        log_path = os.path.join(participants_dir, log_filename)
+        log_path = os.path.join(pid_dir, log_filename)
         
         write_header = not os.path.exists(log_path)
         presentation_order = self.current_task_index + 1
@@ -283,14 +281,10 @@ class StudyManager:
 
     def _generate_balanced_latin_square_order(self, pid_int, n_tasks):
         """
-        Generates a balanced Latin Square sequence using Williams' design.
-        Williams' Latin Square requires N to be even.
-        """
-        if n_tasks <= 0 or n_tasks % 2 != 0:
-            # Fallback to cyclic shift if N is somehow not even
-            return [(pid_int - 1 + i) % n_tasks for i in range(n_tasks)]
-            
-        # Williams' base sequence generator: [0, N-1, 1, N-2, 2, N-3, ...]
+        Generates a balanced Latin Square sequence.
+        Requires N to be even.
+        """  
+        # Sequence generator:
         col = []
         left = 0
         right = n_tasks - 1
@@ -302,7 +296,7 @@ class StudyManager:
                 col.append(right)
                 right -= 1
                 
-        # Offset based on 0-indexed participant ID
+        # Offset based on 0-indexed PID
         participant_index = (pid_int - 1) % n_tasks
         
         order = []
