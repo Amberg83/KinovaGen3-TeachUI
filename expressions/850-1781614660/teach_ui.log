@@ -1,0 +1,1340 @@
+[2026-06-16 14:57:40] [INFO] [StudyManager]: Successfully loaded 2 tutorials from study_tutorials.json.
+[2026-06-16 14:57:40] [INFO] [StudyManager]: Successfully loaded 8 tasks from study_referents.json.
+[2026-06-16 14:57:40] [INFO] [StudyManager]: Study Mode activated for PID: '850' (Session: 1781614660) with tasks in presentation order: ['SS Tutorial', 'SD Tutorial', 'SS Interaction-mediated', 'SS Direct', 'SS Background', 'SD Control', 'SD Direct', 'SS Control', 'SD Interaction-mediated', 'SD Background']
+[2026-06-16 14:57:41] [INFO] [Controller]: Application initialized. Dashboard active.
+[2026-06-16 14:57:41] [INFO] [SoundCoordinator]: SoundCoordinator initialized and subscribers registered.
+[2026-06-16 14:57:41] [INFO] [UDPTransmitter]: Loaded network settings from C:\Users\ru87zol\Documents\Git\KinovaGen3-TeachUI\config\network_config.json: 127.0.0.1:50005
+[2026-06-16 14:57:41] [INFO] [UDPTransmitter]: UDP Transmitter initialized. Streaming to 127.0.0.1:50005
+[2026-06-16 14:57:41] [INFO] [Hardware]: Attempting connection to robot at 10.163.65.187 as user 'admin'...
+[2026-06-16 14:57:42] [INFO] [Hardware]: Starting event subscribers (ActionEvent, ArmState, ControlMode)...
+[2026-06-16 14:57:42] [INFO] [Hardware]: Connection successful! Hardware detected as a 6-DOF robotic arm.
+[2026-06-16 14:57:42] [INFO] [Controller]: Robot connected event received in Controller.
+[2026-06-16 14:57:42] [INFO] [Controller]: Initial study mode connection: Homing and recording starting pose...
+[2026-06-16 14:57:42] [INFO] [Controller]: Moving to default position...
+[2026-06-16 14:57:42] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.99s).
+[2026-06-16 14:57:42] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 14:57:45] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 14:57:45] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 14:57:45] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 14:57:46] [INFO] [Hardware]: Target position reached (current=48.5%, target=50.0%). Stopping.
+[2026-06-16 14:57:46] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 14:57:46] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 14:57:46] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 14:57:46] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_101_1781614660.json'.
+[2026-06-16 15:21:03] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:21:03] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:21:03] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:21:04] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:21:12] [INFO] [Controller]: Applying Admittance Mode: Cartesian...
+[2026-06-16 15:21:12] [INFO] [Hardware]: Successfully set Admittance Mode to: Cartesian
+[2026-06-16 15:21:12] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:21:13] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:21:13] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:21:13] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:21:18] [INFO] [Controller]: Applying Admittance Mode: Cartesian...
+[2026-06-16 15:21:18] [INFO] [Hardware]: Successfully set Admittance Mode to: Cartesian
+[2026-06-16 15:21:18] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:21:18] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:21:18] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:21:18] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:22:11] [INFO] [Controller]: Applying Admittance Mode: Cartesian...
+[2026-06-16 15:22:11] [INFO] [Hardware]: Successfully set Admittance Mode to: Cartesian
+[2026-06-16 15:22:11] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:22:58] [INFO] [Controller]: Moving robot to default position...
+[2026-06-16 15:22:58] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.60s).
+[2026-06-16 15:22:59] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:23:00] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:23:00] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:23:00] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:23:00] [INFO] [Hardware]: Target position reached (current=50.7%, target=50.0%). Stopping.
+[2026-06-16 15:23:00] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:23:17] [INFO] [Controller]: Loading predefined gesture: 'predefined_gestures\1.json'
+[2026-06-16 15:23:17] [INFO] [Model]: Successfully loaded 6 waypoints from 'predefined_gestures\1.json'.
+[2026-06-16 15:23:21] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:23:21] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:23:21] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:23:22] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:24:27] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:24:27] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:24:27] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:24:27] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.07s).
+[2026-06-16 15:24:27] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:24:28] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:24:28] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:24:28] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:24:28] [INFO] [Hardware]: Target position reached (current=47.2%, target=50.0%). Stopping.
+[2026-06-16 15:24:29] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:24:29] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:24:31] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:24:32] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:24:32] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:24:32] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:24:32] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:24:32] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 2.81s).
+[2026-06-16 15:24:32] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:24:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:24:35] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:24:35] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 1.23s).
+[2026-06-16 15:24:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:24:36] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:24:36] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 15:24:36] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:24:36] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:24:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:24:38] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 15:24:38] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:24:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:24:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:24:41] [INFO] [ReplayEngine]: [STEP 5] Send action to hardware...
+[2026-06-16 15:24:41] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:24:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:24:43] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:24:43] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:25:04] [INFO] [Controller]: Loading predefined gesture: 'predefined_gestures\2.json'
+[2026-06-16 15:25:04] [INFO] [Model]: Successfully loaded 8 waypoints from 'predefined_gestures\2.json'.
+[2026-06-16 15:25:08] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:25:08] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:25:08] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:25:08] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.81s).
+[2026-06-16 15:25:09] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:25:11] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:25:11] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:25:11] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:25:12] [INFO] [Hardware]: Target position reached (current=53.3%, target=50.0%). Stopping.
+[2026-06-16 15:25:12] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:25:12] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:25:14] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:25:15] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:25:15] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:25:15] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:25:15] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:25:15] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 2.81s).
+[2026-06-16 15:25:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:25:18] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:25:18] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 15:25:18] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 15:25:18] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 15:25:18] [INFO] [Hardware]: Target position reached (current=99.1%, target=100.0%). Stopping.
+[2026-06-16 15:25:18] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:25:18] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 15:25:18] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 1.23s).
+[2026-06-16 15:25:18] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:25:20] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:25:20] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 15:25:20] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:25:20] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:25:22] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:25:22] [INFO] [ReplayEngine]: [STEP 5] PAUSE: 2.0s
+[2026-06-16 15:25:24] [INFO] [ReplayEngine]: [STEP 6] Send action to hardware...
+[2026-06-16 15:25:24] [INFO] [Hardware]: Action 'Step_6' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:25:24] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:25:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:25:26] [INFO] [ReplayEngine]: [STEP 7] Send action to hardware...
+[2026-06-16 15:25:26] [INFO] [Hardware]: Action 'Step_7' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:25:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:25:29] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:25:29] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:25:52] [INFO] [Controller]: Loading predefined gesture: 'predefined_gestures\3.json'
+[2026-06-16 15:25:52] [INFO] [Model]: Successfully loaded 8 waypoints from 'predefined_gestures\3.json'.
+[2026-06-16 15:26:30] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:26:30] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:26:30] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:26:30] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.81s).
+[2026-06-16 15:26:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:26:33] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:26:33] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:26:33] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:26:33] [INFO] [Hardware]: Target position reached (current=48.5%, target=50.0%). Stopping.
+[2026-06-16 15:26:33] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:26:33] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:26:35] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:26:37] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:26:37] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:26:37] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:26:37] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:26:37] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.40s).
+[2026-06-16 15:26:37] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:26:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:26:38] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 15:26:38] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=fast, target_pos=100.0, speed_ratio=0.0
+[2026-06-16 15:26:39] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 15:26:39] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 1.23s).
+[2026-06-16 15:26:39] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:26:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:26:41] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 15:26:41] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:26:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:26:43] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:26:43] [INFO] [ReplayEngine]: [STEP 5] PAUSE: 4.0s
+[2026-06-16 15:26:47] [INFO] [ReplayEngine]: [STEP 6] Send action to hardware...
+[2026-06-16 15:26:47] [INFO] [Hardware]: Action 'Step_6' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:26:47] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:26:49] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:26:49] [INFO] [ReplayEngine]: [STEP 7] Send action to hardware...
+[2026-06-16 15:26:49] [INFO] [Hardware]: Action 'Step_7' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:26:49] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:26:52] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:26:52] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:27:09] [INFO] [Controller]: Loading predefined gesture: 'predefined_gestures\4.json'
+[2026-06-16 15:27:09] [INFO] [Model]: Successfully loaded 8 waypoints from 'predefined_gestures\4.json'.
+[2026-06-16 15:27:59] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:27:59] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:27:59] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:27:59] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.81s).
+[2026-06-16 15:27:59] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:28:02] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:28:02] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:28:02] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:28:02] [INFO] [Hardware]: Target position reached (current=52.4%, target=50.0%). Stopping.
+[2026-06-16 15:28:02] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:28:02] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:28:04] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:28:05] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:28:05] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:28:05] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:28:05] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:28:05] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.40s).
+[2026-06-16 15:28:05] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:28:07] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:28:07] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 15:28:07] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=fast, target_pos=100.0, speed_ratio=0.0
+[2026-06-16 15:28:08] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 15:28:08] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 1.23s).
+[2026-06-16 15:28:08] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:28:09] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:28:09] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 15:28:09] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 2.25s).
+[2026-06-16 15:28:09] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:28:12] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:28:12] [INFO] [ReplayEngine]: [STEP 5] PAUSE: 4.0s
+[2026-06-16 15:28:16] [INFO] [ReplayEngine]: [BATCH] Send 2 Waypoints to hardware...
+[2026-06-16 15:28:16] [INFO] [Hardware]: WaypointList (2 Points) sent to robot.
+[2026-06-16 15:28:16] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-06-16 15:28:19] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-06-16 15:28:19] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:28:43] [INFO] [Model]: Successfully saved 8 waypoints to 'study_results\850-1781614660\task_101_1781614660.json'.
+[2026-06-16 15:28:44] [INFO] [StudyManager]: Logged task 1 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 15:28:44] [INFO] [Model]: Cleared model sequence. Removed 8 item(s).
+[2026-06-16 15:28:44] [INFO] [Controller]: Transitioned to study task index 2/10 (Tutorial 2).
+[2026-06-16 15:28:44] [INFO] [Controller]: Moving to default position...
+[2026-06-16 15:28:44] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.81s).
+[2026-06-16 15:28:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:28:44] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:28:47] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:28:47] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:28:47] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:28:47] [INFO] [Hardware]: Target position reached (current=52.4%, target=50.0%). Stopping.
+[2026-06-16 15:28:47] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:28:48] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 15:28:48] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 15:28:48] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:30:48] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:30:48] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:30:48] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:30:48] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:31:35] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 15:31:35] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 1.79s.
+[2026-06-16 15:31:35] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:31:48] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:31:59] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 15:31:59] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 2.53s.
+[2026-06-16 15:31:59] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:32:24] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:32:24] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:32:24] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 15:32:35] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:32:35] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:32:35] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:32:35] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.53s).
+[2026-06-16 15:32:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:32:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:32:38] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:32:38] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:32:38] [INFO] [Hardware]: Target position reached (current=46.7%, target=50.0%). Stopping.
+[2026-06-16 15:32:38] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:32:38] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:32:40] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:32:41] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:32:41] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:32:41] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:32:41] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:32:41] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.79s).
+[2026-06-16 15:32:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:32:43] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:32:43] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:32:43] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 1.27s).
+[2026-06-16 15:32:43] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:32:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:32:44] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:33:05] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:33:05] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:33:05] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 15:33:07] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:33:07] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:33:08] [INFO] [Controller]: Applied physical max speed limits at speed 'medium' to 1 waypoint(s).
+[2026-06-16 15:33:27] [INFO] [Model]: Inserted new waypoint at index 3. Total waypoints: 4.
+[2026-06-16 15:33:27] [INFO] [Controller]: Inserted Gripper step after index 2.
+[2026-06-16 15:33:27] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:33:30] [INFO] [Model]: Updated waypoint at index 3.
+[2026-06-16 15:33:30] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:33:30] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-06-16 15:33:35] [INFO] [Model]: Updated waypoint at index 3.
+[2026-06-16 15:33:35] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:33:35] [INFO] [Controller]: Overwrote WP #3 with data from Inspector.
+[2026-06-16 15:33:38] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:33:38] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:33:38] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:33:38] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.53s).
+[2026-06-16 15:33:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:33:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:33:41] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:33:41] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:33:41] [INFO] [Hardware]: Target position reached (current=51.5%, target=50.0%). Stopping.
+[2026-06-16 15:33:41] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:33:41] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:33:43] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:33:44] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:33:44] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:33:44] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:33:44] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:33:44] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 0.89s).
+[2026-06-16 15:33:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:33:45] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:33:45] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:33:45] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 2.53s).
+[2026-06-16 15:33:45] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:33:48] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:33:48] [INFO] [ReplayEngine]: [STEP 3] Send gripper action to hardware...
+[2026-06-16 15:33:48] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=fast, target_pos=100.0, speed_ratio=0.0
+[2026-06-16 15:33:49] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:34:13] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_102_1781616524.json'.
+[2026-06-16 15:34:13] [INFO] [StudyManager]: Logged task 2 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 15:34:13] [INFO] [Model]: Cleared model sequence. Removed 4 item(s).
+[2026-06-16 15:34:13] [INFO] [Controller]: Transitioned to study task index 3/10 (Task 1 of 8).
+[2026-06-16 15:34:13] [INFO] [Controller]: Moving to default position...
+[2026-06-16 15:34:13] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.53s).
+[2026-06-16 15:34:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:34:13] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:34:16] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:34:16] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:34:16] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:34:16] [INFO] [Hardware]: Target position reached (current=49.3%, target=50.0%). Stopping.
+[2026-06-16 15:34:16] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:34:17] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 15:34:17] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 15:34:17] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:35:12] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 55
+[2026-06-16 15:36:10] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 55
+[2026-06-16 15:36:39] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:36:39] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:36:39] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:36:39] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:37:37] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 15:37:37] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 1.25s.
+[2026-06-16 15:37:37] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:37:45] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:39:52] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 15:39:52] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 1.74s.
+[2026-06-16 15:39:52] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:39:58] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:40:02] [INFO] [Model]: Inserted new waypoint at index 3. Total waypoints: 4.
+[2026-06-16 15:40:02] [INFO] [Controller]: Inserted captured pose right after index 2 with Medium speed duration 3.02s.
+[2026-06-16 15:40:02] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:40:05] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:40:33] [INFO] [Model]: Inserted new waypoint at index 4. Total waypoints: 5.
+[2026-06-16 15:40:34] [INFO] [Controller]: Inserted captured pose right after index 3 with Medium speed duration 1.31s.
+[2026-06-16 15:40:34] [INFO] [Model]: Successfully saved 5 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:40:34] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:40:36] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:40:52] [INFO] [Controller]: Copied 1 waypoint(s) to clipboard.
+[2026-06-16 15:40:55] [INFO] [Model]: Pasted 1 waypoint(s). Total waypoints: 6.
+[2026-06-16 15:40:55] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:41:14] [INFO] [Controller]: Previewing pose from Inspector...
+[2026-06-16 15:41:14] [INFO] [Hardware]: Action 'Preview Pose' sent to robot (Time constraint: 2.01s).
+[2026-06-16 15:41:14] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:41:16] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:41:39] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:41:39] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:41:39] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 15:41:44] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:41:44] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:41:44] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:41:44] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.66s).
+[2026-06-16 15:41:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:41:45] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:41:45] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:41:45] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:41:45] [INFO] [Hardware]: Target position reached (current=46.7%, target=50.0%). Stopping.
+[2026-06-16 15:41:45] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:41:45] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:41:47] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:41:49] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:41:49] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:41:49] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:41:49] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:41:49] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.25s).
+[2026-06-16 15:41:49] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:41:50] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:41:50] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:41:50] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 0.87s).
+[2026-06-16 15:41:50] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:41:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:41:51] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 15:41:51] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 3.02s).
+[2026-06-16 15:41:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:41:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:41:54] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 15:41:54] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.31s).
+[2026-06-16 15:41:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:41:55] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:41:55] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:41:55] [INFO] [ReplayEngine]: [STEP 5] Send action to hardware...
+[2026-06-16 15:41:55] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time constraint: 5.00s).
+[2026-06-16 15:41:56] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:42:00] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:42:00] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:42:00] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:42:00] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 15:42:00] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:42:00] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:42:01] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:42:01] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:42:03] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:42:03] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:42:04] [INFO] [Controller]: Applied physical max speed limits at speed 'medium' to 1 waypoint(s).
+[2026-06-16 15:42:05] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:42:05] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:42:05] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:42:05] [INFO] [Hardware]: Skipping 'Origin': Destination already reached.
+[2026-06-16 15:42:05] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:42:05] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:42:05] [INFO] [Hardware]: Target position reached (current=52.4%, target=50.0%). Stopping.
+[2026-06-16 15:42:05] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:42:05] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:42:07] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:42:08] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:42:08] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:42:08] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:42:08] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:42:08] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.25s).
+[2026-06-16 15:42:09] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:42:10] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:42:10] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:42:10] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 1.74s).
+[2026-06-16 15:42:10] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:42:12] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:42:12] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 15:42:12] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 1.51s).
+[2026-06-16 15:42:12] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:42:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:42:13] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 15:42:13] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.31s).
+[2026-06-16 15:42:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:42:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:42:15] [INFO] [ReplayEngine]: [STEP 5] Send action to hardware...
+[2026-06-16 15:42:15] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time constraint: 5.00s).
+[2026-06-16 15:42:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:42:20] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:42:20] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:42:30] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:42:30] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:42:30] [INFO] [Controller]: Applied physical max speed limits at speed 'slow' to 1 waypoint(s).
+[2026-06-16 15:44:01] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_2_1781616853.json'.
+[2026-06-16 15:44:01] [INFO] [StudyManager]: Logged task 3 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 15:44:01] [INFO] [Model]: Cleared model sequence. Removed 6 item(s).
+[2026-06-16 15:44:02] [INFO] [Controller]: Transitioned to study task index 4/10 (Task 2 of 8).
+[2026-06-16 15:44:02] [INFO] [Controller]: Moving to default position...
+[2026-06-16 15:44:02] [INFO] [Hardware]: Skipping 'Origin': Destination already reached.
+[2026-06-16 15:44:02] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:44:02] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:44:02] [INFO] [Hardware]: Target position reached (current=48.0%, target=50.0%). Stopping.
+[2026-06-16 15:44:02] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:44:02] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 15:44:02] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 15:44:02] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_1_1781617441.json'.
+[2026-06-16 15:45:39] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:45:40] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:45:40] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:45:40] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:46:26] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 15:46:26] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 1.31s.
+[2026-06-16 15:46:26] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_1_1781617441.json'.
+[2026-06-16 15:46:35] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:46:50] [INFO] [Controller]: Previewing pose from Inspector...
+[2026-06-16 15:46:50] [INFO] [Hardware]: Action 'Preview Pose' sent to robot (Time constraint: 1.41s).
+[2026-06-16 15:46:50] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:46:52] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:47:01] [INFO] [Controller]: Applying Admittance Mode: Cartesian...
+[2026-06-16 15:47:01] [INFO] [Hardware]: Successfully set Admittance Mode to: Cartesian
+[2026-06-16 15:47:01] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:47:27] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 15:47:27] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 1.61s.
+[2026-06-16 15:47:27] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_1_1781617441.json'.
+[2026-06-16 15:47:28] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:47:39] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:47:39] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_1_1781617441.json'.
+[2026-06-16 15:47:40] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 15:47:47] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:47:47] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:47:47] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:47:47] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.51s).
+[2026-06-16 15:47:47] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:47:50] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:47:50] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:47:50] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:47:50] [INFO] [Hardware]: Target position reached (current=51.1%, target=50.0%). Stopping.
+[2026-06-16 15:47:50] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:47:50] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:47:52] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:47:53] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:47:53] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:47:53] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:47:53] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:47:53] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 0.66s).
+[2026-06-16 15:47:53] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:47:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:47:54] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:47:54] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 1.61s).
+[2026-06-16 15:47:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:47:55] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:47:55] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:48:30] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_1_1781617441.json'.
+[2026-06-16 15:48:30] [INFO] [StudyManager]: Logged task 4 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 15:48:30] [INFO] [Model]: Cleared model sequence. Removed 3 item(s).
+[2026-06-16 15:48:30] [INFO] [Controller]: Transitioned to study task index 5/10 (Task 3 of 8).
+[2026-06-16 15:48:30] [INFO] [Controller]: Moving to default position...
+[2026-06-16 15:48:30] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 2.58s).
+[2026-06-16 15:48:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:48:30] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:48:33] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:48:33] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:48:33] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:48:33] [INFO] [Hardware]: Target position reached (current=46.7%, target=50.0%). Stopping.
+[2026-06-16 15:48:33] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:48:34] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 15:48:34] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 15:48:34] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:49:51] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:49:51] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:49:51] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:49:51] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:50:51] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 15:50:51] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 2.72s.
+[2026-06-16 15:50:51] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:50:52] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:50:57] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 15:50:57] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 3.26s.
+[2026-06-16 15:50:57] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:51:28] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:51:28] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:51:28] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 15:51:40] [INFO] [Model]: Bulk updated waypoints [1, 2]: duration to 3.0s, type to angularwaypoint.
+[2026-06-16 15:51:40] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:51:40] [INFO] [Controller]: Bulk-updated details of 2 selected waypoints.
+[2026-06-16 15:51:44] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:51:44] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:51:45] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 2 waypoint(s).
+[2026-06-16 15:51:51] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:51:51] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:51:51] [INFO] [Controller]: Applied physical max speed limits at speed 'slow' to 1 waypoint(s).
+[2026-06-16 15:51:57] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:51:57] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:51:57] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:51:57] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 3.26s).
+[2026-06-16 15:51:57] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:52:00] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:52:00] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:52:00] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:52:00] [INFO] [Hardware]: Target position reached (current=52.4%, target=50.0%). Stopping.
+[2026-06-16 15:52:01] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:52:01] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:52:03] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:52:04] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:52:04] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:52:04] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:52:04] [INFO] [ReplayEngine]: [BATCH] Send 2 Waypoints to hardware...
+[2026-06-16 15:52:04] [INFO] [Hardware]: WaypointList (2 Points) sent to robot.
+[2026-06-16 15:52:04] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-06-16 15:52:04] [ERROR] [Hardware]: Trajectory Error Report: Err #1: error_type: TRAJECTORY_ERROR_TYPE_INVALID_JOINT_SPEED error_value: 80.9484 max_value: 80.00208 message: "Invalid Speed - Provided Waypoints Lead to go Over Maximum Speed on Actuator (0) and Segment (0)."
+[2026-06-16 15:52:04] [ERROR] [ReplayEngine]: Exception occurred during Replay: WaypointList execution failed!
+[2026-06-16 15:52:04] [ERROR] [ReplayEngine]: Aborting replay sequence due to execution error.
+[2026-06-16 15:52:34] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:52:34] [INFO] [Controller]: Manual save executed successfully.
+[2026-06-16 15:52:40] [INFO] [Model]: Updated waypoint at index 1.
+[2026-06-16 15:52:40] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:52:40] [INFO] [Controller]: Overwrote WP #1 with data from Inspector.
+[2026-06-16 15:52:46] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:52:46] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:52:46] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:52:46] [INFO] [Hardware]: Skipping 'Origin': Destination already reached.
+[2026-06-16 15:52:46] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:52:46] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:52:46] [INFO] [Hardware]: Target position reached (current=48.5%, target=50.0%). Stopping.
+[2026-06-16 15:52:46] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:52:46] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:52:48] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:52:49] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:52:49] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:52:49] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:52:49] [INFO] [ReplayEngine]: [BATCH] Send 2 Waypoints to hardware...
+[2026-06-16 15:52:49] [INFO] [Hardware]: WaypointList (2 Points) sent to robot.
+[2026-06-16 15:52:50] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-06-16 15:53:02] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-06-16 15:53:02] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:53:15] [INFO] [Model]: Bulk updated waypoints [1, 2]: duration to 3.0s, type to action.
+[2026-06-16 15:53:15] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:53:15] [INFO] [Controller]: Bulk-updated details of 2 selected waypoints.
+[2026-06-16 15:53:17] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:53:17] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:53:17] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 2 waypoint(s).
+[2026-06-16 15:53:20] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:53:20] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:53:20] [INFO] [Controller]: Applied physical max speed limits at speed 'medium' to 1 waypoint(s).
+[2026-06-16 15:53:22] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:53:22] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:53:22] [INFO] [Controller]: Applied physical max speed limits at speed 'slow' to 1 waypoint(s).
+[2026-06-16 15:53:27] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:53:27] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:53:27] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:53:27] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 3.26s).
+[2026-06-16 15:53:27] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:53:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:53:30] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:53:30] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:53:30] [INFO] [Hardware]: Target position reached (current=48.5%, target=50.0%). Stopping.
+[2026-06-16 15:53:30] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:53:30] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:53:32] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:53:33] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:53:33] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:53:33] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:53:33] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:53:33] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.36s).
+[2026-06-16 15:53:34] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:53:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:53:35] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:53:35] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 6.52s).
+[2026-06-16 15:53:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:53:42] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:53:42] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:53:52] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 15:53:53] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:53:53] [INFO] [Controller]: Applied physical max speed limits at speed 'medium' to 1 waypoint(s).
+[2026-06-16 15:53:55] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 15:53:55] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 15:53:55] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 15:53:55] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 3.26s).
+[2026-06-16 15:53:55] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:53:58] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:53:58] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:53:58] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 15:53:58] [INFO] [Hardware]: Target position reached (current=51.1%, target=50.0%). Stopping.
+[2026-06-16 15:53:58] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:53:58] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 15:54:00] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 15:54:01] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 15:54:01] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 15:54:01] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 15:54:01] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 15:54:01] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.36s).
+[2026-06-16 15:54:01] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:54:03] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:54:03] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 15:54:03] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 3.26s).
+[2026-06-16 15:54:03] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:54:06] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:54:06] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 15:54:32] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_3_1781617710.json'.
+[2026-06-16 15:54:32] [INFO] [StudyManager]: Logged task 5 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 15:54:32] [INFO] [Model]: Cleared model sequence. Removed 3 item(s).
+[2026-06-16 15:54:32] [INFO] [Controller]: Transitioned to study task index 6/10 (Task 4 of 8).
+[2026-06-16 15:54:32] [INFO] [Controller]: Moving to default position...
+[2026-06-16 15:54:32] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 3.26s).
+[2026-06-16 15:54:32] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 15:54:32] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:54:36] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 15:54:36] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 15:54:36] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 15:54:36] [INFO] [Hardware]: Target position reached (current=48.9%, target=50.0%). Stopping.
+[2026-06-16 15:54:36] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 15:54:36] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 15:54:36] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 15:54:36] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:56:56] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 15:56:56] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 15:56:56] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 15:56:57] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:57:24] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 15:57:24] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 1.0s.
+[2026-06-16 15:57:24] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:57:27] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 15:57:27] [INFO] [Controller]: Inserted Gripper step after index 1.
+[2026-06-16 15:57:27] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:57:29] [INFO] [Model]: Updated waypoint at index 2.
+[2026-06-16 15:57:29] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:57:29] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-06-16 15:58:23] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:58:29] [INFO] [Model]: Inserted new waypoint at index 3. Total waypoints: 4.
+[2026-06-16 15:58:29] [INFO] [Controller]: Inserted captured pose right after index 2 with Medium speed duration 0.93s.
+[2026-06-16 15:58:29] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:58:41] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:58:53] [INFO] [Model]: Inserted new waypoint at index 4. Total waypoints: 5.
+[2026-06-16 15:58:53] [INFO] [Controller]: Inserted captured pose right after index 3 with Medium speed duration 1.88s.
+[2026-06-16 15:58:53] [INFO] [Model]: Successfully saved 5 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:58:59] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:59:19] [INFO] [Model]: Inserted new waypoint at index 5. Total waypoints: 6.
+[2026-06-16 15:59:20] [INFO] [Controller]: Inserted captured pose right after index 4 with Medium speed duration 3.01s.
+[2026-06-16 15:59:20] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:59:22] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:59:25] [INFO] [Model]: Inserted new waypoint at index 6. Total waypoints: 7.
+[2026-06-16 15:59:25] [INFO] [Controller]: Inserted captured pose right after index 5 with Medium speed duration 2.89s.
+[2026-06-16 15:59:25] [INFO] [Model]: Successfully saved 7 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:59:26] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:59:29] [INFO] [Model]: Inserted new waypoint at index 7. Total waypoints: 8.
+[2026-06-16 15:59:29] [INFO] [Controller]: Inserted captured pose right after index 6 with Medium speed duration 2.74s.
+[2026-06-16 15:59:29] [INFO] [Model]: Successfully saved 8 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:59:31] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 15:59:36] [INFO] [Model]: Inserted new waypoint at index 8. Total waypoints: 9.
+[2026-06-16 15:59:36] [INFO] [Controller]: Inserted captured pose right after index 7 with Medium speed duration 2.84s.
+[2026-06-16 15:59:36] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:59:58] [INFO] [Model]: Bulk updated waypoints [6, 7, 8]: duration to 3.0s, type to angularwaypoint.
+[2026-06-16 15:59:59] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 15:59:59] [INFO] [Controller]: Bulk-updated details of 3 selected waypoints.
+[2026-06-16 16:00:09] [INFO] [Model]: Pasted 4 waypoint(s). Total waypoints: 13.
+[2026-06-16 16:00:09] [INFO] [Model]: Successfully saved 13 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:00:15] [INFO] [Model]: Updated waypoint at index 9.
+[2026-06-16 16:00:15] [INFO] [Model]: Successfully saved 13 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:00:15] [INFO] [Controller]: Overwrote WP #9 with data from Inspector.
+[2026-06-16 16:00:22] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 16:00:22] [INFO] [Model]: Successfully saved 13 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:00:22] [INFO] [Controller]: Applied physical max speed limits at speed 'medium' to 7 waypoint(s).
+[2026-06-16 16:00:29] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:00:29] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:00:29] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:00:29] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:00:29] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:00:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:00:30] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:00:30] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:00:30] [INFO] [Hardware]: Target position reached (current=47.2%, target=50.0%). Stopping.
+[2026-06-16 16:00:31] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:00:31] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:00:33] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:00:34] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:00:34] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:00:34] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:00:34] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:00:34] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.00s).
+[2026-06-16 16:00:34] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:00:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:00:35] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:00:35] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:00:35] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:00:35] [INFO] [Hardware]: Target position reached (current=98.7%, target=100.0%). Stopping.
+[2026-06-16 16:00:35] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:00:35] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:00:35] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 0.93s).
+[2026-06-16 16:00:35] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:00:36] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:00:36] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:00:36] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.88s).
+[2026-06-16 16:00:36] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:00:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:00:38] [INFO] [ReplayEngine]: [STEP 5] Send action to hardware...
+[2026-06-16 16:00:38] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time constraint: 3.01s).
+[2026-06-16 16:00:38] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:00:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:00:41] [INFO] [ReplayEngine]: [BATCH] Send 7 Waypoints to hardware...
+[2026-06-16 16:00:41] [INFO] [Hardware]: WaypointList (7 Points) sent to robot.
+[2026-06-16 16:00:43] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-06-16 16:00:50] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:01:13] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-06-16 16:01:13] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:01:18] [INFO] [Model]: Deleted waypoints at indices: [9, 10, 11, 12].
+[2026-06-16 16:01:18] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:01:33] [INFO] [Model]: Updated waypoint at index 5.
+[2026-06-16 16:01:33] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:01:33] [INFO] [Controller]: Overwrote WP #5 with data from Inspector.
+[2026-06-16 16:01:40] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 16:01:40] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:01:40] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 4 waypoint(s).
+[2026-06-16 16:01:44] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:01:44] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:01:44] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:01:44] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:01:45] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:01:46] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:01:46] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:01:46] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:01:46] [INFO] [Hardware]: Target position reached (current=51.1%, target=50.0%). Stopping.
+[2026-06-16 16:01:46] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:01:46] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:01:48] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:01:49] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:01:49] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:01:49] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:01:49] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:01:49] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.00s).
+[2026-06-16 16:01:50] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:01:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:01:51] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:01:51] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:01:51] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:01:51] [INFO] [Hardware]: Target position reached (current=97.8%, target=100.0%). Stopping.
+[2026-06-16 16:01:51] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:01:51] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:01:51] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 0.93s).
+[2026-06-16 16:01:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:01:52] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:01:52] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:01:52] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.88s).
+[2026-06-16 16:01:52] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:01:54] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:01:54] [INFO] [ReplayEngine]: [BATCH] Send 4 Waypoints to hardware...
+[2026-06-16 16:01:54] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-06-16 16:01:54] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-06-16 16:01:54] [ERROR] [Hardware]: Trajectory Error Report: Err #1: error_type: TRAJECTORY_ERROR_TYPE_INVALID_JOINT_SPEED error_value: 74.24414 max_value: 70.00397 index: 5 message: "Invalid Speed - Provided Waypoints Lead to go Over Maximum Speed on Actuator (5) and Segment (0)."
+[2026-06-16 16:01:54] [ERROR] [ReplayEngine]: Exception occurred during Replay: WaypointList execution failed!
+[2026-06-16 16:01:54] [ERROR] [ReplayEngine]: Aborting replay sequence due to execution error.
+[2026-06-16 16:02:04] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 16:02:04] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:02:04] [INFO] [Controller]: Applied physical max speed limits at speed 'medium' to 4 waypoint(s).
+[2026-06-16 16:02:21] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:02:21] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:02:21] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:02:21] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:02:21] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:02:22] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:02:22] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:02:22] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:02:22] [INFO] [Hardware]: Target position reached (current=51.1%, target=50.0%). Stopping.
+[2026-06-16 16:02:22] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:02:22] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:02:24] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:02:26] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:02:26] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:02:26] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:02:26] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:02:26] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.00s).
+[2026-06-16 16:02:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:02:27] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:02:27] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:02:27] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:02:27] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:02:27] [INFO] [Hardware]: Target position reached (current=99.1%, target=100.0%). Stopping.
+[2026-06-16 16:02:27] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:02:27] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:02:27] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 0.93s).
+[2026-06-16 16:02:27] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:02:28] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:02:28] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:02:28] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.88s).
+[2026-06-16 16:02:28] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:02:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:02:30] [INFO] [ReplayEngine]: [BATCH] Send 4 Waypoints to hardware...
+[2026-06-16 16:02:30] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-06-16 16:02:31] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-06-16 16:02:48] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-06-16 16:02:48] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:02:58] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 16:02:58] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:02:58] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 4 waypoint(s).
+[2026-06-16 16:03:03] [INFO] [Model]: Bulk updated waypoints [5, 6, 7, 8]: duration to 2.5s, type to angularwaypoint.
+[2026-06-16 16:03:03] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:03:03] [INFO] [Controller]: Bulk-updated details of 4 selected waypoints.
+[2026-06-16 16:03:13] [INFO] [Model]: Inserted new waypoint at index 5. Total waypoints: 10.
+[2026-06-16 16:03:13] [INFO] [Controller]: Inserted Gripper step after index 4.
+[2026-06-16 16:03:13] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:03:24] [INFO] [Model]: Updated waypoint at index 7.
+[2026-06-16 16:03:24] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:03:24] [INFO] [Controller]: Overwrote WP #7 with data from Inspector.
+[2026-06-16 16:03:34] [INFO] [Model]: Updated waypoint at index 8.
+[2026-06-16 16:03:34] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:03:34] [INFO] [Controller]: Overwrote WP #8 with data from Inspector.
+[2026-06-16 16:03:39] [INFO] [Model]: Updated waypoint at index 9.
+[2026-06-16 16:03:39] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:03:39] [INFO] [Controller]: Overwrote WP #9 with data from Inspector.
+[2026-06-16 16:03:43] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:03:43] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:03:43] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:03:43] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:03:43] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:03:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:03:44] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:03:44] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:03:45] [INFO] [Hardware]: Target position reached (current=52.4%, target=50.0%). Stopping.
+[2026-06-16 16:03:45] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:03:45] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:03:47] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:03:48] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:03:48] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:03:48] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:03:48] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:03:48] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.00s).
+[2026-06-16 16:03:48] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:03:49] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:03:49] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:03:49] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:03:49] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:03:50] [INFO] [Hardware]: Target position reached (current=98.7%, target=100.0%). Stopping.
+[2026-06-16 16:03:50] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:03:50] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:03:50] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 0.93s).
+[2026-06-16 16:03:50] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:03:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:03:51] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:03:51] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.88s).
+[2026-06-16 16:03:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:03:53] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:03:53] [INFO] [ReplayEngine]: [STEP 5] Send gripper action to hardware...
+[2026-06-16 16:03:53] [INFO] [Hardware]: Sending gripper command: State=open, Duration=medium, target_pos=0.0, speed_ratio=0.5
+[2026-06-16 16:03:53] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 0.0%
+[2026-06-16 16:03:54] [INFO] [Hardware]: Target position reached (current=3.1%, target=0.0%). Stopping.
+[2026-06-16 16:03:54] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:03:54] [INFO] [ReplayEngine]: [BATCH] Send 4 Waypoints to hardware...
+[2026-06-16 16:03:54] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-06-16 16:03:54] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-06-16 16:03:54] [ERROR] [Hardware]: Trajectory Error Report: Err #1: error_type: TRAJECTORY_ERROR_TYPE_INVALID_JOINT_SPEED error_value: 70.45208 max_value: 70.00397 index: 5 message: "Invalid Speed - Provided Waypoints Lead to go Over Maximum Speed on Actuator (5) and Segment (3)." waypoint_index: 3
+[2026-06-16 16:03:54] [ERROR] [ReplayEngine]: Exception occurred during Replay: WaypointList execution failed!
+[2026-06-16 16:03:54] [ERROR] [ReplayEngine]: Aborting replay sequence due to execution error.
+[2026-06-16 16:04:14] [INFO] [Model]: Updated waypoint at index 7.
+[2026-06-16 16:04:14] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:04:14] [INFO] [Controller]: Overwrote WP #7 with data from Inspector.
+[2026-06-16 16:04:18] [INFO] [Model]: Updated waypoint at index 8.
+[2026-06-16 16:04:19] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:04:19] [INFO] [Controller]: Overwrote WP #8 with data from Inspector.
+[2026-06-16 16:04:23] [INFO] [Model]: Updated waypoint at index 9.
+[2026-06-16 16:04:23] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:04:23] [INFO] [Controller]: Overwrote WP #9 with data from Inspector.
+[2026-06-16 16:04:24] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:04:24] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:04:24] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:04:24] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:04:25] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:04:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:04:26] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:04:26] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:04:26] [INFO] [Hardware]: Target position reached (current=47.6%, target=50.0%). Stopping.
+[2026-06-16 16:04:26] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:04:26] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:04:28] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:04:29] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:04:29] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:04:29] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:04:29] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:04:29] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.00s).
+[2026-06-16 16:04:29] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:04:30] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:04:30] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:04:30] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:04:30] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:04:31] [INFO] [Hardware]: Target position reached (current=99.1%, target=100.0%). Stopping.
+[2026-06-16 16:04:31] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:04:31] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:04:31] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 0.93s).
+[2026-06-16 16:04:31] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:04:32] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:04:32] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:04:32] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 1.88s).
+[2026-06-16 16:04:32] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:04:34] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:04:34] [INFO] [ReplayEngine]: [STEP 5] Send gripper action to hardware...
+[2026-06-16 16:04:34] [INFO] [Hardware]: Sending gripper command: State=open, Duration=medium, target_pos=0.0, speed_ratio=0.5
+[2026-06-16 16:04:34] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 0.0%
+[2026-06-16 16:04:35] [INFO] [Hardware]: Target position reached (current=3.5%, target=0.0%). Stopping.
+[2026-06-16 16:04:35] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:04:35] [INFO] [ReplayEngine]: [BATCH] Send 4 Waypoints to hardware...
+[2026-06-16 16:04:35] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-06-16 16:04:36] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-06-16 16:04:45] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-06-16 16:04:45] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:05:14] [INFO] [Model]: Successfully saved 10 waypoints to 'study_results\850-1781614660\task_8_1781618072.json'.
+[2026-06-16 16:05:14] [INFO] [StudyManager]: Logged task 6 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 16:05:14] [INFO] [Model]: Cleared model sequence. Removed 10 item(s).
+[2026-06-16 16:05:14] [INFO] [Controller]: Transitioned to study task index 7/10 (Task 5 of 8).
+[2026-06-16 16:05:14] [INFO] [Controller]: Moving to default position...
+[2026-06-16 16:05:14] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:05:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:05:15] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:05:16] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:05:16] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:05:16] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:05:16] [INFO] [Hardware]: Target position reached (current=51.5%, target=50.0%). Stopping.
+[2026-06-16 16:05:16] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:05:17] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 16:05:17] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 16:05:17] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_4_1781618714.json'.
+[2026-06-16 16:06:49] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 16:06:49] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 16:06:49] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 16:06:49] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:07:27] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 16:07:27] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 1.88s.
+[2026-06-16 16:07:27] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_4_1781618714.json'.
+[2026-06-16 16:07:32] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 16:07:32] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_4_1781618714.json'.
+[2026-06-16 16:07:32] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 16:07:45] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:07:53] [INFO] [Controller]: Previewing pose from Inspector...
+[2026-06-16 16:07:53] [INFO] [Hardware]: Action 'Preview Pose' sent to robot (Time constraint: 0.35s).
+[2026-06-16 16:07:53] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:07:53] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:07:55] [INFO] [Controller]: Applying Admittance Mode: Cartesian...
+[2026-06-16 16:07:55] [INFO] [Hardware]: Successfully set Admittance Mode to: Cartesian
+[2026-06-16 16:07:55] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 16:08:06] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 16:08:06] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 1.66s.
+[2026-06-16 16:08:06] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_4_1781618714.json'.
+[2026-06-16 16:08:07] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:08:19] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:08:19] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:08:19] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:08:19] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 3.17s).
+[2026-06-16 16:08:19] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:08:23] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:08:23] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:08:23] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:08:23] [INFO] [Hardware]: Target position reached (current=50.2%, target=50.0%). Stopping.
+[2026-06-16 16:08:23] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:08:23] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:08:25] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:08:26] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:08:26] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:08:26] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:08:26] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:08:26] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 0.94s).
+[2026-06-16 16:08:26] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:08:27] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:08:27] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 16:08:27] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 1.66s).
+[2026-06-16 16:08:27] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:08:29] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:08:29] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:08:43] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_4_1781618714.json'.
+[2026-06-16 16:08:43] [INFO] [StudyManager]: Logged task 7 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 16:08:43] [INFO] [Model]: Cleared model sequence. Removed 3 item(s).
+[2026-06-16 16:08:44] [INFO] [Controller]: Transitioned to study task index 8/10 (Task 6 of 8).
+[2026-06-16 16:08:44] [INFO] [Controller]: Moving to default position...
+[2026-06-16 16:08:44] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 3.17s).
+[2026-06-16 16:08:44] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:08:44] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:08:47] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:08:47] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:08:47] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:08:47] [INFO] [Hardware]: Target position reached (current=48.5%, target=50.0%). Stopping.
+[2026-06-16 16:08:47] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:08:48] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 16:08:48] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 16:08:48] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:11:08] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 16:11:08] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 16:11:08] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 16:11:09] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:11:31] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 16:11:31] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 1.36s.
+[2026-06-16 16:11:31] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:11:35] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 16:11:35] [INFO] [Controller]: Inserted Gripper step after index 1.
+[2026-06-16 16:11:35] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:11:37] [INFO] [Model]: Updated waypoint at index 2.
+[2026-06-16 16:11:37] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:11:37] [INFO] [Controller]: Overwrote WP #2 with data from Inspector.
+[2026-06-16 16:11:45] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:11:56] [INFO] [Model]: Inserted new waypoint at index 3. Total waypoints: 4.
+[2026-06-16 16:11:56] [INFO] [Controller]: Inserted captured pose right after index 2 with Medium speed duration 2.08s.
+[2026-06-16 16:11:56] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:00] [INFO] [Model]: Inserted new waypoint at index 4. Total waypoints: 5.
+[2026-06-16 16:12:00] [INFO] [Controller]: Inserted Gripper step after index 3.
+[2026-06-16 16:12:00] [INFO] [Model]: Successfully saved 5 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:03] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:12:11] [INFO] [Model]: Inserted new waypoint at index 5. Total waypoints: 6.
+[2026-06-16 16:12:11] [INFO] [Controller]: Inserted captured pose right after index 4 with Medium speed duration 2.9s.
+[2026-06-16 16:12:11] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:13] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:12:16] [INFO] [Model]: Inserted new waypoint at index 6. Total waypoints: 7.
+[2026-06-16 16:12:16] [INFO] [Controller]: Inserted captured pose right after index 5 with Medium speed duration 2.79s.
+[2026-06-16 16:12:16] [INFO] [Model]: Successfully saved 7 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:16] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:12:16] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:12:20] [INFO] [Model]: Inserted new waypoint at index 7. Total waypoints: 8.
+[2026-06-16 16:12:20] [INFO] [Controller]: Inserted captured pose right after index 6 with Medium speed duration 2.79s.
+[2026-06-16 16:12:20] [INFO] [Model]: Successfully saved 8 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:21] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:12:27] [INFO] [Model]: Inserted new waypoint at index 8. Total waypoints: 9.
+[2026-06-16 16:12:28] [INFO] [Controller]: Inserted captured pose right after index 7 with Medium speed duration 3.15s.
+[2026-06-16 16:12:28] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:41] [INFO] [Model]: Bulk updated waypoints [5, 6, 7, 8]: duration to 3.0s, type to angularwaypoint.
+[2026-06-16 16:12:41] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:41] [INFO] [Controller]: Bulk-updated details of 4 selected waypoints.
+[2026-06-16 16:12:55] [INFO] [Model]: Updated waypoint at index 5.
+[2026-06-16 16:12:55] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:12:55] [INFO] [Controller]: Overwrote WP #5 with data from Inspector.
+[2026-06-16 16:12:59] [INFO] [Model]: Updated waypoint at index 6.
+[2026-06-16 16:12:59] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:13:00] [INFO] [Controller]: Overwrote WP #6 with data from Inspector.
+[2026-06-16 16:13:05] [INFO] [Model]: Updated waypoint at index 7.
+[2026-06-16 16:13:05] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:13:06] [INFO] [Controller]: Overwrote WP #7 with data from Inspector.
+[2026-06-16 16:13:11] [INFO] [Model]: Updated waypoint at index 8.
+[2026-06-16 16:13:11] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:13:11] [INFO] [Controller]: Overwrote WP #8 with data from Inspector.
+[2026-06-16 16:13:14] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:13:14] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:13:14] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:13:14] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:13:14] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:13:16] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:13:16] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:13:16] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:13:16] [INFO] [Hardware]: Target position reached (current=51.5%, target=50.0%). Stopping.
+[2026-06-16 16:13:16] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:13:16] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:13:18] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:13:19] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:13:19] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:13:19] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:13:19] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:13:19] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.36s).
+[2026-06-16 16:13:19] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:13:20] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:13:20] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:13:20] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:13:20] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:13:21] [INFO] [Hardware]: Target position reached (current=96.5%, target=100.0%). Stopping.
+[2026-06-16 16:13:21] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:13:21] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:13:21] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 2.08s).
+[2026-06-16 16:13:21] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:13:23] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:13:23] [INFO] [ReplayEngine]: [STEP 4] Send gripper action to hardware...
+[2026-06-16 16:13:23] [INFO] [Hardware]: Sending gripper command: State=open, Duration=medium, target_pos=0.0, speed_ratio=0.5
+[2026-06-16 16:13:23] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 0.0%
+[2026-06-16 16:13:24] [INFO] [Hardware]: Target position reached (current=1.3%, target=0.0%). Stopping.
+[2026-06-16 16:13:24] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:13:24] [INFO] [ReplayEngine]: [BATCH] Send 4 Waypoints to hardware...
+[2026-06-16 16:13:24] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-06-16 16:13:24] [ERROR] [Hardware]: Exception during API WaypointList call: Server error name=ERROR_INTERNAL, sub name=CONTROL_WAYPOINT_TRAJECTORY_ABORTED => The Waypoint list is invalid. See the trajectory error report for more informations. 
+
+[2026-06-16 16:13:24] [ERROR] [Hardware]: Trajectory Error Report: Err #1: error_type: TRAJECTORY_ERROR_TYPE_INVALID_JOINT_SPEED error_value: 75.51653 max_value: 70.00397 index: 5 message: "Invalid Speed - Provided Waypoints Lead to go Over Maximum Speed on Actuator (5) and Segment (3)." waypoint_index: 3
+[2026-06-16 16:13:24] [ERROR] [ReplayEngine]: Exception occurred during Replay: WaypointList execution failed!
+[2026-06-16 16:13:24] [ERROR] [ReplayEngine]: Aborting replay sequence due to execution error.
+[2026-06-16 16:13:35] [INFO] [Model]: Updated waypoint at index 8.
+[2026-06-16 16:13:35] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:13:36] [INFO] [Controller]: Overwrote WP #8 with data from Inspector.
+[2026-06-16 16:13:40] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:13:40] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:13:40] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:13:40] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.16s).
+[2026-06-16 16:13:40] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:13:41] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:13:41] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:13:41] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:13:42] [INFO] [Hardware]: Target position reached (current=51.1%, target=50.0%). Stopping.
+[2026-06-16 16:13:42] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:13:42] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:13:44] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:13:45] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:13:45] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:13:45] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:13:45] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:13:45] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 1.36s).
+[2026-06-16 16:13:45] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:13:47] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:13:47] [INFO] [ReplayEngine]: [STEP 2] Send gripper action to hardware...
+[2026-06-16 16:13:47] [INFO] [Hardware]: Sending gripper command: State=closed, Duration=medium, target_pos=100.0, speed_ratio=0.5
+[2026-06-16 16:13:47] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 100.0%
+[2026-06-16 16:13:47] [INFO] [Hardware]: Target position reached (current=98.3%, target=100.0%). Stopping.
+[2026-06-16 16:13:47] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:13:47] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:13:47] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 2.08s).
+[2026-06-16 16:13:47] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:13:49] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:13:49] [INFO] [ReplayEngine]: [STEP 4] Send gripper action to hardware...
+[2026-06-16 16:13:49] [INFO] [Hardware]: Sending gripper command: State=open, Duration=medium, target_pos=0.0, speed_ratio=0.5
+[2026-06-16 16:13:49] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 0.0%
+[2026-06-16 16:13:50] [INFO] [Hardware]: Target position reached (current=1.7%, target=0.0%). Stopping.
+[2026-06-16 16:13:50] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:13:50] [INFO] [ReplayEngine]: [BATCH] Send 4 Waypoints to hardware...
+[2026-06-16 16:13:50] [INFO] [Hardware]: WaypointList (4 Points) sent to robot.
+[2026-06-16 16:13:51] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) started.
+[2026-06-16 16:14:01] [INFO] [Hardware]: Action (0, EXECUTE_WAYPOINT_LIST) completed.
+[2026-06-16 16:14:01] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:14:10] [INFO] [Model]: Successfully saved 9 waypoints to 'study_results\850-1781614660\task_7_1781618923.json'.
+[2026-06-16 16:14:10] [INFO] [StudyManager]: Logged task 8 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 16:14:10] [INFO] [Model]: Cleared model sequence. Removed 9 item(s).
+[2026-06-16 16:14:11] [INFO] [Controller]: Transitioned to study task index 9/10 (Task 7 of 8).
+[2026-06-16 16:14:11] [INFO] [Controller]: Moving to default position...
+[2026-06-16 16:14:11] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.19s).
+[2026-06-16 16:14:11] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:14:11] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:14:12] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:14:12] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:14:12] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:14:13] [INFO] [Hardware]: Target position reached (current=51.5%, target=50.0%). Stopping.
+[2026-06-16 16:14:13] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:14:13] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 16:14:13] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 16:14:13] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:16:29] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 16:16:29] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 16:16:29] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 16:16:29] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:17:12] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 16:17:12] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 2.02s.
+[2026-06-16 16:17:12] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:17:13] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:17:21] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 16:17:21] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 1.7s.
+[2026-06-16 16:17:21] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:17:25] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:17:42] [INFO] [Model]: Inserted new waypoint at index 3. Total waypoints: 4.
+[2026-06-16 16:17:42] [INFO] [Controller]: Inserted captured pose right after index 2 with Medium speed duration 4.2s.
+[2026-06-16 16:17:42] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:17:45] [INFO] [Model]: Bulk updated customized durations of waypoints.
+[2026-06-16 16:17:45] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:17:45] [INFO] [Controller]: Applied physical max speed limits at speed 'fast' to 1 waypoint(s).
+[2026-06-16 16:17:47] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:17:53] [INFO] [Model]: Inserted new waypoint at index 4. Total waypoints: 5.
+[2026-06-16 16:17:53] [INFO] [Controller]: Inserted captured pose right after index 3 with Medium speed duration 2.1s.
+[2026-06-16 16:17:53] [INFO] [Model]: Successfully saved 5 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:17:53] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:17:54] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:18:02] [INFO] [Model]: Inserted new waypoint at index 5. Total waypoints: 6.
+[2026-06-16 16:18:02] [INFO] [Controller]: Inserted captured pose right after index 4 with Medium speed duration 1.13s.
+[2026-06-16 16:18:02] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:18:04] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:18:08] [INFO] [Model]: Inserted new waypoint at index 6. Total waypoints: 7.
+[2026-06-16 16:18:08] [INFO] [Controller]: Inserted captured pose right after index 5 with Medium speed duration 1.63s.
+[2026-06-16 16:18:08] [INFO] [Model]: Successfully saved 7 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:18:08] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:18:09] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:18:14] [INFO] [Model]: Inserted new waypoint at index 7. Total waypoints: 8.
+[2026-06-16 16:18:15] [INFO] [Controller]: Inserted captured pose right after index 6 with Medium speed duration 1.8s.
+[2026-06-16 16:18:15] [INFO] [Model]: Successfully saved 8 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:18:46] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:18:46] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:18:46] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:18:46] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.93s).
+[2026-06-16 16:18:46] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:18:48] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:18:48] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:18:48] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:18:48] [INFO] [Hardware]: Target position reached (current=50.2%, target=50.0%). Stopping.
+[2026-06-16 16:18:48] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:18:48] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:18:50] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:18:51] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:18:51] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:18:51] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:18:51] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:18:51] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 2.02s).
+[2026-06-16 16:18:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:18:53] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:18:53] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 16:18:53] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 1.70s).
+[2026-06-16 16:18:53] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:18:55] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:18:55] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:18:55] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 2.10s).
+[2026-06-16 16:18:55] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:18:57] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:18:57] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:18:57] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 2.10s).
+[2026-06-16 16:18:57] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:18:59] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:18:59] [INFO] [ReplayEngine]: [STEP 5] Send action to hardware...
+[2026-06-16 16:18:59] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time constraint: 1.13s).
+[2026-06-16 16:19:00] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:19:01] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:19:01] [INFO] [ReplayEngine]: [STEP 6] Send action to hardware...
+[2026-06-16 16:19:01] [INFO] [Hardware]: Action 'Step_6' sent to robot (Time constraint: 1.63s).
+[2026-06-16 16:19:01] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:19:02] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:19:02] [INFO] [ReplayEngine]: [STEP 7] Send action to hardware...
+[2026-06-16 16:19:02] [INFO] [Hardware]: Action 'Step_7' sent to robot (Time constraint: 1.80s).
+[2026-06-16 16:19:02] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:19:04] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:19:04] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:19:48] [INFO] [Model]: Successfully saved 8 waypoints to 'study_results\850-1781614660\task_5_1781619250.json'.
+[2026-06-16 16:19:48] [INFO] [StudyManager]: Logged task 9 metrics to study_results\850-1781614660\study_log-850-1781614660.csv
+[2026-06-16 16:19:48] [INFO] [Model]: Cleared model sequence. Removed 8 item(s).
+[2026-06-16 16:19:49] [INFO] [Controller]: Transitioned to study task index 10/10 (Task 8 of 8).
+[2026-06-16 16:19:49] [INFO] [Controller]: Moving to default position...
+[2026-06-16 16:19:49] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 1.93s).
+[2026-06-16 16:19:49] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:19:49] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:19:51] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:19:51] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:19:51] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed -0.5 towards target 50.0%
+[2026-06-16 16:19:51] [INFO] [Hardware]: Target position reached (current=48.9%, target=50.0%). Stopping.
+[2026-06-16 16:19:51] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:19:51] [INFO] [Controller]: Automatically capturing and saving initial default pose: [0.0, 70.0, 264.0, 0.0, 58.0, 90.0]
+[2026-06-16 16:19:51] [INFO] [Model]: Appended new waypoint. Total waypoints: 1.
+[2026-06-16 16:19:51] [INFO] [Model]: Successfully saved 1 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:21:03] [INFO] [Controller]: Applying Admittance Mode: Joint...
+[2026-06-16 16:21:03] [INFO] [Hardware]: Successfully set Admittance Mode to: Joint
+[2026-06-16 16:21:03] [ERROR] [Hardware]: Action (0, REACH_JOINT_ANGLES) aborted with Code: 21
+[2026-06-16 16:21:03] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:21:30] [INFO] [Model]: Inserted new waypoint at index 1. Total waypoints: 2.
+[2026-06-16 16:21:30] [INFO] [Controller]: Inserted captured pose right after index 0 with Medium speed duration 2.57s.
+[2026-06-16 16:21:30] [INFO] [Model]: Successfully saved 2 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:21:33] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:21:37] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 3.
+[2026-06-16 16:21:37] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 2.15s.
+[2026-06-16 16:21:37] [INFO] [Model]: Successfully saved 3 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:21:37] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:21:37] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:22:24] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:22:29] [INFO] [Model]: Inserted new waypoint at index 2. Total waypoints: 4.
+[2026-06-16 16:22:29] [INFO] [Controller]: Inserted captured pose right after index 1 with Medium speed duration 0.85s.
+[2026-06-16 16:22:29] [INFO] [Model]: Successfully saved 4 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:22:30] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:22:35] [INFO] [Model]: Inserted new waypoint at index 3. Total waypoints: 5.
+[2026-06-16 16:22:35] [INFO] [Controller]: Inserted captured pose right after index 2 with Medium speed duration 1.13s.
+[2026-06-16 16:22:35] [INFO] [Model]: Successfully saved 5 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:22:36] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:22:40] [INFO] [Model]: Inserted new waypoint at index 4. Total waypoints: 6.
+[2026-06-16 16:22:40] [INFO] [Controller]: Inserted captured pose right after index 3 with Medium speed duration 0.82s.
+[2026-06-16 16:22:40] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:22:43] [INFO] [UDPTransmitter]: Cleared preview override automatically due to physical movement.
+[2026-06-16 16:23:01] [INFO] [Controller]: Starting full sequence replay...
+[2026-06-16 16:23:01] [INFO] [ReplayEngine]: === START SEQUENCE-REPLAY ===
+[2026-06-16 16:23:01] [INFO] [ReplayEngine]: Moving back to default position before starting replay...
+[2026-06-16 16:23:01] [INFO] [Hardware]: Action 'Origin' sent to robot (Time constraint: 4.48s).
+[2026-06-16 16:23:02] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:23:06] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:23:06] [INFO] [Hardware]: Sending gripper command: State=, Duration=medium, target_pos=50.0, speed_ratio=0.5
+[2026-06-16 16:23:06] [INFO] [Hardware]: Starting GRIPPER_SPEED mode movement at speed 0.5 towards target 50.0%
+[2026-06-16 16:23:06] [INFO] [Hardware]: Target position reached (current=52.8%, target=50.0%). Stopping.
+[2026-06-16 16:23:06] [INFO] [Hardware]: GRIPPER_SPEED movement stopped.
+[2026-06-16 16:23:06] [INFO] [ReplayEngine]: Pausing at default position for 2.0s...
+[2026-06-16 16:23:08] [INFO] [ReplayEngine]: Replay start chime played, waiting 1.0s warning countdown before execution...
+[2026-06-16 16:23:09] [INFO] [ReplayEngine]: Replay sequence starting...
+[2026-06-16 16:23:09] [INFO] [ReplayEngine]: [STEP 0] Send action to hardware...
+[2026-06-16 16:23:09] [INFO] [Hardware]: Skipping 'Step_0': Destination already reached.
+[2026-06-16 16:23:09] [INFO] [ReplayEngine]: [STEP 1] Send action to hardware...
+[2026-06-16 16:23:09] [INFO] [Hardware]: Action 'Step_1' sent to robot (Time constraint: 2.57s).
+[2026-06-16 16:23:10] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:23:12] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:23:12] [INFO] [ReplayEngine]: [STEP 2] Send action to hardware...
+[2026-06-16 16:23:12] [INFO] [Hardware]: Action 'Step_2' sent to robot (Time constraint: 0.85s).
+[2026-06-16 16:23:12] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:23:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:23:13] [INFO] [ReplayEngine]: [STEP 3] Send action to hardware...
+[2026-06-16 16:23:13] [INFO] [Hardware]: Action 'Step_3' sent to robot (Time constraint: 1.13s).
+[2026-06-16 16:23:13] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:23:14] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:23:14] [INFO] [ReplayEngine]: [STEP 4] Send action to hardware...
+[2026-06-16 16:23:14] [INFO] [Hardware]: Action 'Step_4' sent to robot (Time constraint: 0.82s).
+[2026-06-16 16:23:14] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:23:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:23:15] [INFO] [ReplayEngine]: [STEP 5] Send action to hardware...
+[2026-06-16 16:23:15] [INFO] [Hardware]: Action 'Step_5' sent to robot (Time constraint: 2.15s).
+[2026-06-16 16:23:15] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) started.
+[2026-06-16 16:23:17] [INFO] [Hardware]: Action (0, REACH_JOINT_ANGLES) completed.
+[2026-06-16 16:23:17] [INFO] [ReplayEngine]: === REPLAY COMPLETED SUCCESSFULLY ===
+[2026-06-16 16:24:12] [INFO] [Model]: Successfully saved 6 waypoints to 'study_results\850-1781614660\task_6_1781619588.json'.
+[2026-06-16 16:24:12] [INFO] [StudyManager]: Logged task 10 metrics to study_results\850-1781614660\study_log-850-1781614660.csv

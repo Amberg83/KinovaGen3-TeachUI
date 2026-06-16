@@ -1,0 +1,182 @@
+[
+    {
+        "pos": [
+            0.0,
+            70.0,
+            264.0,
+            0.0,
+            58.0,
+            90.0
+        ],
+        "type": "action",
+        "duration_s": 5.0,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "pos": [
+            360.0,
+            65.65,
+            278.92,
+            0.0,
+            37.14,
+            89.9
+        ],
+        "type": "action",
+        "duration_s": 1.0,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "type": "gripper",
+        "duration_s": 1.5,
+        "gripper_state": "closed",
+        "gripper_duration": "medium",
+        "gripper_target_pos": 100.0,
+        "gripper_speed_ratio": 0.5
+    },
+    {
+        "pos": [
+            0.25,
+            66.55,
+            291.68,
+            0.0,
+            23.93,
+            89.9
+        ],
+        "type": "action",
+        "duration_s": 0.93,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "pos": [
+            358.9,
+            64.23,
+            242.0,
+            0.0,
+            76.15,
+            89.9
+        ],
+        "type": "action",
+        "duration_s": 1.88,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "type": "gripper",
+        "gripper_state": "open",
+        "gripper_duration": "medium",
+        "gripper_target_pos": 0.0,
+        "gripper_speed_ratio": 0.5,
+        "duration_s": 1.5
+    },
+    {
+        "type": "angularwaypoint",
+        "duration_s": 2.5,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pos": [
+            358.9,
+            61.62,
+            242.01,
+            0.0,
+            76.64,
+            183.14
+        ]
+    },
+    {
+        "type": "angularwaypoint",
+        "duration_s": 2.3,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pos": [
+            358.9,
+            61.96,
+            242.01,
+            0.0,
+            76.55,
+            272.19
+        ]
+    },
+    {
+        "type": "angularwaypoint",
+        "duration_s": 2.3,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pos": [
+            358.9,
+            60.29,
+            242.01,
+            0.0,
+            76.83,
+            356.13
+        ]
+    },
+    {
+        "type": "angularwaypoint",
+        "duration_s": 2.3,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pos": [
+            358.0,
+            59.45,
+            242.01,
+            0.32,
+            76.51,
+            83.35
+        ]
+    }
+]

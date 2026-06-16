@@ -1,0 +1,73 @@
+[
+    {
+        "pos": [
+            0.0,
+            70.0,
+            264.0,
+            0.0,
+            58.0,
+            90.0
+        ],
+        "type": "action",
+        "duration_s": 5.0,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "pos": [
+            46.09,
+            70.09,
+            263.99,
+            360.0,
+            58.0,
+            89.99
+        ],
+        "type": "action",
+        "duration_s": 0.89,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "pos": [
+            42.76,
+            70.38,
+            263.99,
+            76.66,
+            85.18,
+            89.4
+        ],
+        "type": "action",
+        "duration_s": 2.53,
+        "max_velocities": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "pause_s": 0.0
+    },
+    {
+        "type": "gripper",
+        "duration_s": 1.5,
+        "gripper_state": "closed",
+        "gripper_duration": "fast",
+        "gripper_target_pos": 100.0,
+        "gripper_speed_ratio": 0.0
+    }
+]
