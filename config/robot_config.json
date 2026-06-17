@@ -8,6 +8,7 @@
         90.0
     ],
     "default_gripper_pos": "pickup",
+    "default_gripper_duration": "fast",
     "gripper_limits": {
         "open_angle_deg": 0.0,
         "closed_angle_deg": 40.0
@@ -33,7 +34,10 @@
         "vel_small_actuators": 70.0,
         "accel_small_actuators": 572.96,
         "safety_factor_action": 1.0,
-        "safety_factor_waypoint": 1.6
+        "safety_factor_waypoint": 1.7,
+        "safety_factor_waypoint_decel": 1.4,
+        "safety_factor_waypoint_run": 1.1,
+        "direction_change_threshold_deg": 5.0
     },
     "hardware_connection": {
         "connection_timeout_ms": 10000

@@ -189,6 +189,7 @@ class SequenceModel:
         
         presets = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
         speeds = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
+        default_dur = "fast"
         
         if os.path.exists(config_path):
             try:
@@ -196,13 +197,14 @@ class SequenceModel:
                     cfg = json.load(f)
                     presets.update(cfg.get("gripper_presets", {}))
                     speeds.update(cfg.get("gripper_speed_presets", {}))
+                    default_dur = cfg.get("default_gripper_duration", default_dur)
             except Exception:
                 pass
-        return presets, speeds
+        return presets, speeds, default_dur
 
     def load_from_json(self, filepath):
         try:
-            presets, speeds = self._load_robot_presets()
+            presets, speeds, default_dur = self._load_robot_presets()
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 if isinstance(data, list):
@@ -230,7 +232,7 @@ class SequenceModel:
                             if "gripper_speed" in step:
                                 step["gripper_duration"] = step.pop("gripper_speed")
                             step["gripper_state"] = step.get("gripper_state", "open")
-                            step["gripper_duration"] = step.get("gripper_duration", "medium")
+                            step["gripper_duration"] = step.get("gripper_duration", default_dur)
                             
                             # Migrate custom target position percentage
                             if "gripper_target_pos" not in step:
@@ -240,7 +242,7 @@ class SequenceModel:
                             # Migrate custom speed ratio override
                             if "gripper_speed_ratio" not in step:
                                 dur_lower = step["gripper_duration"].lower()
-                                step["gripper_speed_ratio"] = speeds.get(dur_lower, 0.5)
+                                step["gripper_speed_ratio"] = speeds.get(dur_lower, speeds.get(default_dur, 0.0))
                             
                     self.sequence = data
                     self.current_filepath = filepath

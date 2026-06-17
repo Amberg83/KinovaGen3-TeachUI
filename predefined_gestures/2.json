@@ -27,10 +27,10 @@
             314.52,
             4.21,
             88.44,
-            176.25
+            90.0
         ],
         "type": "action",
-        "duration_s": 2.81,
+        "duration_s": 1.9,
         "max_velocities": [
             0.0,
             0.0,
@@ -45,18 +45,18 @@
         "type": "gripper",
         "duration_s": 1.5,
         "gripper_state": "closed",
-        "gripper_duration": "medium",
+        "gripper_duration": "fast",
         "gripper_target_pos": 100.0,
-        "gripper_speed_ratio": 0.5
+        "gripper_speed_ratio": 0.0
     },
     {
         "pos": [
             6.51,
             42.41,
             314.52,
-            4.21,
-            119.47,
-            176.25
+            35.24,
+            88.44,
+            90.0
         ],
         "type": "action",
         "duration_s": 1.23,
@@ -75,9 +75,9 @@
             6.51,
             42.03,
             314.52,
-            4.21,
-            52.84,
-            176.25
+            328.61,
+            88.44,
+            90.0
         ],
         "type": "action",
         "duration_s": 2.25,
@@ -100,9 +100,9 @@
             6.51,
             42.41,
             314.52,
-            4.21,
-            119.47,
-            176.25
+            35.24,
+            88.44,
+            90.0
         ],
         "type": "action",
         "duration_s": 2.25,
@@ -121,9 +121,9 @@
             6.51,
             42.03,
             314.52,
-            4.21,
-            52.84,
-            176.25
+            328.61,
+            88.44,
+            90.0
         ],
         "type": "action",
         "duration_s": 2.25,

@@ -235,7 +235,7 @@ class RobotView:
         if wp_type == "gripper":
             params = self.panel_insp.get_waypoint_params()
             state = params.get("gripper_state", "open")
-            duration = params.get("gripper_duration", "medium")
+            duration = params.get("gripper_duration", self.panel_insp.default_gripper_duration)
             target_pos = params.get("gripper_target_pos", 0.0)
             speed_ratio = params.get("gripper_speed_ratio", 0.0)
             

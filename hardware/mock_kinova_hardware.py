@@ -23,6 +23,7 @@ class MockKinovaHardware:
         # Load configurable defaults from config/ files
         self.default_pose = [0.0, 50.0, 264.0, 0.0, 58.0, 90.0]
         self.default_gripper_pos = 0.0
+        self.default_gripper_duration = "fast"
         self.polling_frequency_hz = 20
         self.gripper_presets = {"open": 0.0, "closed": 100.0, "pickup": 50.0}
         self.gripper_speed_presets = {"slow": 0.2, "medium": 0.5, "fast": 0.0}
@@ -58,6 +59,8 @@ class MockKinovaHardware:
                         self.default_gripper_pos = float(self.gripper_presets.get(default_g.lower(), 0.0))
                     else:
                         self.default_gripper_pos = float(default_g)
+                    
+                    self.default_gripper_duration = cfg.get("default_gripper_duration", "fast")
                     
                     conn = cfg.get("hardware_connection", {})
                     self.connection_timeout_ms = int(conn.get("connection_timeout_ms", 10000))
@@ -120,25 +123,53 @@ class MockKinovaHardware:
         self._is_action_paused = False
         return True
 
-    def move_to_default(self):
-        """Moves simulated robot back to its home default pose."""
+    def move_to_default(self, custom_pose=None, custom_gripper_pos=None):
+        """Moves simulated robot back to its home default pose with a safety retract sequence."""
         pager = threading.Event()
         
         def worker():
-            speed = calculate_min_trajectory_duration(self.state.joint_angles_deg, self.default_pose)
-            movement_pager = self.execute_action_pose(self.default_pose, speed * 2.0, "Origin")
+            current_angles = getattr(self.state, 'joint_angles_deg', None)
+            if not current_angles or len(current_angles) != 6:
+                current_angles = self.default_pose
+                
+            # Stage 1: Retract (Keep joints 1, 4, 6, set joint 2=20.0, joint 3=320.0, joint 5=330.0) at medium speed
+            retract_pose = [
+                current_angles[0],
+                20.0,
+                320.0,
+                current_angles[3],
+                330.0,
+                current_angles[5]
+            ]
+            speed1 = calculate_min_trajectory_duration(current_angles, retract_pose, speed="medium")
+            movement_pager1 = self.execute_action_pose(retract_pose, speed1, "Retract")
+            movement_pager1.wait(timeout=15.0)
             
-            # Wait for simulated joint movement to fully complete
-            movement_pager.wait(timeout=15.0)
+            # Update current angles reference for Stage 2
+            current_angles_stage2 = getattr(self.state, 'joint_angles_deg', None)
+            if not current_angles_stage2 or len(current_angles_stage2) != 6:
+                current_angles_stage2 = retract_pose
+                
+            # Stage 2: Move from retract pose to target default pose at medium speed
+            target_pose = custom_pose if custom_pose is not None else self.default_pose
+            speed2 = calculate_min_trajectory_duration(current_angles_stage2, target_pose, speed="medium")
+            movement_pager2 = self.execute_action_pose(target_pose, speed2, "DefaultPose")
+            movement_pager2.wait(timeout=15.0)
             
-            # As soon as the arm is finished, adjust the gripper to the custom default gripper position
-            gripper_pager = self.execute_gripper_action("", "medium", target_pos=self.default_gripper_pos)
-            # Wait for simulated gripper movement to settle/complete
+            # Stage 3: Close/open gripper to target default gripper position at fast speed
+            if custom_gripper_pos is not None:
+                if isinstance(custom_gripper_pos, str):
+                    target_gripper = float(self.gripper_presets.get(custom_gripper_pos.lower(), 0.0))
+                else:
+                    target_gripper = float(custom_gripper_pos)
+            else:
+                target_gripper = self.default_gripper_pos
+                
+            gripper_pager = self.execute_gripper_action("", "fast", target_pos=target_gripper)
             gripper_pager.wait(timeout=3.0)
             
-            # play completion sound
+            # Play completion sound
             EventBus.publish("replay_finished")
-            
             pager.set()
             
         threading.Thread(target=worker, daemon=True).start()
@@ -527,8 +558,10 @@ class MockKinovaHardware:
         self._active_movement_pager = None
         pager.set()
 
-    def execute_gripper_action(self, state_str, duration_str="medium", target_pos=None, speed_ratio=None):
+    def execute_gripper_action(self, state_str, duration_str=None, target_pos=None, speed_ratio=None):
         """Simulates sending a gripper command. Returns a waitable event."""
+        if duration_str is None:
+            duration_str = self.default_gripper_duration
         pager = threading.Event()
         self._last_action_success = True
         

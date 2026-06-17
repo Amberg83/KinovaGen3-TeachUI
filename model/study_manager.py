@@ -269,23 +269,59 @@ class StudyManager:
         default_tasks = [
             {
                 "id": 1,
-                "name": "Winken (Wave)",
-                "instructions": "Bringe den Roboter dazu, mit seiner Hand eine winkende Geste auszuführen.\nBewege dazu den Roboter von links nach rechts."
+                "name": "SS Direct",
+                "instructions": "Imagine you are collaboratively assembling something together with another person. While you are working, the other person's phone receives a notification that appears on their screen in your shared field of view, and you could read it if you continued looking at it. How would you show the other person that you are not reading the notification?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
             },
             {
                 "id": 2,
-                "name": "Zeigen (Point)",
-                "instructions": "Bringe den Roboter dazu, auf die Tür zu zeigen.\nHalte den Arm für mindestens 2 Sekunden still."
+                "name": "SS Interaction-mediated",
+                "instructions": "Imagine you are collaboratively assembling something together with another person. While you are working, you open a shared box to retrieve a tool for the task. Inside the box you see a sensitive doctor's note belonging to the other person that becomes visible as a result of opening it. How would you show the other person that you are not looking at the note?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
             },
             {
                 "id": 3,
-                "name": "Objekt greifen (Pick Object)",
-                "instructions": "Bewege den Arm so, dass er das Objekt greifen kann.\nPositioniere den Greifer über dem Becher."
+                "name": "SS Background",
+                "instructions": "Imagine you are collaboratively assembling something together with another person. While you are working, the other person receives a phone call on speakerphone and begins discussing private personal information. How would you show the other person that you are not listening to the conversation?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
             },
             {
                 "id": 4,
-                "name": "Objekt ablegen (Place Object)",
-                "instructions": "Bewege den Arm so, dass er das gegriffene Objekt auf dem Tisch ablegt.\nFahre danach in eine sichere Warteposition."
+                "name": "SD Direct",
+                "instructions": "Imagine you are assembling something while another person is doing something else. The other person's phone displays a notification on their screen that is visible from your position if you were to look in their direction. How would you show them that you are not reading their notification?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
+            },
+            {
+                "id": 5,
+                "name": "SD Interaction-mediated",
+                "instructions": "Imagine you are assembling something while another person is doing something else. You need to retrieve a tool from a shared storage area, and in doing so you open a box that contains personal documents belonging to the other person, which become visible when the box is opened. How would you show them that you are not looking at their documents?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
+            },
+            {
+                "id": 6,
+                "name": "SD Background",
+                "instructions": "Imagine you are assembling something while another person is doing something else. The other person receives a phone call on speakerphone and begins discussing private personal information while you are both working independently. How would you show them that you are not listening to the conversation?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
+            },
+            {
+                "id": 7,
+                "name": "SS Control",
+                "instructions": "Imagine you are collaboratively assembling something together with another person. While you are working, you look for a specific tool and find that the other person is currently using it. How would you notify the other person that you want them to hand over the tool in their hand when they are finished using it?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
+            },
+            {
+                "id": 8,
+                "name": "SD Control",
+                "instructions": "Imagine you are assembling something while another person is doing something else. While you are working, you look for a specific tool and find that the other person is currently using it. How would you notify the other person that you want them to hand over the tool in their hand when they are finished using it?",
+                "default_pose": [10.0, 60.0, 270.0, 0.0, 55.0, 90.0],
+                "default_gripper_pos": "open"
             }
         ]
         
@@ -316,13 +352,17 @@ class StudyManager:
         default_tutorials = [
             {
                 "id": 101,
-                "name": "Tutorial 1: Greifer testen (Test Gripper)",
-                "instructions": "Öffne und schließe den Greifer des Roboters mehrmals.\nGewöhne dich an die Steuerung."
+                "name": "SS Tutorial",
+                "instructions": "Imagine you are at home assembling something together with another person. While you are working, you need something from the other person. How would you signal that you need some attention?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
             },
             {
                 "id": 102,
-                "name": "Tutorial 2: Einfache Bewegung (Simple Movement)",
-                "instructions": "Bewege den Roboterarm ein kleines Stück nach oben und wieder zurück."
+                "name": "SD Tutorial",
+                "instructions": "Imagine you are in the kitchen at home cooking something while another person in the same room is doing something else. While you are monitoring the stove, you see a pot dangerously close to boiling over. How would you signal this imminent danger to the other person?",
+                "default_pose": [0.0, 70.0, 264.0, 0.0, 58.0, 90.0],
+                "default_gripper_pos": "pickup"
             }
         ]
         

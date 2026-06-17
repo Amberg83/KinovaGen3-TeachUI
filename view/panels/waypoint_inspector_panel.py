@@ -22,6 +22,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         # Load custom gripper presets and speed presets dynamically from robot_config.json
         self.gripper_presets = {"open": "0.0", "closed": "100.0", "pickup": "50.0"}
         self.gripper_speed_presets = {"slow": "0.20", "medium": "0.50", "fast": "0.00"}
+        self.default_gripper_duration = "fast"
         
         import os
         import json
@@ -36,12 +37,14 @@ class WaypointInspectorPanel(ctk.CTkFrame):
                     
                     speeds = cfg.get("gripper_speed_presets", {})
                     self.gripper_speed_presets = {k: f"{float(v):.2f}" for k, v in speeds.items()}
+                    
+                    self.default_gripper_duration = cfg.get("default_gripper_duration", "fast")
             except Exception:
                 pass
                 
         # Declare variables for Robotiq 2F-140 Gripper settings
         self.gripper_state_var = ctk.StringVar(value="open")
-        self.gripper_duration_var = ctk.StringVar(value="medium")
+        self.gripper_duration_var = ctk.StringVar(value=self.default_gripper_duration)
         
         self.setup_ui()
         self._set_inspector_state("disabled")

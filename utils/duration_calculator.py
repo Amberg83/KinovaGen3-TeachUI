@@ -50,7 +50,10 @@ class DurationConfig:
 
     # Safety scaling factors to absorb spline blending overshoots
     SAFETY_FACTOR_ACTION = 1.0
-    SAFETY_FACTOR_WAYPOINT = 1.6
+    SAFETY_FACTOR_WAYPOINT = 1.7
+    SAFETY_FACTOR_WAYPOINT_DECEL = 1.4
+    SAFETY_FACTOR_WAYPOINT_RUN = 1.1
+    DIRECTION_CHANGE_THRESHOLD_DEG = 5.0
 
     # Default baseline speeds and accelerations for 6-DOF Kinova Gen3 robot
     # Large actuators (Joints 1-3)
@@ -92,6 +95,12 @@ def load_duration_config():
                     DurationConfig.SAFETY_FACTOR_ACTION = float(constants["safety_factor_action"])
                 if "safety_factor_waypoint" in constants:
                     DurationConfig.SAFETY_FACTOR_WAYPOINT = float(constants["safety_factor_waypoint"])
+                if "safety_factor_waypoint_decel" in constants:
+                    DurationConfig.SAFETY_FACTOR_WAYPOINT_DECEL = float(constants["safety_factor_waypoint_decel"])
+                if "safety_factor_waypoint_run" in constants:
+                    DurationConfig.SAFETY_FACTOR_WAYPOINT_RUN = float(constants["safety_factor_waypoint_run"])
+                if "direction_change_threshold_deg" in constants:
+                    DurationConfig.DIRECTION_CHANGE_THRESHOLD_DEG = float(constants["direction_change_threshold_deg"])
         except Exception:
             pass
 
@@ -186,12 +195,45 @@ def calculate_waypoint_durations(waypoints, time_buffer=None, speed="fast"):
     max_accel_large = DurationConfig.ACCEL_LARGE
     max_vel_small = DurationConfig.VEL_SMALL
     max_accel_small = DurationConfig.ACCEL_SMALL
-    safety_factor = DurationConfig.SAFETY_FACTOR_WAYPOINT
+    
+    sf_rest = DurationConfig.SAFETY_FACTOR_WAYPOINT
+    sf_decel = DurationConfig.SAFETY_FACTOR_WAYPOINT_DECEL
+    sf_run = DurationConfig.SAFETY_FACTOR_WAYPOINT_RUN
+    threshold_deg = DurationConfig.DIRECTION_CHANGE_THRESHOLD_DEG
 
     durations = []
     
+    def check_ends_at_rest(idx):
+        if idx == len(waypoints) - 2:
+            return True
+        for i in range(6):
+            curr = waypoints[idx][i]
+            nxt = waypoints[idx+1][i]
+            nxt_nxt = waypoints[idx+2][i]
+            
+            d1 = nxt - curr
+            while d1 > 180.0: d1 -= 360.0
+            while d1 < -180.0: d1 += 360.0
+            
+            d2 = nxt_nxt - nxt
+            while d2 > 180.0: d2 -= 360.0
+            while d2 < -180.0: d2 += 360.0
+            
+            if abs(d1) > threshold_deg and abs(d2) > threshold_deg:
+                if d1 * d2 < 0:
+                    return True
+        return False
+
     for j in range(len(waypoints) - 1):
         segment_times = []
+        
+        # Classify segment to select the safety factor
+        if check_ends_at_rest(j):
+            safety_factor = sf_rest
+        elif j < len(waypoints) - 2 and check_ends_at_rest(j + 1):
+            safety_factor = sf_decel
+        else:
+            safety_factor = sf_run
         
         for i in range(6):
             # Scale down physical limits to safe planning limits to absorb splining overshoots.
@@ -224,8 +266,9 @@ def calculate_waypoint_durations(waypoints, time_buffer=None, speed="fast"):
                 prev_delta = curr_angle - prev_angle
                 while prev_delta > 180.0: prev_delta -= 360.0
                 while prev_delta < -180.0: prev_delta += 360.0
-                if delta_theta * prev_delta < 0:
-                    starts_from_rest = True
+                if abs(delta_theta) > threshold_deg and abs(prev_delta) > threshold_deg:
+                    if delta_theta * prev_delta < 0:
+                        starts_from_rest = True
                     
             ends_at_rest = is_last_segment
             if not is_last_segment:
@@ -233,8 +276,9 @@ def calculate_waypoint_durations(waypoints, time_buffer=None, speed="fast"):
                 next_delta = next_next_angle - next_angle
                 while next_delta > 180.0: next_delta -= 360.0
                 while next_delta < -180.0: next_delta += 360.0
-                if next_delta * delta_theta < 0:
-                    ends_at_rest = True
+                if abs(delta_theta) > threshold_deg and abs(next_delta) > threshold_deg:
+                    if next_delta * delta_theta < 0:
+                        ends_at_rest = True
 
             t = distance / v_max
             

@@ -6,8 +6,9 @@ from utils.event_bus import EventBus
 
 class ReplayEngine:
     """Manages the execution of motion sequences on the robot arm in a separate background thread."""
-    def __init__(self, hardware):
+    def __init__(self, hardware, study_manager=None):
         self.hardware = hardware
+        self.study_manager = study_manager
         self.logger = logging.getLogger("ReplayEngine")
         self.is_replaying = False
         self.stop_requested = False
@@ -38,7 +39,14 @@ class ReplayEngine:
             
             # 1. Move back to default position before starting replay
             self.logger.info("Moving back to default position before starting replay...")
-            completion_event = self.hardware.move_to_default()
+            custom_pose = None
+            custom_gripper = None
+            if self.study_manager and self.study_manager.study_mode:
+                active_task = self.study_manager.get_active_task()
+                if active_task:
+                    custom_pose = active_task.get("default_pose")
+                    custom_gripper = active_task.get("default_gripper_pos")
+            completion_event = self.hardware.move_to_default(custom_pose=custom_pose, custom_gripper_pos=custom_gripper)
             if completion_event:
                 completion_event.wait(timeout=15.0)
                 
@@ -157,7 +165,7 @@ class ReplayEngine:
                     self.logger.info(f"[STEP {idx}] Send gripper action to hardware...")
                     completion_event = self.hardware.execute_gripper_action(
                         step.get("gripper_state", "open"),
-                        step.get("gripper_duration", "medium"),
+                        step.get("gripper_duration", self.hardware.default_gripper_duration),
                         step.get("gripper_target_pos", None),
                         step.get("gripper_speed_ratio", None)
                     )

@@ -21,8 +21,23 @@ class RobotController:
         self.study_manager = StudyManager(participant_id, is_review_mode=is_review_mode)
         
         self.logger = logging.getLogger("Controller")
-        self.replay_engine = ReplayEngine(self.hardware)
+        self.replay_engine = ReplayEngine(self.hardware, self.study_manager)
         self.clipboard = []
+        
+        # Load default gripper settings from config
+        self.default_gripper_duration = "fast"
+        self.default_gripper_speed_ratio = 0.0
+        try:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            config_path = os.path.join(base_dir, "config", "robot_config.json")
+            if os.path.exists(config_path):
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.default_gripper_duration = cfg.get("default_gripper_duration", "fast")
+                    speeds = cfg.get("gripper_speed_presets", {})
+                    self.default_gripper_speed_ratio = speeds.get(self.default_gripper_duration, 0.0)
+        except Exception:
+            pass
 
         os.makedirs("expressions", exist_ok=True)
         os.makedirs("log", exist_ok=True)
@@ -117,14 +132,21 @@ class RobotController:
                 self.logger.info("Review Mode active: skipping automatic homing on connection.")
                 return
                 
+            custom_pose = None
+            custom_gripper = None
+            active_task = self.study_manager.get_active_task()
+            if active_task:
+                custom_pose = active_task.get("default_pose")
+                custom_gripper = active_task.get("default_gripper_pos")
+                
             if is_initial:
                 # Initial connection in Normal Study Mode: Move to default and save initial pose
                 self.logger.info("Initial study mode connection: Homing and recording starting pose...")
-                self._move_to_default_and_save_pose()
+                self._move_to_default_and_save_pose(custom_pose, custom_gripper)
             else:
                 # Reconnection during normal study mode: Home the robot but DO NOT append/save a new pose
                 self.logger.info("Reconnection during study mode: Homing robot (without appending pose)...")
-                threading.Thread(target=self.hardware.move_to_default, daemon=True).start()
+                threading.Thread(target=self.hardware.move_to_default, kwargs={"custom_pose": custom_pose, "custom_gripper_pos": custom_gripper}, daemon=True).start()
         else:
             # Standard Mode (startup or reconnection): Automatically move to default position
             self.logger.info("Standard mode connection/reconnection: Homing robot...")
@@ -572,10 +594,25 @@ class RobotController:
             self.logger.warning("Cannot move to default position: Robot disconnected.")
             return
         self.logger.info("Moving robot to default position...")
-        threading.Thread(target=self.hardware.move_to_default, daemon=True).start()
+        custom_pose = None
+        custom_gripper = None
+        if self.study_manager.study_mode:
+            active_task = self.study_manager.get_active_task()
+            if active_task:
+                custom_pose = active_task.get("default_pose")
+                custom_gripper = active_task.get("default_gripper_pos")
+        threading.Thread(target=self.hardware.move_to_default, kwargs={"custom_pose": custom_pose, "custom_gripper_pos": custom_gripper}, daemon=True).start()
 
-    def _move_to_default_and_save_pose(self):
+    def _move_to_default_and_save_pose(self, custom_pose=None, custom_gripper_pos=None):
         """Asynchronously moves the robot to the default position, waits for it, and appends/saves the pose."""
+        if self.study_manager.study_mode and (custom_pose is None or custom_gripper_pos is None):
+            active_task = self.study_manager.get_active_task()
+            if active_task:
+                if custom_pose is None:
+                    custom_pose = active_task.get("default_pose")
+                if custom_gripper_pos is None:
+                    custom_gripper_pos = active_task.get("default_gripper_pos")
+                    
         def worker():
             if not self.hardware.state.is_connected:
                 # Wait up to 5 seconds for connection if we are at startup
@@ -589,7 +626,7 @@ class RobotController:
                 return
                 
             self.logger.info("Moving to default position...")
-            completion_event = self.hardware.move_to_default()
+            completion_event = self.hardware.move_to_default(custom_pose=custom_pose, custom_gripper_pos=custom_gripper_pos)
             
             # Wait for default positioning completion (up to 15s)
             if not completion_event.wait(timeout=15.0):
@@ -598,20 +635,49 @@ class RobotController:
             # Wait another short moment to ensure telemetry is updated/settled
             time.sleep(0.5)
             
-            # Save the exact starting default pose specified in the hardware layer instead of capturing live angles
-            default_poses = list(self.hardware.default_pose)
+            # Save the exact starting default pose specified in the hardware layer or task instead of capturing live angles
+            pose_to_save = custom_pose if custom_pose is not None else list(self.hardware.default_pose)
+            
+            # Resolve gripper percentage target to save
+            if custom_gripper_pos is not None:
+                if isinstance(custom_gripper_pos, str):
+                    gripper_val = float(self.hardware.gripper_presets.get(custom_gripper_pos.lower(), 0.0))
+                else:
+                    gripper_val = float(custom_gripper_pos)
+            else:
+                gripper_val = self.hardware.default_gripper_pos
                 
             # Run the pose capture inside the main Tkinter thread to avoid race conditions on the model/UI
-            self.root.after(0, lambda: self._capture_and_save_initial_pose(default_poses))
+            self.root.after(0, lambda: self._capture_and_save_initial_pose(pose_to_save, gripper_val))
             
         threading.Thread(target=worker, daemon=True).start()
 
-    def _capture_and_save_initial_pose(self, poses):
+    def _capture_and_save_initial_pose(self, poses, gripper_val=None):
         """Appends the initial default pose to the model sequence and saves it."""
         self.logger.info(f"Automatically capturing and saving initial default pose: {poses}")
         params = {"type": "action", "duration_s": 5.0, "max_velocities": [0.0]*6, "pause_s": 0.0}
         pose_data = {"pos": poses, **params}
         self.model.append_pose(pose_data)
+        
+        if gripper_val is not None:
+            # Find matching preset name if any
+            state_str = "custom"
+            for preset_name, preset_val in self.hardware.gripper_presets.items():
+                if abs(preset_val - gripper_val) < 0.1:
+                    state_str = preset_name
+                    break
+            
+            gripper_data = {
+                "type": "gripper",
+                "gripper_state": state_str,
+                "gripper_duration": self.default_gripper_duration,
+                "gripper_target_pos": gripper_val,
+                "gripper_speed_ratio": self.default_gripper_speed_ratio,
+                "duration_s": 1.5
+            }
+            self.model.append_pose(gripper_data)
+            self.logger.info(f"Automatically capturing and saving initial gripper pose: {gripper_data}")
+            
         self._auto_save()
 
     def handle_play_predefined_gesture(self, filepath):
@@ -645,9 +711,9 @@ class RobotController:
         gripper_data = {
             "type": "gripper",
             "gripper_state": "open",       # "open", "closed", "pickup"
-            "gripper_duration": "medium",  # "slow", "medium", "fast"
+            "gripper_duration": self.default_gripper_duration,
             "gripper_target_pos": 0.0,     # default 0% (fully open)
-            "gripper_speed_ratio": 0.5,    # default medium speed
+            "gripper_speed_ratio": self.default_gripper_speed_ratio,
             "duration_s": 1.5              # internal mechanical wait duration
         }
         if after_idx is None:

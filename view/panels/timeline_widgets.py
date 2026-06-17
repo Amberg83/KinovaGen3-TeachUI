@@ -3,6 +3,22 @@ import customtkinter as ctk
 from view import theme
 from view.widgets import ToolTip
 
+def load_default_gripper_duration():
+    import os
+    import json
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    config_path = os.path.join(base_dir, "config", "robot_config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                return cfg.get("default_gripper_duration", "fast")
+        except Exception:
+            pass
+    return "fast"
+
+DEFAULT_GRIPPER_DURATION = load_default_gripper_duration()
+
 class TimelineRowCard(ctk.CTkFrame):
     """Encapsulates the rendering, themes, and mouse event bindings for a single timeline row."""
     def __init__(self, parent, idx, step, col_widths, click_cb, drag_motion_cb, drag_drop_cb, is_selected):
@@ -29,7 +45,7 @@ class TimelineRowCard(ctk.CTkFrame):
             param_str = f"Wait: {dur}s"
         elif type_str == "GRIPPER":
             pos_str = f"GRIPPER: {self.step.get('gripper_state', 'open').upper()}"
-            duration_val = self.step.get('gripper_duration', self.step.get('gripper_speed', 'medium'))
+            duration_val = self.step.get('gripper_duration', self.step.get('gripper_speed', DEFAULT_GRIPPER_DURATION))
             param_str = f"Duration: {duration_val.upper()}"
         else:
             pos_str = [f"{v:.1f}" for v in self.step.get("pos", [0.0]*6)]

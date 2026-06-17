@@ -19,13 +19,13 @@ This document provides a precise, step-by-step structural and behavioral analysi
 | Step Index | Gesture 1 (`1.json`) | Gesture 2 (`2.json`) | Gesture 3 (`3.json`) | Gesture 4 (`4.json`) |
 | :---: | :--- | :--- | :--- | :--- |
 | **1** | `action` (0.12s) | `action` (0.12s) | `action` (0.12s) | `action` (0.12s) |
-| **2** | `action` (2.81s) | `action` (2.81s) | `action` (1.40s) <br> *(Accelerated)* | `action` (1.40s) |
-| **3** | `action` (1.23s) | `gripper` (1.50s) <br> *(Medium speed)* | `gripper` (1.50s) <br> *(Fast speed)* | `gripper` (1.50s) |
-| **4** | `action` (2.25s) | `action` (1.23s) | `action` (1.23s) | `action` (1.23s) |
-| **5** | `action` (2.25s) | `action` (2.25s) | `action` (2.25s) | `action` (2.25s) |
+| **2** | `action` (1.90s) | `action` (1.90s) | `action` (0.95s) <br> *(Accelerated)* | `action` (0.95s) |
+| **3** | `action` (1.23s) | `gripper` (1.50s) <br> *(Fast speed)* | `gripper` (1.50s) <br> *(Fast speed)* | `gripper` (1.50s) <br> *(Fast speed)* |
+| **4** | `action` (2.25s) | `action` (1.23s) | `action` (0.62s) <br> *(Accelerated)* | `action` (0.62s) |
+| **5** | `action` (2.25s) | `action` (2.25s) | `action` (1.12s) <br> *(Accelerated)* | `action` (1.12s) |
 | **6** | `action` (2.25s) | `pause` (2.00s) <br> *(Added)* | `pause` (4.00s) <br> *(Lengthened)* | `pause` (4.00s) |
-| **7** | — | `action` (2.25s) | `action` (2.25s) | `angularwaypoint` (1.70s) <br> *(Blended & Fast)* |
-| **8** | — | `action` (2.25s) | `action` (2.25s) | `angularwaypoint` (1.70s) <br> *(Blended & Fast)* |
+| **7** | — | `action` (2.25s) | `action` (1.12s) <br> *(Accelerated)* | `angularwaypoint` (1.79s) <br> *(Blended)* |
+| **8** | — | `action` (2.25s) | `action` (1.12s) <br> *(Accelerated)* | `angularwaypoint` (1.79s) <br> *(Blended)* |
 
 ---
 
@@ -35,7 +35,7 @@ This document provides a precise, step-by-step structural and behavioral analysi
 Gesture 2 expands the sequence from **6 steps to 8 steps** by inserting physical interactions:
 *   **Step 3 (Inserted Gripper Command)**:
     *   Adds a `"gripper"` step to close the fingers (`gripper_target_pos = 100.0%`).
-    *   Configured with `"medium"` speed duration (`gripper_speed_ratio = 0.5`).
+    *   Configured with `"fast"` speed duration (`gripper_speed_ratio = 0.0`).
 *   **Step 6 (Inserted Stabilization Pause)**:
     *   Adds a `"pause"` step lasting **`2.0` seconds** right after the first motion segment, stabilizing the end-effector.
 *   *Note: Because of these insertions, the original motion steps shift down in index.*
@@ -45,9 +45,7 @@ Gesture 2 expands the sequence from **6 steps to 8 steps** by inserting physical
 ### 2. Gesture 2 $\rightarrow$ Gesture 3: Motion Speedups & Pause Adjustment
 Gesture 3 maintains the identical 8-step structure of Gesture 2 but optimizes velocities and time allocations:
 *   **Step 2 Acceleration**:
-    *   The second motion segment's duration is halved from `2.81`s to **`1.40`s** (approximately 2x speedup).
-*   **Step 3 Gripper Speedup**:
-    *   The gripper closure transition is accelerated from `"medium"` (`gripper_speed_ratio = 0.5`) to `"fast"` (`gripper_speed_ratio = 0.0`, direct positioning).
+    *   The second motion segment's duration is halved from `1.90`s to **`0.95`s** (approximately 2x speedup).
 *   **Step 6 Pause Extension**:
     *   The stabilization pause is increased from `2.0` seconds to **`4.0` seconds** to allow more delay in the cycle.
 
@@ -58,5 +56,6 @@ Gesture 4 maintains the identical steps, gripper settings, and pauses of Gesture
 *   **Steps 7 & 8 Controller Type Optimization**:
     *   Changed from standard discrete `"action"` steps to **`"angularwaypoint"`** steps.
     *   This enables the Kinova Kortex controller's **optimal blending algorithm** (`use_optimal_blending = True`), allowing the joints to transition fluidly between the two final poses without stopping.
-*   **Steps 7 & 8 Duration Reduction**:
-    *   The movement durations for both steps are reduced from `2.25`s to **`1.70`s**, further accelerating the final phase of the gesture.
+*   **Steps 7 & 8 Duration Adjustment**:
+    *   The movement durations for both steps are calculated as **`1.79`s** to satisfy the optimal blending safety constraint (safety factor `1.7` for rest/reversal segments).
+
