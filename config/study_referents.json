@@ -18,12 +18,12 @@
     "name": "SS Interaction-mediated",
     "instructions": "Imagine you are collaboratively assembling something together with another person. While you are working, you open a shared box to retrieve a tool for the task. Inside the box you see a sensitive doctor's note belonging to the other person that becomes visible as a result of opening it. How would you show the other person that you are not looking at the note?",
     "default_pose": [
-      27.89,
-      47.89,
-      278.3,
-      5.09,
-      1.74,
-      87.74
+      24.12,
+      57.22,
+      263.99,
+      0.0,
+      48.61,
+      90.0
     ],
     "default_gripper_pos": "pickup"
   },
@@ -60,12 +60,12 @@
     "name": "SD Interaction-mediated",
     "instructions": "Imagine you are assembling something while another person is doing something else. You need to retrieve a tool from a shared storage area, and in doing so you open a box that contains personal documents belonging to the other person, which become visible when the box is opened. How would you show them that you are not looking at their documents?",
     "default_pose": [
-      27.89,
-      47.89,
-      278.3,
-      5.09,
-      1.74,
-      87.74
+      24.12,
+      57.22,
+      263.99,
+      0.0,
+      48.61,
+      90.0
     ],
     "default_gripper_pos": "pickup"
   },

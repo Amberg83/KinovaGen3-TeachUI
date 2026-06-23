@@ -411,3 +411,8 @@ class LiveStatePanel(ctk.CTkFrame):
                     self.torque_labels[j].configure(text=f"{t:.1f}")
         else:
             for lbl in self.torque_labels: lbl.configure(text="-")
+
+    def set_review_mode(self, enabled: bool):
+        self.review_mode = enabled
+        if enabled:
+            self.btn_capture.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)

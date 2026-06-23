@@ -86,8 +86,12 @@ class RobotController:
         if self.study_manager.study_mode:
             active_task = self.study_manager.get_active_task()
             
+            is_review = getattr(self.study_manager, "review_mode", False)
+            if is_review:
+                self.view.set_review_mode(True)
+                
             # Display custom participant ID indicator including Review Mode flag in the view
-            pid_display = f"{self.study_manager.participant_id} (REVIEW MODE)" if getattr(self.study_manager, "review_mode", False) else self.study_manager.participant_id
+            pid_display = f"{self.study_manager.participant_id} (REVIEW MODE)" if is_review else self.study_manager.participant_id
             
             # Construct formatted counter text
             is_tutorial = (active_task in self.study_manager.tutorials)

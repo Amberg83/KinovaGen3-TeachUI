@@ -18,6 +18,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         self.inspector_state = "disabled"
         self.wide_mode = True
         self.is_bulk_editing = False
+        self.review_mode = False
         
         # Load custom gripper presets and speed presets dynamically from robot_config.json
         self.gripper_presets = {"open": "0.0", "closed": "100.0", "pickup": "50.0"}
@@ -315,19 +316,19 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         def on_enter(e):
             current_type = self.wp_type_var.get()
             is_type_locked = current_type in ["pause", "gripper"]
-            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and current_type != value:
+            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and current_type != value and not getattr(self, "review_mode", False):
                 lbl.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_PRIMARY)
                 
         def on_leave(e):
             current_type = self.wp_type_var.get()
             is_type_locked = current_type in ["pause", "gripper"]
-            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and current_type != value:
+            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and current_type != value and not getattr(self, "review_mode", False):
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
                 
         def on_click(e):
             current_type = self.wp_type_var.get()
             is_type_locked = current_type in ["pause", "gripper"]
-            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)):
+            if not is_type_locked and (self.inspector_state != "disabled" or getattr(self, 'is_bulk_editing', False)) and not getattr(self, "review_mode", False):
                 self.set_wp_type(value)
                 
         lbl.bind("<Enter>", on_enter)
@@ -356,7 +357,10 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             if (self.inspector_state == "disabled" and not getattr(self, 'is_bulk_editing', False)) or is_type_locked:
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED, cursor="arrow")
             else:
-                lbl.configure(cursor="hand2")
+                if getattr(self, "review_mode", False):
+                    lbl.configure(cursor="arrow")
+                else:
+                    lbl.configure(cursor="hand2")
                 if current_type == val:
                     lbl.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.BG_MAIN)
                 else:
@@ -378,15 +382,15 @@ class WaypointInspectorPanel(ctk.CTkFrame):
         var = var_map[field_name]
         
         def on_enter(e):
-            if self.inspector_state != "disabled" and var.get() != value:
+            if self.inspector_state != "disabled" and var.get() != value and not getattr(self, "review_mode", False):
                 lbl.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_PRIMARY)
                 
         def on_leave(e):
-            if self.inspector_state != "disabled" and var.get() != value:
+            if self.inspector_state != "disabled" and var.get() != value and not getattr(self, "review_mode", False):
                 lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED)
                 
         def on_click(e):
-            if self.inspector_state != "disabled":
+            if self.inspector_state != "disabled" and not getattr(self, "review_mode", False):
                 var.set(value)
                 
                 # Sync custom manual entry boxes dynamically on segment selection
@@ -431,7 +435,10 @@ class WaypointInspectorPanel(ctk.CTkFrame):
                 if self.inspector_state == "disabled":
                     lbl.configure(fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED, cursor="arrow")
                 else:
-                    lbl.configure(cursor="hand2")
+                    if getattr(self, "review_mode", False):
+                        lbl.configure(cursor="arrow")
+                    else:
+                        lbl.configure(cursor="hand2")
                     if current_val == val:
                         lbl.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.BG_MAIN)
                     else:
@@ -442,7 +449,7 @@ class WaypointInspectorPanel(ctk.CTkFrame):
 
     def _on_gripper_entry_changed(self):
         """Called when manual target position or speed ratio entries are typed."""
-        if getattr(self, "_disable_joint_traces", False) or self.inspector_state == "disabled":
+        if getattr(self, "_disable_joint_traces", False) or self.inspector_state == "disabled" or getattr(self, "review_mode", False):
             return
         
         # Validate Position
@@ -528,6 +535,8 @@ class WaypointInspectorPanel(ctk.CTkFrame):
 
     def _on_apply_speed(self, cmd_cb, speed):
         """Populates the calculated duration locally and dispatches the save/apply command."""
+        if getattr(self, "review_mode", False):
+            return
         if hasattr(self, "_calculated_durations") and speed in self._calculated_durations:
             val = self._calculated_durations[speed]
             self.ent_duration.delete(0, tk.END)
@@ -538,22 +547,31 @@ class WaypointInspectorPanel(ctk.CTkFrame):
 
     def _on_enter_pressed(self):
         """Triggers waypoint modifications save when Enter key is pressed."""
+        if getattr(self, "review_mode", False):
+            return
         if self.inspector_state != "disabled" and getattr(self, "_save_settings_cb", None):
             self._save_settings_cb()
+
+    def set_review_mode(self, enabled: bool):
+        self.review_mode = enabled
+        self._set_inspector_state(self.inspector_state)
 
     def _set_inspector_state(self, state):
         """Enables or disables editor elements depending on selection state."""
         self.inspector_state = state
         tk_state = "normal" if state == "normal" else "disabled"
         
-        # Simple list of elements
-        widgets = [self.ent_duration, self.ent_wait_time] + self.ent_wp_vels + self.insp_entries + [
+        # Simple list of elements (including custom gripper settings)
+        widgets = [self.ent_duration, self.ent_wait_time, self.ent_g_target_pos, self.ent_g_speed_ratio] + self.ent_wp_vels + self.insp_entries + [
             self.btn_save_settings, self.btn_preview, self.btn_append_new,
             self.btn_apply_fast, self.btn_apply_medium, self.btn_apply_slow
         ]
         
         for w in widgets: 
-            w.configure(state=tk_state)
+            if getattr(self, "review_mode", False) and w != self.btn_preview:
+                w.configure(state="disabled")
+            else:
+                w.configure(state=tk_state)
             
         # Update colors on disabled to keep the modern flat look
         if state == "disabled":
@@ -564,12 +582,20 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             self.btn_apply_medium.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
             self.btn_apply_slow.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
         else:
-            self.btn_preview.configure(fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
-            self.btn_save_settings.configure(fg_color=theme.ACCENT_GREEN, text_color=theme.BG_MAIN)
-            self.btn_append_new.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.TEXT_PRIMARY)
-            self.btn_apply_fast.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
-            self.btn_apply_medium.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
-            self.btn_apply_slow.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
+            if getattr(self, "review_mode", False):
+                self.btn_preview.configure(fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
+                self.btn_save_settings.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+                self.btn_append_new.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
+                self.btn_apply_fast.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+                self.btn_apply_medium.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+                self.btn_apply_slow.configure(fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+            else:
+                self.btn_preview.configure(fg_color=theme.ACCENT_YELLOW, text_color=theme.BG_MAIN)
+                self.btn_save_settings.configure(fg_color=theme.ACCENT_GREEN, text_color=theme.BG_MAIN)
+                self.btn_append_new.configure(fg_color=theme.ACCENT_CYBER, text_color=theme.TEXT_PRIMARY)
+                self.btn_apply_fast.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
+                self.btn_apply_medium.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
+                self.btn_apply_slow.configure(fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
 
         # Update segment button styles
         self.update_segment_styles()
@@ -734,9 +760,14 @@ class WaypointInspectorPanel(ctk.CTkFrame):
             )
             
             # Make sure buttons are enabled since we are not in pause type
-            self.btn_apply_fast.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
-            self.btn_apply_medium.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
-            self.btn_apply_slow.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
+            if getattr(self, "review_mode", False):
+                self.btn_apply_fast.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+                self.btn_apply_medium.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+                self.btn_apply_slow.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED, image=theme.get_icon("speed", tint=theme.TEXT_MUTED))
+            else:
+                self.btn_apply_fast.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_RED, image=theme.get_icon("speed", tint=theme.ACCENT_RED))
+                self.btn_apply_medium.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_YELLOW, image=theme.get_icon("speed", tint=theme.ACCENT_YELLOW))
+                self.btn_apply_slow.configure(state="normal", fg_color=theme.BG_INPUT, text_color=theme.ACCENT_GREEN, image=theme.get_icon("speed", tint=theme.ACCENT_GREEN))
         else:
             self.lbl_min_duration.configure(text="Fast: --s | Med: --s | Slow: --s", text_color=theme.ACCENT_CYBER)
 

@@ -12,6 +12,7 @@ class SequenceTimelinePanel(ctk.CTkFrame):
         self._move_entry_cb = None
         self._drag_start_idx = None
         self.drag_proxy = None
+        self.review_mode = False
         
         # Adjustable column settings
         self.col_widths = [60, 130, 280]  # Initial widths for Col 0 (ID), Col 1 (Type), Col 2 (Position)
@@ -418,6 +419,7 @@ class SequenceTimelinePanel(ctk.CTkFrame):
             self._select_cb(event)
 
     def on_row_drag_motion(self, idx, event):
+        if getattr(self, "review_mode", False): return
         self.scroll_frame.configure(cursor="hand2")
         
         if self._drag_start_idx is not None:
@@ -494,6 +496,7 @@ class SequenceTimelinePanel(ctk.CTkFrame):
                     )
 
     def on_row_drag_drop(self, event):
+        if getattr(self, "review_mode", False): return
         self.scroll_frame.configure(cursor="")
         
         # Reset hover index tracking
@@ -637,3 +640,16 @@ class SequenceTimelinePanel(ctk.CTkFrame):
     def on_sep_release(self, event):
         """Ends active separator dragging operations."""
         self._drag_start_y = None
+
+    def set_review_mode(self, enabled: bool):
+        self.review_mode = enabled
+        if enabled:
+            buttons = [
+                self.btn_load_json, self.btn_save_json, self.btn_clear_list,
+                self.btn_move_up, self.btn_move_down, self.btn_delete,
+                self.btn_copy, self.btn_paste, self.btn_duplicate,
+                self.btn_add_pause, self.btn_add_gripper,
+                self.btn_undo, self.btn_redo
+            ]
+            for btn in buttons:
+                btn.configure(state="disabled")

@@ -23,6 +23,7 @@ class RobotView:
         
         self.commands = {}
         self.is_dialog_open = False
+        self.review_mode = False
         self._last_hardware_state = None
         self._last_status_text = ""
         self._last_status_fg = ""
@@ -178,10 +179,10 @@ class RobotView:
         self.root.bind("<Control-Down>", self.on_move_down)
         self.root.bind("<Delete>", self.on_delete_poses)
         
-        self.root.bind("<Control-z>", lambda e: self.commands.get("undo")() if self.commands.get("undo") else None)
-        self.root.bind("<Control-y>", lambda e: self.commands.get("redo")() if self.commands.get("redo") else None)
-        self.root.bind("<Control-Z>", lambda e: self.commands.get("undo")() if self.commands.get("undo") else None)
-        self.root.bind("<Control-Y>", lambda e: self.commands.get("redo")() if self.commands.get("redo") else None)
+        self.root.bind("<Control-z>", lambda e: self.commands.get("undo")() if self.commands.get("undo") and not getattr(self, "review_mode", False) else None)
+        self.root.bind("<Control-y>", lambda e: self.commands.get("redo")() if self.commands.get("redo") and not getattr(self, "review_mode", False) else None)
+        self.root.bind("<Control-Z>", lambda e: self.commands.get("undo")() if self.commands.get("undo") and not getattr(self, "review_mode", False) else None)
+        self.root.bind("<Control-Y>", lambda e: self.commands.get("redo")() if self.commands.get("redo") and not getattr(self, "review_mode", False) else None)
         
         self.root.bind("<Control-c>", self.on_copy)
         self.root.bind("<Control-v>", self.on_paste)
@@ -191,12 +192,12 @@ class RobotView:
         self.root.bind("<Control-D>", self.on_duplicate)
 
         # File Operations
-        self.root.bind("<Control-s>", lambda e: self.commands.get("save_json")() if self.commands.get("save_json") else None)
-        self.root.bind("<Control-S>", lambda e: self.commands.get("save_json")() if self.commands.get("save_json") else None)
+        self.root.bind("<Control-s>", lambda e: self.commands.get("save_json")() if self.commands.get("save_json") and not getattr(self, "review_mode", False) else None)
+        self.root.bind("<Control-S>", lambda e: self.commands.get("save_json")() if self.commands.get("save_json") and not getattr(self, "review_mode", False) else None)
         self.root.bind("<Control-o>", lambda e: self.prompt_load_json())
         self.root.bind("<Control-O>", lambda e: self.prompt_load_json())
-        self.root.bind("<Control-n>", lambda e: self.commands.get("clear_list")() if self.commands.get("clear_list") else None)
-        self.root.bind("<Control-N>", lambda e: self.commands.get("clear_list")() if self.commands.get("clear_list") else None)
+        self.root.bind("<Control-n>", lambda e: self.commands.get("clear_list")() if self.commands.get("clear_list") and not getattr(self, "review_mode", False) else None)
+        self.root.bind("<Control-N>", lambda e: self.commands.get("clear_list")() if self.commands.get("clear_list") and not getattr(self, "review_mode", False) else None)
 
         # Capture Pose
         self.root.bind("<Control-space>", lambda e: self.on_capture_pose())
@@ -208,14 +209,22 @@ class RobotView:
         self.root.bind("<F8>", lambda e: self.commands.get("stop_media")() if self.commands.get("stop_media") else None)
         self.root.bind("<Escape>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
 
+    def set_review_mode(self, enabled: bool):
+        self.review_mode = enabled
+        self.panel_seq.set_review_mode(enabled)
+        self.panel_insp.set_review_mode(enabled)
+        self.panel_live.set_review_mode(enabled)
+
     # ================= VIEW -> CONTROLLER INTERFACES =================
     
     def on_capture_pose(self):
+        if getattr(self, "review_mode", False): return
         poses = self.panel_live.get_live_poses()
         if poses and "capture_pose" in self.commands:
             self.commands["capture_pose"](poses)
 
     def on_save_waypoint(self):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if not indices: return
         params = self.panel_insp.get_waypoint_params()
@@ -248,12 +257,14 @@ class RobotView:
             self.commands["preview_pose"](poses)
 
     def on_append_inspector_pose(self) -> None:
+        if getattr(self, "review_mode", False): return
         params = self.panel_insp.get_waypoint_params()
         poses = self.panel_insp.get_inspector_poses()
         if poses and "append_inspector_pose" in self.commands:
             self.commands["append_inspector_pose"](params, poses)
             
     def on_apply_min_durations(self, speed="fast"):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if indices and "apply_min_durations" in self.commands:
             self.commands["apply_min_durations"](indices, speed)
@@ -280,44 +291,52 @@ class RobotView:
                 self.commands["tree_select"](indices[0])
 
     def on_add_pause(self):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         target_idx = indices[-1] if indices else None
         if "add_pause" in self.commands:
             self.commands["add_pause"](target_idx)
 
     def on_add_gripper(self):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         target_idx = indices[-1] if indices else None
         if "add_gripper" in self.commands:
             self.commands["add_gripper"](target_idx)
 
     def on_move_up(self, event=None):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if indices and "move_up" in self.commands:
             self.commands["move_up"](indices[0])
 
     def on_move_down(self, event=None):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if indices and "move_down" in self.commands:
             self.commands["move_down"](indices[0])
 
     def on_delete_poses(self, event=None):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if indices and "delete_poses" in self.commands:
             self.commands["delete_poses"](indices)
 
     def on_copy(self, event=None):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if indices and "copy" in self.commands:
             self.commands["copy"](indices)
 
     def on_paste(self, event=None):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         after_index = indices[-1] if indices else None
         if "paste" in self.commands:
             self.commands["paste"](after_index)
 
     def on_duplicate(self, event=None):
+        if getattr(self, "review_mode", False): return
         indices = self.panel_seq.get_selected_indices()
         if indices and "duplicate" in self.commands:
             self.commands["duplicate"](indices)
@@ -327,6 +346,7 @@ class RobotView:
         self.panel_seq.btn_pause_media.configure(text_color="orange" if is_paused else "white")
 
     def prompt_load_json(self):
+        if getattr(self, "review_mode", False): return
         self.is_dialog_open = True 
         try:
             path = filedialog.askopenfilename(filetypes=[("JSON Files", "*.json")])
