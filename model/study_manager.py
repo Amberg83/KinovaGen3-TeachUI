@@ -59,23 +59,46 @@ class StudyManager:
                             normal_tut = {t["id"]: t for t in self._load_or_create_tutorials()}
                             
                             for row in reader:
-                                rid_str = row.get("RID", "").strip()
+                                rid_str = (row.get("id") or row.get("RID") or "").strip()
                                 rid = int(rid_str) if rid_str.isdigit() else 0
-                                rname = row.get("RName", "").strip()
                                 
-                                # Use instructions from CSV if available, otherwise fall back to matching configuration
-                                rinstructions = row.get("RInstructions", None)
+                                config_task = normal_ref.get(rid) or normal_tut.get(rid) or {}
+                                
+                                rname = (row.get("name") or row.get("RName") or config_task.get("name") or "").strip()
+                                
+                                rinstructions = row.get("instructions") or row.get("RInstructions")
                                 if rinstructions is not None:
                                     rinstructions = rinstructions.strip()
                                 else:
-                                    config_task = normal_ref.get(rid) or normal_tut.get(rid)
-                                    rinstructions = config_task["instructions"] if config_task else ""
-                                    
+                                    rinstructions = config_task.get("instructions", "")
+                                
+                                gesture_file = (row.get("gesture_file") or row.get("GestureFile") or "").strip()
+                                
+                                # Default pose lookup
+                                default_pose = None
+                                default_pose_str = row.get("default_pose") or row.get("DefaultPose")
+                                if default_pose_str:
+                                    try:
+                                        default_pose = json.loads(default_pose_str.strip())
+                                    except Exception:
+                                        pass
+                                if default_pose is None:
+                                    default_pose = config_task.get("default_pose", [0.0, 70.0, 264.0, 0.0, 58.0, 90.0])
+                                
+                                # Default gripper pos lookup
+                                default_gripper_pos = row.get("default_gripper_pos") or row.get("DefaultGripperPos")
+                                if default_gripper_pos is not None:
+                                    default_gripper_pos = default_gripper_pos.strip()
+                                else:
+                                    default_gripper_pos = config_task.get("default_gripper_pos", "pickup")
+                                
                                 loaded_tasks.append({
                                     "id": rid,
                                     "name": rname,
                                     "instructions": rinstructions,
-                                    "gesture_file": row.get("GestureFile", "").strip()
+                                    "gesture_file": gesture_file,
+                                    "default_pose": default_pose,
+                                    "default_gripper_pos": default_gripper_pos
                                 })
                         if loaded_tasks:
                             self.tasks = loaded_tasks
@@ -209,9 +232,24 @@ class StudyManager:
             with open(log_path, "a", encoding="utf-8", newline="") as f:
                 writer = csv.writer(f)
                 if write_header:
-                    writer.writerow(["PID", "Starttime", "Endtime", "RID", "RName", "RInstructions", "PresentationOrder", "GestureFile"])
+                    writer.writerow([
+                        "pid",
+                        "starttime",
+                        "endtime",
+                        "id",
+                        "name",
+                        "instructions",
+                        "presentation_order",
+                        "gesture_file",
+                        "default_pose",
+                        "default_gripper_pos"
+                    ])
                 
                 instructions = active_task.get("instructions", "")
+                default_pose = active_task.get("default_pose", [0.0, 70.0, 264.0, 0.0, 58.0, 90.0])
+                default_pose_json = json.dumps(default_pose)
+                default_gripper_pos = active_task.get("default_gripper_pos", "pickup")
+                
                 writer.writerow([
                     self.participant_id,
                     start_time_unix,
@@ -220,7 +258,9 @@ class StudyManager:
                     task_name,
                     instructions,
                     presentation_order,
-                    backup_filename
+                    backup_filename,
+                    default_pose_json,
+                    default_gripper_pos
                 ])
             self.logger.info(f"Logged task {presentation_order} metrics to {log_path}")
         except Exception as e:
