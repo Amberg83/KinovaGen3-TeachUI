@@ -194,6 +194,13 @@ class ReplayAllManager:
 
         self.total_gestures = sum(len(v) for v in self.gestures_by_rid.values())
         logger.info(f"ReplayAll scan complete. Found {len(self.rids)} referents ({self.rids}) and {self.total_gestures} total experimental gestures.")
+        
+        print("\n=== REPLAY ALL DISCOVERED GESTURE FILES BREAKDOWN ===")
+        for rid in self.rids:
+            print(f"\n--- REFERENT R{rid} ({len(self.gestures_by_rid[rid])} files) ---")
+            for g in self.gestures_by_rid[rid]:
+                print(f"  {g['id']:<12} | PID: {g['pid']:<4} | File: {g['filepath']}")
+        print("=======================================================\n")
 
     def start(self):
         """Initializes the Replay All sequence, creates the CSV log, and sets up initial prompt for RID 1."""
