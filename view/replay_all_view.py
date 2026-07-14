@@ -229,11 +229,12 @@ class ReplayAllView(ctk.CTkFrame):
         # Hidden log area for setup_global_logging compatibility
         self.log_area = ctk.CTkTextbox(self, height=0, width=0)
 
-        # Hotkeys
-        self.bind_all("<F5>", lambda e: self.commands.get("start_referent")() if self.commands.get("start_referent") else None)
-        self.bind_all("<F7>", lambda e: self.commands.get("pause")() if self.commands.get("pause") else None)
-        self.bind_all("<F8>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
-        self.bind_all("<Escape>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
+        # Hotkeys (bound to parent root window since CTkFrame forbids bind_all)
+        root_win = self.parent.winfo_toplevel() if hasattr(self.parent, 'winfo_toplevel') else self.parent
+        root_win.bind("<F5>", lambda e: self.commands.get("start_referent")() if self.commands.get("start_referent") else None)
+        root_win.bind("<F7>", lambda e: self.commands.get("pause")() if self.commands.get("pause") else None)
+        root_win.bind("<F8>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
+        root_win.bind("<Escape>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
 
     def on_sequence_changed(self, *args, **kwargs):
         """No-op handler to satisfy EventBus sequence_updated subscriptions."""
