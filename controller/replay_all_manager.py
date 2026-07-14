@@ -259,6 +259,7 @@ class ReplayAllManager:
         # Check if this is the VERY FIRST gesture across the entire Replay All run
         is_very_first = (self.current_r_idx == 0 and self.current_g_idx == 0)
         if is_very_first:
+            self.start_time_epoch = time.time()  # Reset timer exactly when the first fault beep sounds for video synchronization!
             logger.info("Triggering initial clapperboard emergency sound at start of very first referent!")
             try:
                 play_chime("fault")
