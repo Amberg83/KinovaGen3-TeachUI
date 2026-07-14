@@ -45,6 +45,13 @@ class ReplayAllManager:
         
         self.csv_file_path = None
         self.start_time_epoch = time.time()
+        self.fault_active = False
+        
+        EventBus.subscribe("fault", self.on_fault_detected)
+        EventBus.subscribe("fault_detected", self.on_fault_detected)
+        EventBus.subscribe("estop", self.on_fault_detected)
+        EventBus.subscribe("fault_cleared", self.on_fault_cleared)
+        EventBus.subscribe("robot_connected", self.on_fault_cleared)
         
         # Load referents metadata (name, instructions, default_pose, default_gripper_pos)
         self.referents_map = self._load_referents_map()
@@ -277,9 +284,81 @@ class ReplayAllManager:
         self._worker_thread = threading.Thread(target=self._pre_gesture_worker, daemon=True)
         self._worker_thread.start()
 
+    def on_fault_detected(self):
+        """Immediately halts active action if a safety fault occurs during Replay All."""
+        if not self.is_running:
+            return
+        logger.warning("Safety fault detected during Replay All. Immediately halting action...")
+        self.fault_active = True
+        self.is_paused = True
+        
+        # Stop Replay Engine motion if active
+        if self.controller and self.controller.replay_engine:
+            self.controller.replay_engine.stop()
+            
+        # Update UI banner/phase
+        if self.view:
+            self.controller.root.after(0, lambda: self.view.update_status(
+                phase="SAFETY FAULT / ABORT: Action halted immediately. Clear faults to restart current gesture."
+            ))
+
+    def on_fault_cleared(self):
+        """Restarts the current faulted gesture once faults are cleared and robot is operational."""
+        if not self.is_running or not getattr(self, 'fault_active', False):
+            return
+        logger.info("Fault cleared detected during Replay All. Scheduling gesture restart...")
+        if self.controller and self.controller.root:
+            self.controller.root.after(1000, self._restart_faulted_gesture)
+
+    def _cleanup_orphaned_csv_start(self, gesture_id):
+        """Removes any orphaned 'Start' timestamp row for this gesture from the CSV so new timestamps cleanly override."""
+        if not self.csv_file_path or not os.path.exists(self.csv_file_path):
+            return
+        try:
+            rows = []
+            with open(self.csv_file_path, "r", newline="", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                rows = list(reader)
+            
+            # Check if the last row is an unclosed 'Start' row for this gesture
+            if rows and len(rows[-1]) >= 2 and rows[-1][0] == gesture_id and rows[-1][1] == "Start":
+                removed = rows.pop()
+                logger.info(f"Removing orphaned Start timestamp row from CSV before restart: {removed}")
+                with open(self.csv_file_path, "w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerows(rows)
+        except Exception as e:
+            logger.error(f"Error cleaning orphaned CSV Start row: {e}")
+
+    def _restart_faulted_gesture(self):
+        """Resumes Replay All by overriding previous timestamps and re-running the current gesture from Stage 1."""
+        if not self.is_running or not getattr(self, 'fault_active', False):
+            return
+            
+        # Check that hardware is connected and not faulted
+        if self.controller and self.controller.hardware:
+            if not self.controller.hardware.state.is_connected or getattr(self.controller.hardware.state, 'is_faulted', False):
+                logger.warning("Robot still disconnected or faulted. Waiting to restart gesture...")
+                self.controller.root.after(1500, self._restart_faulted_gesture)
+                return
+
+        current_rid = self.rids[self.current_r_idx]
+        entry = self.gestures_by_rid[current_rid][self.current_g_idx]
+        logger.info(f"Restarting faulted gesture [{entry['id']}] after fault clearance.")
+        
+        # Override/clean up any previous orphaned Start timestamp for this gesture from CSV
+        self._cleanup_orphaned_csv_start(entry['id'])
+        
+        self.fault_active = False
+        self.is_paused = False
+        
+        # Start pre-gesture sequence worker thread for this gesture
+        self._worker_thread = threading.Thread(target=self._pre_gesture_worker, daemon=True)
+        self._worker_thread.start()
+
     def _pre_gesture_worker(self):
         """Worker thread that executes the 5s pre-reset -> move_to_default -> 5s post-reset timing."""
-        if not self.is_running or self.is_paused:
+        if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
             return
         
         current_rid = self.rids[self.current_r_idx]
@@ -315,8 +394,8 @@ class ReplayAllManager:
                 completion_event.wait(timeout=18.0)
         except Exception as e:
             logger.error(f"Error during move_to_default in ReplayAll: {e}")
-            if not self.is_running or self.is_paused:
-                return
+        if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
+            return
 
         # 3. Wait another 5.0 seconds (NOT logged to CSV)
         logger.info(f"[{entry['id']}] Stage 3: Waiting 5.0s post-reset pause...")
@@ -329,21 +408,21 @@ class ReplayAllManager:
             return
 
         # 4. Schedule CSV Start Log & Replay Engine launch on main thread
-        if self.is_running and not self.is_paused:
+        if self.is_running and not self.is_paused and not getattr(self, 'fault_active', False):
             self.controller.root.after(0, lambda: self._launch_physical_gesture(entry, progress_pct, counter_str))
 
     def _sleep_interruptible(self, duration):
-        """Sleeps in 0.1s increments, returning False if paused or stopped."""
+        """Sleeps in 0.1s increments, returning False if paused, stopped, or faulted."""
         steps = int(duration * 10)
         for _ in range(steps):
-            if not self.is_running or self.is_paused:
+            if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
                 return False
             time.sleep(0.1)
         return True
 
     def _launch_physical_gesture(self, entry, progress_pct, counter_str):
         """Logs Start to CSV and launches the ReplayEngine with skip_pre_default=True."""
-        if not self.is_running or self.is_paused:
+        if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
             return
         
         now = time.time()
@@ -383,7 +462,8 @@ class ReplayAllManager:
 
     def _on_gesture_finished(self):
         """Handles physical gesture completion, logs End timestamp, and schedules next gesture or referent pause."""
-        if not self.is_running:
+        if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
+            logger.info("Gesture finished callback ignored because Replay All is stopped, paused, or faulted.")
             return
         
         current_rid = self.rids[self.current_r_idx]
