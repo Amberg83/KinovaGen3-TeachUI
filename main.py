@@ -10,6 +10,7 @@ import customtkinter as ctk
 from hardware import KinovaHardware, MockKinovaHardware
 from model import SequenceModel
 from view import RobotView, ConnectionDialog
+from view.replay_all_view import ReplayAllView
 from controller import RobotController
 from utils.sound_coordinator import SoundCoordinator
 from utils.udp_transmitter import UDPTransmitter
@@ -125,7 +126,13 @@ def main():
         print("Connection cancelled by user. Shutting down.")
         sys.exit(0)
         
-    ip, username, password, participant_id, is_review_mode = dialog.result
+    if len(dialog.result) == 7:
+        ip, username, password, participant_id, is_review_mode, is_replay_all, exclude_pids = dialog.result
+    else:
+        ip, username, password, participant_id, is_review_mode = dialog.result[:5]
+        is_replay_all = False
+        exclude_pids = ""
+        
     save_config(ip, username, password)
 
     # Clear theme's icon cache to prevent _tkinter.TclError: image "pyimageX" doesn't exist
@@ -134,7 +141,7 @@ def main():
 
     # Initialize main dashboard application root
     root = ctk.CTk()
-    root.title("Kinova Gen3 TeachUI Dashboard")
+    root.title("Kinova Gen3 TeachUI Dashboard" + (" — REPLAY ALL (EXPERT REVIEW)" if is_replay_all else ""))
     root.configure(fg_color=theme.BG_MAIN)
     
     scaling = root._get_window_scaling()
@@ -147,10 +154,19 @@ def main():
         hardware = KinovaHardware(ip=ip, username=username, password=password)
     model = SequenceModel()
     
-    view = RobotView(root)
+    if is_replay_all:
+        view = ReplayAllView(root)
+    else:
+        view = RobotView(root)
     setup_global_logging(view)
     
-    controller = RobotController(root, view, model, hardware, participant_id=participant_id, is_review_mode=is_review_mode)
+    controller = RobotController(
+        root, view, model, hardware, 
+        participant_id=participant_id, 
+        is_review_mode=is_review_mode,
+        is_replay_all=is_replay_all,
+        exclude_pids=exclude_pids
+    )
     
     # Initialize the sound coordinator to listen to events and trigger audio feedback
     sound_coordinator = SoundCoordinator()
