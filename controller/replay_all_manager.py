@@ -147,8 +147,8 @@ class ReplayAllManager:
                     full_p = os.path.abspath(os.path.join(root, f))
                     if full_p in seen_files:
                         continue
-                    # Parse RID from filename (e.g. task_3_1781695201.json -> RID=3)
-                    m = re.match(r'^task_(\d+)_\d+\.json$', f)
+                    # Parse RID from filename (e.g. task_3_1781695201.json or task_3_2_1781695201.json -> RID=3)
+                    m = re.match(r'^task_(\d+)_(?:.*_)?\d+\.json$', f)
                     if m:
                         rid = int(m.group(1))
                         # STRICT FILTER: Skip tutorials (RID > 100)
