@@ -369,7 +369,7 @@ class ReplayAllManager:
 
         # Launch replay engine on controller, skipping built-in default movement
         self.controller.replay_engine.start(
-            self.controller.model.waypoints,
+            self.controller.model.sequence,
             on_finished_callback=lambda: self.controller.root.after(0, self._on_gesture_finished),
             skip_pre_default=True
         )
