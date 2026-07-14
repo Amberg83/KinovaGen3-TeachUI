@@ -14,6 +14,7 @@ class ReplayAllView(ctk.CTkFrame):
     """
     def __init__(self, parent, controller=None, **kwargs):
         super().__init__(parent, fg_color=theme.BG_MAIN, corner_radius=0, **kwargs)
+        self.parent = parent
         self.controller = controller
         self.commands = {}
         self.setup_ui()
@@ -229,8 +230,8 @@ class ReplayAllView(ctk.CTkFrame):
         # Hidden log area for setup_global_logging compatibility
         self.log_area = ctk.CTkTextbox(self, height=0, width=0)
 
-        # Hotkeys (bound to parent root window since CTkFrame forbids bind_all)
-        root_win = self.parent.winfo_toplevel() if hasattr(self.parent, 'winfo_toplevel') else self.parent
+        # Hotkeys (bound to toplevel root window since CTkFrame forbids bind_all)
+        root_win = self.winfo_toplevel()
         root_win.bind("<F5>", lambda e: self.commands.get("start_referent")() if self.commands.get("start_referent") else None)
         root_win.bind("<F7>", lambda e: self.commands.get("pause")() if self.commands.get("pause") else None)
         root_win.bind("<F8>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
