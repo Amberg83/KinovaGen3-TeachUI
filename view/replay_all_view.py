@@ -17,7 +17,18 @@ class ReplayAllView(ctk.CTkFrame):
         self.parent = parent
         self.controller = controller
         self.commands = {}
+        
+        # Maximize the dashboard window dynamically (Windows + Linux cross-platform compliant)
+        try:
+            self.parent.state('zoomed')
+        except Exception:
+            try:
+                self.parent.attributes('-zoomed', True)
+            except Exception:
+                pass
+                
         self.setup_ui()
+        self.pack(fill="both", expand=True)
 
     def bind_commands(self, commands: dict):
         """Binds view actions to controller/ReplayAllManager callbacks."""
