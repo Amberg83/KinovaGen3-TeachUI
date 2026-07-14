@@ -310,8 +310,8 @@ class ReplayAllManager:
         if self.controller and self.controller.root:
             self.controller.root.after(1000, self._restart_faulted_gesture)
 
-    def _cleanup_orphaned_csv_start(self, gesture_id):
-        """Removes any orphaned 'Start' timestamp row for this gesture from the CSV so new timestamps cleanly override."""
+    def _cleanup_csv_for_gesture(self, gesture_id):
+        """Removes all 'Start' and 'End' timestamp rows for the given gesture from the CSV to ensure fresh timestamps upon restart."""
         if not self.csv_file_path or not os.path.exists(self.csv_file_path):
             return
         try:
@@ -320,15 +320,17 @@ class ReplayAllManager:
                 reader = csv.reader(f)
                 rows = list(reader)
             
-            # Check if the last row is an unclosed 'Start' row for this gesture
-            if rows and len(rows[-1]) >= 2 and rows[-1][0] == gesture_id and rows[-1][1] == "Start":
-                removed = rows.pop()
-                logger.info(f"Removing orphaned Start timestamp row from CSV before restart: {removed}")
+            # Filter out any Start/End rows for gesture_id
+            filtered_rows = [r for r in rows if not (len(r) >= 2 and r[0] == gesture_id and r[1] in ("Start", "End"))]
+            
+            if len(filtered_rows) != len(rows):
+                removed_count = len(rows) - len(filtered_rows)
+                logger.info(f"Purged {removed_count} CSV entries for gesture [{gesture_id}] before restarting/stepping back.")
                 with open(self.csv_file_path, "w", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)
-                    writer.writerows(rows)
+                    writer.writerows(filtered_rows)
         except Exception as e:
-            logger.error(f"Error cleaning orphaned CSV Start row: {e}")
+            logger.error(f"Error cleaning CSV entries for gesture {gesture_id}: {e}")
 
     def _restart_faulted_gesture(self):
         """Resumes Replay All by overriding previous timestamps and re-running the current gesture from Stage 1."""
@@ -346,8 +348,8 @@ class ReplayAllManager:
         entry = self.gestures_by_rid[current_rid][self.current_g_idx]
         logger.info(f"Restarting faulted gesture [{entry['id']}] after fault clearance.")
         
-        # Override/clean up any previous orphaned Start timestamp for this gesture from CSV
-        self._cleanup_orphaned_csv_start(entry['id'])
+        # Override/clean up any previous Start and End timestamps for this gesture from CSV
+        self._cleanup_csv_for_gesture(entry['id'])
         
         self.fault_active = False
         self.is_paused = False
@@ -555,3 +557,81 @@ class ReplayAllManager:
         logger.info("Skipping current gesture by operator request.")
         self.controller.replay_engine.stop()
         self.controller.root.after(100, self._on_gesture_finished)
+
+    def restart_current_gesture(self):
+        """Manually halts and restarts the currently active gesture, removing any existing Start/End entries for it."""
+        if not self.is_running:
+            return
+        logger.info("Operator requested manual halt & restart of current gesture.")
+        
+        # Stop Replay Engine or worker timing
+        if self.controller and self.controller.replay_engine:
+            self.controller.replay_engine.stop()
+            
+        current_rid = self.rids[self.current_r_idx]
+        entry = self.gestures_by_rid[current_rid][self.current_g_idx]
+        
+        # Purge any Start and End entries for current gesture from CSV
+        self._cleanup_csv_for_gesture(entry['id'])
+        
+        self.fault_active = False
+        self.is_paused = False
+        self.is_waiting_for_referent_start = False
+        
+        if self.view:
+            self.view.update_status(phase=f"Manually restarting gesture [{entry['id']}] from beginning...")
+            
+        # Start pre-gesture worker thread to restart from Stage 1 (5s -> home -> 5s -> play)
+        self._worker_thread = threading.Thread(target=self._pre_gesture_worker, daemon=True)
+        self._worker_thread.start()
+
+    def previous_gesture(self):
+        """Manually halts and steps back to the previous gesture, removing Start/End entries of both current and previous gestures."""
+        if not self.is_running:
+            return
+        logger.info("Operator requested stepping back to previous gesture.")
+        
+        # Stop Replay Engine or worker timing
+        if self.controller and self.controller.replay_engine:
+            self.controller.replay_engine.stop()
+            
+        current_rid = self.rids[self.current_r_idx]
+        current_entry = self.gestures_by_rid[current_rid][self.current_g_idx]
+        
+        # 1. Purge entries for the currently active gesture
+        self._cleanup_csv_for_gesture(current_entry['id'])
+        
+        # 2. Step indices backward
+        old_r_idx = self.current_r_idx
+        if self.current_g_idx > 0:
+            self.current_g_idx -= 1
+        elif self.current_r_idx > 0:
+            self.current_r_idx -= 1
+            prev_rid = self.rids[self.current_r_idx]
+            self.current_g_idx = len(self.gestures_by_rid[prev_rid]) - 1
+        else:
+            # Already at the very first gesture of the very first referent
+            self.current_g_idx = 0
+            
+        new_rid = self.rids[self.current_r_idx]
+        prev_entry = self.gestures_by_rid[new_rid][self.current_g_idx]
+        
+        # 3. Purge entries for the previous gesture so we start fresh when replaying it
+        if prev_entry['id'] != current_entry['id']:
+            self._cleanup_csv_for_gesture(prev_entry['id'])
+            
+        self.fault_active = False
+        
+        # 4. If we stepped across a referent boundary, pause and show referent prompt for physical setup
+        if self.current_r_idx != old_r_idx:
+            logger.info(f"Stepped back to Referent R{new_rid}. Requiring physical setup confirmation.")
+            self.is_paused = True
+            self.is_waiting_for_referent_start = True
+            self._update_view_for_referent_prompt()
+        else:
+            self.is_paused = False
+            self.is_waiting_for_referent_start = False
+            if self.view:
+                self.view.update_status(phase=f"Re-running previous gesture [{prev_entry['id']}] from beginning...")
+            self._worker_thread = threading.Thread(target=self._pre_gesture_worker, daemon=True)
+            self._worker_thread.start()

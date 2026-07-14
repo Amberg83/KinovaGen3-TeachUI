@@ -44,6 +44,12 @@ class ReplayAllView(ctk.CTkFrame):
             self.btn_start_referent.configure(command=commands["start_referent"])
         if "pause" in commands:
             self.btn_pause.configure(command=commands["pause"])
+        if "resume" in commands:
+            self.btn_resume.configure(command=commands["resume"])
+        if "previous_gesture" in commands:
+            self.btn_prev.configure(command=commands["previous_gesture"])
+        if "restart_current_gesture" in commands:
+            self.btn_restart.configure(command=commands["restart_current_gesture"])
         if "skip_gesture" in commands:
             self.btn_skip.configure(command=commands["skip_gesture"])
         if "stop" in commands:
@@ -217,34 +223,64 @@ class ReplayAllView(ctk.CTkFrame):
         self.progress_bar.pack(fill="x", pady=(0, 15))
         self.progress_bar.set(0.0)
 
-        # Controls row
-        ctrl_row = ctk.CTkFrame(right_box, fg_color="transparent")
-        ctrl_row.pack(fill="x")
+        # Controls row 1: Playback & Navigation
+        ctrl_row_1 = ctk.CTkFrame(right_box, fg_color="transparent")
+        ctrl_row_1.pack(fill="x", pady=(0, 6))
+
+        self.btn_prev = theme.make_flat_button(
+            ctrl_row_1, text="◄ Previous Clip", bg_color=theme.BG_INPUT,
+            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, height=34
+        )
+        self.btn_prev.pack(side="left", fill="x", expand=True, padx=(0, 2))
+        ToolTip(self.btn_prev, "Halt and go back to previous clip (clears Start/End CSV entries of current & previous)")
 
         self.btn_pause = theme.make_flat_button(
-            ctrl_row, text="Pause (F7)", bg_color=theme.BG_INPUT,
-            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, height=36
+            ctrl_row_1, text="Pause (F7)", bg_color=theme.BG_INPUT,
+            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, height=34
         )
-        self.btn_pause.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        self.btn_pause.pack(side="left", fill="x", expand=True, padx=2)
+        ToolTip(self.btn_pause, "Pause active playback between gestures")
+
+        self.btn_resume = theme.make_flat_button(
+            ctrl_row_1, text="Resume (F5)", bg_color=theme.BG_INPUT,
+            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, height=34
+        )
+        self.btn_resume.pack(side="left", fill="x", expand=True, padx=2)
+        ToolTip(self.btn_resume, "Resume playback / Start current referent")
 
         self.btn_skip = theme.make_flat_button(
-            ctrl_row, text="Skip Clip", bg_color=theme.BG_INPUT,
-            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, height=36
+            ctrl_row_1, text="Skip Clip ►", bg_color=theme.BG_INPUT,
+            fg_color=theme.TEXT_PRIMARY, hover_bg=theme.BORDER_COLOR, height=34
         )
-        self.btn_skip.pack(side="left", fill="x", expand=True, padx=4)
+        self.btn_skip.pack(side="left", fill="x", expand=True, padx=(2, 0))
+        ToolTip(self.btn_skip, "Skip active clip without replaying")
+
+        # Controls row 2: Halt & Restart / Abort
+        ctrl_row_2 = ctk.CTkFrame(right_box, fg_color="transparent")
+        ctrl_row_2.pack(fill="x")
+
+        self.btn_restart = theme.make_flat_button(
+            ctrl_row_2, text="↺ Halt & Restart Current (F6)", bg_color="#d97706",
+            fg_color=theme.TEXT_PRIMARY, hover_bg="#b45309", font_style=theme.FONT_BOLD, height=34
+        )
+        self.btn_restart.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        ToolTip(self.btn_restart, "Manually halt and restart current clip from beginning (clears Start/End CSV entries)")
 
         self.btn_abort = theme.make_flat_button(
-            ctrl_row, text="Abort Replay", bg_color=theme.ACCENT_RED,
-            fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", height=36
+            ctrl_row_2, text="Abort Replay", bg_color=theme.ACCENT_RED,
+            fg_color=theme.TEXT_PRIMARY, hover_bg="#b91c1c", height=34
         )
         self.btn_abort.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        ToolTip(self.btn_abort, "Abort Replay All entirely")
 
         # Hidden log area for setup_global_logging compatibility
         self.log_area = ctk.CTkTextbox(self, height=0, width=0)
 
         # Hotkeys (bound to toplevel root window since CTkFrame forbids bind_all)
         root_win = self.winfo_toplevel()
-        root_win.bind("<F5>", lambda e: self.commands.get("start_referent")() if self.commands.get("start_referent") else None)
+        root_win.bind("<F5>", lambda e: (self.commands.get("resume")() if self.commands.get("resume") else (self.commands.get("start_referent")() if self.commands.get("start_referent") else None)))
+        root_win.bind("<F6>", lambda e: self.commands.get("restart_current_gesture")() if self.commands.get("restart_current_gesture") else None)
+        root_win.bind("<Shift-F6>", lambda e: self.commands.get("previous_gesture")() if self.commands.get("previous_gesture") else None)
         root_win.bind("<F7>", lambda e: self.commands.get("pause")() if self.commands.get("pause") else None)
         root_win.bind("<F8>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)
         root_win.bind("<Escape>", lambda e: self.commands.get("estop")() if self.commands.get("estop") else None)

@@ -64,7 +64,10 @@ class RobotController:
                 "estop": self.handle_emergency_stop,
                 "start_referent": self.replay_all_manager.start_referent if self.replay_all_manager else None,
                 "pause": self.replay_all_manager.pause if self.replay_all_manager else None,
+                "resume": self.replay_all_manager.resume if self.replay_all_manager else None,
                 "skip_gesture": self.replay_all_manager.skip_gesture if self.replay_all_manager else None,
+                "previous_gesture": self.replay_all_manager.previous_gesture if self.replay_all_manager else None,
+                "restart_current_gesture": self.replay_all_manager.restart_current_gesture if self.replay_all_manager else None,
                 "stop": self.replay_all_manager.stop if self.replay_all_manager else None
             })
         else:
