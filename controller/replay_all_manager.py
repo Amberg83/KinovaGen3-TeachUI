@@ -262,7 +262,6 @@ class ReplayAllManager:
             self.start_time_epoch = time.time()  # Reset timer exactly when the first fault beep sounds for video synchronization!
             logger.info("Triggering initial clapperboard emergency sound at start of very first referent!")
             try:
-                play_chime("fault")
                 EventBus.publish("fault")
             except Exception as e:
                 logger.error(f"Error playing initial clapperboard sound: {e}")
@@ -425,12 +424,15 @@ class ReplayAllManager:
                 if self.view:
                     self.view.show_completion_screen(total_gestures=self.total_gestures)
                 
-                # Play unmistakable fault mode sound upon full study completion
-                try:
-                    play_chime("fault")
-                    EventBus.publish("fault")
-                except Exception as e:
-                    logger.error(f"Error playing completion fault sound: {e}")
+                # Wait 5 seconds after full study completion before playing the final clapperboard sound
+                logger.info("Waiting 5 seconds before triggering final completion fault sound...")
+                def trigger_final_sound():
+                    logger.info("Playing final completion clapperboard fault sound after 5s wait.")
+                    try:
+                        EventBus.publish("fault")
+                    except Exception as e:
+                        logger.error(f"Error playing completion fault sound: {e}")
+                self.controller.root.after(5000, trigger_final_sound)
 
     def pause(self):
         """Pauses active playback between gestures or interrupts current sequence."""
