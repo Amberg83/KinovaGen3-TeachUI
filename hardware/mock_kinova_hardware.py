@@ -195,6 +195,7 @@ class MockKinovaHardware:
         """Thread-safely handles detecting the fault state and starting the beep loop."""
         if not self.state.has_fault:
             self.state.has_fault = True
+            EventBus.publish("estop")
             self._trigger_fault_sequence()
             self.logger.critical("[Mock] Robot entered a Faulty State!")
 

@@ -47,8 +47,6 @@ class ReplayAllManager:
         self.start_time_epoch = time.time()
         self.fault_active = False
         
-        EventBus.subscribe("fault", self.on_fault_detected)
-        EventBus.subscribe("fault_detected", self.on_fault_detected)
         EventBus.subscribe("estop", self.on_fault_detected)
         EventBus.subscribe("fault_cleared", self.on_fault_cleared)
         EventBus.subscribe("robot_connected", self.on_fault_cleared)

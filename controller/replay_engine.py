@@ -203,8 +203,8 @@ class ReplayEngine:
         except Exception as e:
             self.logger.error(f"Exception occurred during Replay: {e}")
             self.logger.error("Aborting replay sequence due to execution error.")
-            # Trigger audio feedback notification for failure using the standard fault event
-            EventBus.publish("fault_detected")
+            # Trigger audio feedback notification and E-stop for failure using the standard estop event
+            EventBus.publish("estop")
             self.stop_requested = True
         finally:
             self.is_replaying = False
