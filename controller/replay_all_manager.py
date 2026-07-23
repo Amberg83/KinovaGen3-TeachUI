@@ -127,7 +127,7 @@ class ReplayAllManager:
                         with open(csv_p, "r", encoding="utf-8") as f:
                             reader = csv.DictReader(f)
                             for row in reader:
-                                rid_str = str(row.get("ID") or row.get("RID") or row.get("rid") or "0").strip()
+                                rid_str = str(row.get("ID") or row.get("id") or row.get("RID") or row.get("rid") or "0").strip()
                                 if not rid_str.isdigit():
                                     continue
                                 rid = int(rid_str)
