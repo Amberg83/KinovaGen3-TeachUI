@@ -175,14 +175,14 @@ class KinovaHardware:
             if not current_angles or len(current_angles) != 6:
                 current_angles = self.default_pose
                 
-            # Stage 1: Retract (Keep joints 1, 4, 6, set joint 2=20.0, joint 3=320.0, joint 5=330.0) at medium speed
+            # Stage 1: Retract at medium speed
             retract_pose = [
-                current_angles[0],
+                270.0,
+                295.0,
+                60.0,
+                285.0,
                 20.0,
-                320.0,
-                current_angles[3],
-                330.0,
-                current_angles[5]
+                88.0
             ]
             speed1 = calculate_min_trajectory_duration(current_angles, retract_pose, speed="medium")
             movement_pager1 = self.execute_action_pose(retract_pose, speed1, "Retract")

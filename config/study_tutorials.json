@@ -4,12 +4,12 @@
     "name": "SS Tutorial",
     "instructions": "Imagine you are at home assembling something together with another person. While you are working, you need something from the other person. How would you signal that you need some attention?",
     "default_pose": [
-      0.0,
-      70.0,
-      264.0,
-      0.0,
-      58.0,
-      90.0
+      305.0,
+      295.0,
+      60.0,
+      285.0,
+      20.0,
+      88.0
     ],
     "default_gripper_pos": "pickup"
   },
@@ -18,12 +18,12 @@
     "name": "SD Tutorial",
     "instructions": "Imagine you are in the kitchen at home cooking something while another person in the same room is doing something else. While you are monitoring the stove, you see a pot dangerously close to boiling over. How would you signal this imminent danger to the other person?",
     "default_pose": [
-      0.0,
-      70.0,
-      264.0,
-      0.0,
-      58.0,
-      90.0
+      305.0,
+      295.0,
+      60.0,
+      285.0,
+      20.0,
+      88.0
     ],
     "default_gripper_pos": "pickup"
   }
