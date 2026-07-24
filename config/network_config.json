@@ -1,5 +1,9 @@
 {
     "udp_host": "127.0.0.1",
     "udp_port": 50005,
-    "polling_frequency_hz": 20
+    "polling_frequency_hz": 20,
+    "face_server_enabled": true,
+    "face_server_host": "0.0.0.0",
+    "face_server_port": 8080,
+    "face_ws_port": 8081
 }

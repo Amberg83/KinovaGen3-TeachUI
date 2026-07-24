@@ -13,6 +13,7 @@ from view import RobotView, ConnectionDialog
 from controller import RobotController
 from utils.sound_coordinator import SoundCoordinator
 from utils.udp_transmitter import UDPTransmitter
+from utils.face_server import FaceServer
 from view import theme
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -158,6 +159,9 @@ def main():
     # Initialize UDP transmitter to stream joint angles to Unity on port 5005
     udp_transmitter = UDPTransmitter()
     
+    # Initialize Face HTTP and WebSocket Server for local network animated face display
+    face_server = FaceServer()
+    
     def on_closing():
         logging.getLogger("Main").info("Closing application...")
         # Hide the UI window immediately so the user sees it close instantly
@@ -167,6 +171,10 @@ def main():
         # Start a background non-daemon thread to perform cleanup and disconnect the robot.
         # A non-daemon thread ensures the Python process remains alive until it finishes.
         def cleanup():
+            try:
+                face_server.close()
+            except Exception as e:
+                logging.getLogger("Main").error(f"Error during FaceServer cleanup: {e}")
             try:
                 udp_transmitter.close()
             except Exception as e:

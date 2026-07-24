@@ -15,5 +15,8 @@ Pillow>=10.0.0
 # Tkinter native SVG vector rendering support
 tksvg>=0.5.6
 
+# Async WebSockets library for local face web server
+websockets>=12.0
+
 # Kinova Gen3 Robotics API (Local wheel)
 ./kortex_api-2.8.0.post5-py3-none-any.whl

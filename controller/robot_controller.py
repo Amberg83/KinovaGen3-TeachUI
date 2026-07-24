@@ -142,6 +142,8 @@ class RobotController:
             if active_task:
                 custom_pose = active_task.get("default_pose")
                 custom_gripper = active_task.get("default_gripper_pos")
+                gaze_pos = active_task.get("eye_position", "center")
+                EventBus.publish("set_eye_gaze", gaze_pos)
                 
             if is_initial:
                 # Initial connection in Normal Study Mode: Move to default and save initial pose
@@ -571,6 +573,10 @@ class RobotController:
                 counter_text
             )
             self.logger.info(f"Transitioned to study task index {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()} ({counter_text}).")
+            
+            # Sync robot face eye gaze position for the new referent task
+            gaze_pos = next_task.get("eye_position", "center") if isinstance(next_task, dict) else "center"
+            EventBus.publish("set_eye_gaze", gaze_pos)
             
             # If in Review Mode, load recorded gesture if a file exists, but NEVER move to default or save initial pose
             if getattr(self.study_manager, "review_mode", False):

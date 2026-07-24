@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robot Face - Twinkling Eyes</title>
+  <style>
+    /* Reset & layout setup for exact fill */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Container for both eyes */
+    .eyes-container {
+      display: flex;
+      gap: 180px;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Base eye shape */
+    .eye {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.35s ease-in-out, opacity 0.35s ease-in-out, background-color 0.35s ease-in-out, border-radius 0.35s ease-in-out, border-color 0.35s ease-in-out;
+    }
+
+    /* Eyebrow / Expression Arches */
+    .eye::before {
+      content: '';
+      position: absolute;
+      top: -24px;
+      width: 140px;
+      height: 14px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      opacity: 0;
+      transform-origin: center;
+      transition: opacity 0.35s ease-in-out, transform 0.35s ease-in-out, background-color 0.35s ease-in-out;
+    }
+
+    /* Independent Saccade Layer for Micro-Eye Movements */
+    .saccade-layer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Pupil */
+    .pupil {
+      position: relative;
+      width: 85px;
+      height: 85px;
+      background-color: #1a1a1a;
+      border-radius: 50%;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s ease, height 0.35s ease, background-color 0.35s ease, clip-path 0.35s ease, opacity 0.35s ease;
+    }
+
+    /* Large friendly shine spot inside the pupil */
+    .pupil::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Small secondary shine spot */
+    .pupil::after {
+      content: '';
+      position: absolute;
+      bottom: 18px;
+      left: 18px;
+      width: 14px;
+      height: 14px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Twinkle animation (scales slightly & intensifies glow) */
+    @keyframes twinkle {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 45px rgba(255, 255, 255, 0.9);
+      }
+    }
+
+    /* Vibrant Replay Start Magic Pulse Animation 💫 ⚡ */
+    @keyframes replay-start-pulse {
+      0% {
+        transform: scale(1.0);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      }
+      40% {
+        transform: scale(1.22);
+        box-shadow: 0 0 80px rgba(0, 229, 255, 1.0), 0 0 50px rgba(168, 85, 247, 0.9);
+        background-color: #f0fdfa;
+      }
+      100% {
+        transform: scale(1.0);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    /* Disconnect Enter Sleepy Droop Animation 😴 💤 */
+    @keyframes disconnect-droop {
+      0% { transform: scale(1.0); opacity: 1; }
+      50% { transform: scaleY(0.18) scaleX(0.9); opacity: 0.8; box-shadow: 0 0 35px rgba(255, 255, 255, 0.7); }
+      100% { transform: scaleY(0.06) scaleX(0.78); opacity: 0.65; }
+    }
+
+    /* Fault Startled Shake Animation 😱 ⚡ */
+    @keyframes alert-shake {
+      0%, 100% { transform: scale(0.92) translate(0, 0); }
+      15% { transform: scale(0.94) translate(-4px, 3px); }
+      30% { transform: scale(0.90) translate(4px, -3px); }
+      45% { transform: scale(0.94) translate(-3px, -4px); }
+      60% { transform: scale(0.90) translate(3px, 4px); }
+      75% { transform: scale(0.93) translate(-2px, 2px); }
+    }
+
+    /* Reconnect Joy Pulse Animation 🤩 ✨ */
+    @keyframes joy-pulse {
+      0% { transform: scale(0.9); box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+      50% { transform: scale(1.18); box-shadow: 0 0 70px rgba(255, 215, 0, 0.95); }
+      100% { transform: scale(1.0); box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); }
+    }
+
+    /* Enter Fault Shock Gasp Burst (350ms Smooth Gasp into Alert Mode ⚡ 😱) */
+    @keyframes fault-enter-burst {
+      0% {
+        transform: scale(1.0);
+        background-color: #ffffff;
+        border-color: #ffffff;
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      }
+      40% {
+        transform: scale(1.26) rotate(-4deg);
+        background-color: #ffcccc;
+        border-color: #ff3333;
+        box-shadow: 0 0 85px rgba(255, 30, 30, 1.0), inset 0 0 20px rgba(200, 0, 0, 0.5);
+      }
+      100% {
+        transform: scale(0.92);
+        background-color: #ffe6e6;
+        border-color: #ff3333;
+        box-shadow: 0 0 55px rgba(255, 30, 30, 0.95), inset 0 0 20px rgba(200, 0, 0, 0.5);
+      }
+    }
+
+    @keyframes pupil-fault-enter {
+      0% { transform: scale(1.0); background-color: #1a1a1a; }
+      40% { transform: scale(0.55); background-color: #aa0000; }
+      100% { transform: scale(0.65); background-color: #aa0000; }
+    }
+
+    /* Expressive Exit Fault Transition (650ms Relief Sigh & Emerald Sparkle 😮‍💨 🌿 😊) */
+    @keyframes fault-exit-relief {
+      0% {
+        transform: scale(0.92);
+        background-color: #ffe6e6;
+        border: 4px solid #ff3333;
+        box-shadow: 0 0 55px rgba(255, 30, 30, 0.95), inset 0 0 20px rgba(200, 0, 0, 0.5);
+      }
+      35% {
+        transform: scaleY(0.52) scaleX(1.22);
+        background-color: #d1fae5;
+        border: 4px solid #34d199;
+        box-shadow: 0 0 80px rgba(52, 211, 153, 0.95), 0 0 45px rgba(16, 185, 129, 0.85);
+      }
+      75% {
+        transform: scale(1.08);
+        background-color: #ffffff;
+        border: 0px solid transparent;
+        box-shadow: 0 0 50px rgba(52, 211, 153, 0.6);
+      }
+      100% {
+        transform: scale(1.0);
+        background-color: #ffffff;
+        border: 0px solid transparent;
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    @keyframes pupil-relief {
+      0% { transform: scale(0.65); background-color: #aa0000; }
+      40% { transform: scale(1.28); background-color: #10b981; }
+      100% { transform: scale(1.0); background-color: #1a1a1a; }
+    }
+
+    /* Peaceful Sleeping Breathing Animation 😴 💤 */
+    @keyframes sleeping-breath {
+      0%, 100% {
+        transform: scaleY(0.06) scaleX(0.78);
+        opacity: 0.55;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+      }
+      50% {
+        transform: scaleY(0.085) scaleX(0.84);
+        opacity: 0.85;
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.65);
+      }
+    }
+
+    /* Starry Eyes Pupil Transformation (🤩 Star-Struck Eyes on Reconnect) */
+    .starry-eyes .pupil {
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      background-color: #ffd700 !important;
+      transform: scale(1.22) !important;
+    }
+    .starry-eyes .eye {
+      box-shadow: 0 0 70px rgba(255, 215, 0, 0.95) !important;
+    }
+    .starry-eyes .pupil::before,
+    .starry-eyes .pupil::after {
+      opacity: 0;
+    }
+
+    /* Animation Classes */
+    .twinkle { animation: twinkle 0.8s ease-in-out; }
+    .anim-joy-pulse { animation: joy-pulse 0.65s cubic-bezier(0.25, 1, 0.5, 1); }
+    .anim-fault-enter { animation: fault-enter-burst 0.35s ease-out !important; }
+    .anim-pupil-fault-enter { animation: pupil-fault-enter 0.35s ease-out !important; }
+    .anim-fault-exit { animation: fault-exit-relief 0.65s cubic-bezier(0.25, 1, 0.5, 1) !important; }
+    .anim-pupil-relief { animation: pupil-relief 0.65s cubic-bezier(0.25, 1, 0.5, 1) !important; }
+    .anim-disconnect-enter { animation: disconnect-droop 0.30s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+    .anim-replay-start { animation: replay-start-pulse 0.55s ease-in-out !important; }
+
+    /* Blink state class */
+    .blink {
+      transform: scaleY(0.05) !important;
+    }
+
+    /* Gaze Positions (CSS transforms on pupil) */
+    .gaze-center .pupil { transform: translate(0, 0); }
+    .gaze-down-center .pupil { transform: translate(0, 38px); }
+    .gaze-down-left .pupil { transform: translate(-38px, 35px); }
+    .gaze-down-right .pupil { transform: translate(38px, 35px); }
+
+    /* System Override States */
+
+    /* Disconnected / Sleeping Lines State 😴 💤 */
+    .override-disconnected .eye {
+      transform: scaleY(0.06) scaleX(0.78);
+      opacity: 0.65;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+      animation: sleeping-breath 4.2s infinite ease-in-out;
+    }
+    .override-disconnected .pupil {
+      opacity: 0 !important;
+    }
+
+    /* Fault / E-Stop State (Expressive Shocked / Alert 😵‍💫 ⚠️) */
+    .override-fault .eye {
+      animation: alert-shake 1.2s infinite ease-in-out;
+      box-shadow: 0 0 55px rgba(255, 30, 30, 0.95), inset 0 0 20px rgba(200, 0, 0, 0.5);
+      background-color: #ffe6e6;
+      border: 4px solid #ff3333;
+    }
+    .override-fault .pupil {
+      transform: scale(0.65) !important;
+      background-color: #aa0000;
+    }
+    .override-fault .pupil::before,
+    .override-fault .pupil::after {
+      opacity: 0.6;
+    }
+    /* Expressive Startled Eyebrows for Fault (Only visible in fault mode) */
+    .override-fault #left-eye::before {
+      opacity: 1;
+      background-color: #ff3333;
+      transform: translateY(-8px) rotate(-18deg);
+    }
+    .override-fault #right-eye::before {
+      opacity: 1;
+      background-color: #ff3333;
+      transform: translateY(-8px) rotate(18deg);
+    }
+  </style>
+</head>
+<body class="gaze-center">
+
+  <div class="eyes-container" id="eyes-container">
+    <div class="eye" id="left-eye">
+      <div class="saccade-layer">
+        <div class="pupil"></div>
+      </div>
+    </div>
+    <div class="eye" id="right-eye">
+      <div class="saccade-layer">
+        <div class="pupil"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const body = document.body;
+    const leftEye = document.getElementById('left-eye');
+    const rightEye = document.getElementById('right-eye');
+
+    // State Machine Variables
+    let activeMainState = 'gaze-center'; // 'gaze-center', 'gaze-down-center', 'gaze-down-left', 'gaze-down-right'
+    let systemOverride = null;          // null, 'override-disconnected', 'override-fault'
+    let isWakingUp = false;
+    let isReplaying = false;
+
+    function updateEffectiveState() {
+      // Clear all state & override classes from body
+      body.classList.remove(
+        'gaze-center', 'gaze-down-center', 'gaze-down-left', 'gaze-down-right',
+        'override-disconnected', 'override-fault'
+      );
+
+      if (systemOverride) {
+        body.classList.add(systemOverride);
+      } else {
+        body.classList.add(activeMainState);
+      }
+    }
+
+    function setMainState(stateName) {
+      const validStates = {
+        'center': 'gaze-center',
+        'down_center': 'gaze-down-center',
+        'down_left': 'gaze-down-left',
+        'down_right': 'gaze-down-right',
+        'gaze-center': 'gaze-center',
+        'gaze-down-center': 'gaze-down-center',
+        'gaze-down-left': 'gaze-down-left',
+        'gaze-down-right': 'gaze-down-right'
+      };
+
+      if (validStates[stateName]) {
+        activeMainState = validStates[stateName];
+        updateEffectiveState();
+      }
+    }
+
+    function setOverride(overrideName) {
+      const prevOverride = systemOverride;
+
+      if (overrideName === 'disconnected' || overrideName === 'override-disconnected') {
+        if (prevOverride !== 'override-disconnected') {
+          // Play Quick Sleepy Droop 300ms Disconnect Enter Animation 😴
+          leftEye.classList.add('anim-disconnect-enter');
+          rightEye.classList.add('anim-disconnect-enter');
+          systemOverride = 'override-disconnected';
+          updateEffectiveState();
+          setTimeout(() => {
+            leftEye.classList.remove('anim-disconnect-enter');
+            rightEye.classList.remove('anim-disconnect-enter');
+          }, 300);
+        } else {
+          systemOverride = 'override-disconnected';
+          updateEffectiveState();
+        }
+      } else if (overrideName === 'fault' || overrideName === 'override-fault') {
+        if (prevOverride !== 'override-fault') {
+          // Set override-fault on body immediately for red eyebrows & alert styling
+          systemOverride = 'override-fault';
+          updateEffectiveState();
+
+          // Play 350ms Shock Gasp Burst (Eyes + Pupils) into alert-shake
+          leftEye.classList.add('anim-fault-enter');
+          rightEye.classList.add('anim-fault-enter');
+          const pupils = document.querySelectorAll('.pupil');
+          pupils.forEach(p => p.classList.add('anim-pupil-fault-enter'));
+
+          setTimeout(() => {
+            leftEye.classList.remove('anim-fault-enter');
+            rightEye.classList.remove('anim-fault-enter');
+            pupils.forEach(p => p.classList.remove('anim-pupil-fault-enter'));
+          }, 350);
+        } else {
+          systemOverride = 'override-fault';
+          updateEffectiveState();
+        }
+      }
+    }
+
+    // Trigger Star-Struck Wakeup / Reconnect Animation 🤩 ✨
+    function triggerWakeupAnimation() {
+      if (isWakingUp) return;
+      isWakingUp = true;
+
+      // Transform pupils into glowing golden stars
+      body.classList.add('starry-eyes');
+      leftEye.classList.add('anim-joy-pulse');
+      rightEye.classList.add('anim-joy-pulse');
+
+      setTimeout(() => {
+        body.classList.remove('starry-eyes');
+        leftEye.classList.remove('anim-joy-pulse');
+        rightEye.classList.remove('anim-joy-pulse');
+        triggerBlink(); // Cheerful greeting blink
+        isWakingUp = false;
+      }, 750);
+    }
+
+    // Trigger Replay Start Animation (Electric Cyan / Purple Pulse 💫 ⚡)
+    function triggerReplayStartAnimation() {
+      if (isReplaying) return;
+      isReplaying = true;
+
+      leftEye.classList.add('anim-replay-start');
+      rightEye.classList.add('anim-replay-start');
+
+      setTimeout(() => {
+        leftEye.classList.remove('anim-replay-start');
+        rightEye.classList.remove('anim-replay-start');
+        isReplaying = false;
+      }, 550);
+    }
+
+    function clearOverride(overrideName) {
+      const prevOverride = systemOverride;
+      
+      if (!overrideName || systemOverride === overrideName || systemOverride === 'override-' + overrideName) {
+        if (prevOverride === 'override-fault') {
+          // 1. Immediately remove override state so eyebrows fade out & alert-shake stops
+          systemOverride = null;
+          updateEffectiveState();
+
+          // 2. Play 650ms Relief Sequence (red shadow/border -> mint green -> clean white)
+          leftEye.classList.add('anim-fault-exit');
+          rightEye.classList.add('anim-fault-exit');
+          const pupils = document.querySelectorAll('.pupil');
+          pupils.forEach(p => p.classList.add('anim-pupil-relief'));
+
+          setTimeout(() => {
+            leftEye.classList.remove('anim-fault-exit');
+            rightEye.classList.remove('anim-fault-exit');
+            pupils.forEach(p => p.classList.remove('anim-pupil-relief'));
+            triggerBlink(); // Relieved greeting blink!
+          }, 650);
+        } else {
+          systemOverride = null;
+          updateEffectiveState();
+          if (prevOverride === 'override-disconnected') {
+            triggerWakeupAnimation();
+          }
+        }
+      }
+    }
+
+    // Trigger Twinkle Animation
+    function triggerTwinkle(isFast = false) {
+      const animClass = isFast ? 'fast-twinkle' : 'twinkle';
+      const duration = isFast ? 350 : 800;
+
+      leftEye.classList.add(animClass);
+      rightEye.classList.add(animClass);
+
+      setTimeout(() => {
+        leftEye.classList.remove(animClass);
+        rightEye.classList.remove(animClass);
+      }, duration);
+    }
+
+    // Trigger Quick Blink Animation
+    function triggerBlink() {
+      if (systemOverride === 'override-disconnected') return; // Don't blink if eyes closed
+      leftEye.classList.add('blink');
+      rightEye.classList.add('blink');
+
+      setTimeout(() => {
+        leftEye.classList.remove('blink');
+        rightEye.classList.remove('blink');
+      }, 150);
+    }
+
+    // Helper to generate a random delay between min and max (in milliseconds)
+    function getRandomDelay(minSeconds, maxSeconds) {
+      return (Math.random() * (maxSeconds - minSeconds) + minSeconds) * 1000;
+    }
+
+    // Lifelike Micro-Saccade Idle Eye Movements 👀 (Operates on independent .saccade-layer)
+    function triggerMicroSaccade() {
+      if (systemOverride || isWakingUp || isReplaying) return;
+
+      const angles = [0, 45, 90, 135, 180, 225, 270, 315];
+      const angle = angles[Math.floor(Math.random() * angles.length)] * (Math.PI / 180);
+      const distance = Math.random() * 8 + 4; // 4px to 12px shift
+
+      const dx = Math.round(Math.cos(angle) * distance);
+      const dy = Math.round(Math.sin(angle) * distance);
+
+      const layers = document.querySelectorAll('.saccade-layer');
+      layers.forEach(layer => {
+        layer.style.transition = 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        layer.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+
+      // Hold micro-gaze shift for 0.8s to 1.6s, then return naturally to center
+      setTimeout(() => {
+        layers.forEach(layer => {
+          layer.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
+          layer.style.transform = 'translate(0px, 0px)';
+        });
+      }, getRandomDelay(0.8, 1.6));
+    }
+
+    function scheduleMicroSaccades() {
+      const nextSaccade = getRandomDelay(3, 7);
+      setTimeout(() => {
+        triggerMicroSaccade();
+        scheduleMicroSaccades();
+      }, nextSaccade);
+    }
+
+    // Random timer loops for liveliness
+    function scheduleEffects() {
+      const nextTwinkle = getRandomDelay(8, 18);
+      setTimeout(() => {
+        if (!systemOverride && !isReplaying && !isWakingUp) {
+          triggerTwinkle(false);
+        }
+        scheduleEffects();
+      }, nextTwinkle);
+    }
+
+    function scheduleBlinks() {
+      const nextBlink = getRandomDelay(5, 14);
+      setTimeout(() => {
+        if (!systemOverride && !isReplaying && !isWakingUp) {
+          triggerBlink();
+        }
+        scheduleBlinks();
+      }, nextBlink);
+    }
+
+    // Comprehensive Automatic Test Sequence (3.0s delay between steps)
+    let isTestSequenceRunning = false;
+
+    async function runTestSequence() {
+      if (isTestSequenceRunning) return;
+      isTestSequenceRunning = true;
+
+      const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+      console.log('=== Starting Robot Face Demo Test Sequence ===');
+
+      // 1. Center Gaze
+      setMainState('center');
+      await delay(3000);
+
+      // 2. Down-Left Gaze
+      setMainState('down_left');
+      await delay(3000);
+
+      // 3. Down-Center Gaze
+      setMainState('down_center');
+      await delay(3000);
+
+      // 4. Down-Right Gaze
+      setMainState('down_right');
+      await delay(3000);
+
+      // 5. Center Gaze
+      setMainState('center');
+      await delay(3000);
+
+      // 6. Replay Start Cyan/Purple Magic Pulse 💫 ⚡
+      triggerReplayStartAnimation();
+      await delay(3000);
+
+      // 7. Fast Twinkle
+      triggerTwinkle(true);
+      await delay(3000);
+
+      // 8. Blink
+      triggerBlink();
+      await delay(3000);
+
+      // 9. Enter Fault State (Shock Burst ⚡ 😱)
+      setOverride('fault');
+      await delay(3500);
+
+      // 10. Clear Fault State (Relief Sigh 🌿 😮‍💨)
+      clearOverride('fault');
+      await delay(3000);
+
+      // 11. Enter Disconnected Sleeping Lines (Sleepy Droop 😴 💤)
+      setOverride('disconnected');
+      await delay(3500);
+
+      // 12. Reconnect / Wake-Up (Starry Eyes 🤩 ✨)
+      clearOverride('disconnected');
+      await delay(3000);
+
+      // 13. Idle Micro-Saccade 👀
+      triggerMicroSaccade();
+      await delay(3000);
+
+      // 14. Final Baseline Center
+      setMainState('center');
+      console.log('=== Robot Face Demo Test Sequence Completed ===');
+
+      isTestSequenceRunning = false;
+    }
+
+    // Keyboard Key Controls
+    window.addEventListener('keydown', (e) => {
+      // Prevent default scrolling for arrow keys
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+
+      switch (e.key) {
+        case 'p':
+        case 'P':
+          runTestSequence();
+          break;
+        case 'ArrowUp':
+          setMainState('center');
+          break;
+        case 'ArrowDown':
+          setMainState('down_center');
+          break;
+        case 'ArrowLeft':
+          setMainState('down_left');
+          break;
+        case 'ArrowRight':
+          setMainState('down_right');
+          break;
+        case 't':
+        case 'T':
+          triggerReplayStartAnimation();
+          break;
+        case 'b':
+        case 'B':
+          triggerBlink();
+          break;
+        case 's':
+        case 'S':
+          if (systemOverride === 'override-disconnected') clearOverride('disconnected');
+          else setOverride('disconnected');
+          break;
+        case 'r':
+        case 'R':
+          if (systemOverride === 'override-disconnected') {
+            clearOverride('disconnected');
+          } else {
+            triggerWakeupAnimation();
+          }
+          break;
+        case 'f':
+        case 'F':
+          if (systemOverride === 'override-fault') clearOverride('fault');
+          else setOverride('fault');
+          break;
+      }
+    });
+
+    // WebSocket Integration
+    function connectWebSocket() {
+      const host = window.location.hostname || 'localhost';
+      const wsPort = 8081; // Default face WS port
+      const wsUrl = `ws://${host}:${wsPort}/ws`;
+
+      console.log(`Connecting to WebSocket server: ${wsUrl}`);
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('WebSocket connection established.');
+        clearOverride('disconnected'); // Connected to server (triggers wake-up animation)
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          console.log('Received WebSocket message:', msg);
+
+          if (msg.type === 'set_main_state' || msg.type === 'gaze_command') {
+            setMainState(msg.position || msg.gaze);
+          } else if (msg.type === 'set_override') {
+            setOverride(msg.override);
+          } else if (msg.type === 'clear_override') {
+            clearOverride(msg.override);
+          } else if (msg.type === 'trigger_animation') {
+            if (msg.animation === 'twinkle' || msg.animation === 'short_twinkle') {
+              triggerReplayStartAnimation();
+            } else if (msg.animation === 'blink') {
+              triggerBlink();
+            }
+          }
+        } catch (err) {
+          console.error('Error parsing WebSocket message:', err);
+        }
+      };
+
+      ws.onclose = () => {
+        console.warn('WebSocket connection lost. Retrying in 3 seconds...');
+        setOverride('disconnected'); // Send robot eyes to sleep mode on application exit/disconnect
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+        ws.close();
+      };
+    }
+
+    // Start WebSocket & liveliness loops
+    scheduleEffects();
+    scheduleBlinks();
+    scheduleMicroSaccades();
+    connectWebSocket();
+  </script>
+
+</body>
+</html>
