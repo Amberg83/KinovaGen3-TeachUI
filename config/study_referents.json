@@ -11,7 +11,8 @@
       20.0,
       88.0
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "down_right"
   },
   {
     "id": 2,
@@ -25,7 +26,8 @@
       24.43,
       72.07
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "down_left"
   },
   {
     "id": 3,
@@ -39,7 +41,8 @@
       20.0,
       88.0
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "down_center"
   },
   {
     "id": 4,
@@ -53,7 +56,8 @@
       20.0,
       88.0
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "down_right"
   },
   {
     "id": 5,
@@ -67,7 +71,8 @@
       24.43,
       72.07
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "down_left"
   },
   {
     "id": 6,
@@ -81,7 +86,8 @@
       20.0,
       88.0
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "down_center"
   },
   {
     "id": 7,
@@ -95,7 +101,8 @@
       20.0,
       88.0
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "center"
   },
   {
     "id": 8,
@@ -109,6 +116,7 @@
       20.0,
       88.0
     ],
-    "default_gripper_pos": "pickup"
+    "default_gripper_pos": "pickup",
+    "default_gaze": "center"
   }
 ]
