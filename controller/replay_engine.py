@@ -13,7 +13,7 @@ class ReplayEngine:
         self.is_replaying = False
         self.stop_requested = False
 
-    def start(self, sequence, on_finished_callback=None):
+    def start(self, sequence, on_finished_callback=None, skip_pre_default=False):
         """Launches sequence execution in a background daemon thread."""
         if self.is_replaying:
             return False
@@ -23,7 +23,7 @@ class ReplayEngine:
         
         thread = threading.Thread(
             target=self._replay_worker, 
-            args=(sequence, on_finished_callback), 
+            args=(sequence, on_finished_callback, skip_pre_default), 
             daemon=True
         )
         thread.start()
@@ -33,50 +33,54 @@ class ReplayEngine:
         """Sends a stop signal to cancel execution on the next step."""
         self.stop_requested = True
 
-    def _replay_worker(self, sequence, on_finished_callback):
+    def _replay_worker(self, sequence, on_finished_callback, skip_pre_default=False):
         try:
             self.logger.info("=== START SEQUENCE-REPLAY ===")
             
-            # 1. Move back to default position before starting replay
-            self.logger.info("Moving back to default position before starting replay...")
-            custom_pose = None
-            custom_gripper = None
-            if self.study_manager and self.study_manager.study_mode:
-                active_task = self.study_manager.get_active_task()
-                if active_task:
-                    custom_pose = active_task.get("default_pose")
-                    custom_gripper = active_task.get("default_gripper_pos")
-            completion_event = self.hardware.move_to_default(custom_pose=custom_pose, custom_gripper_pos=custom_gripper)
-            if completion_event:
-                completion_event.wait(timeout=15.0)
-                
-            if not getattr(self.hardware, '_last_action_success', True):
-                raise RuntimeError("Moving to default position failed!")
-                
-            if self.stop_requested:
-                self.logger.info("Replay aborted before sequence start.")
-                return
-                
-            # 2. Pause there for 2.0 seconds
-            self.logger.info("Pausing at default position for 2.0s...")
-            slept = 0.0
-            while slept < 2.0:
+            if not skip_pre_default:
+                # 1. Move back to default position before starting replay
+                self.logger.info("Moving back to default position before starting replay...")
+                custom_pose = None
+                custom_gripper = None
+                if self.study_manager and self.study_manager.study_mode:
+                    active_task = self.study_manager.get_active_task()
+                    if active_task:
+                        custom_pose = active_task.get("default_pose")
+                        custom_gripper = active_task.get("default_gripper_pos")
+                completion_event = self.hardware.move_to_default(custom_pose=custom_pose, custom_gripper_pos=custom_gripper)
+                if completion_event:
+                    completion_event.wait(timeout=15.0)
+                    
+                if not getattr(self.hardware, '_last_action_success', True):
+                    raise RuntimeError("Moving to default position failed!")
+                    
                 if self.stop_requested:
-                    self.logger.info("Replay aborted during pre-run pause.")
+                    self.logger.info("Replay aborted before sequence start.")
                     return
-                time.sleep(0.1)
-                slept += 0.1
-                
-            # 3. Play start chime and delay physical execution by 1.0 second
-            EventBus.publish("replay_started")
-            self.logger.info("Replay start chime played, waiting 1.0s warning countdown before execution...")
-            slept = 0.0
-            while slept < 1.0:
-                if self.stop_requested:
-                    self.logger.info("Replay aborted during pre-execution warning delay.")
-                    return
-                time.sleep(0.1)
-                slept += 0.1
+                    
+                # 2. Pause there for 2.0 seconds
+                self.logger.info("Pausing at default position for 2.0s...")
+                slept = 0.0
+                while slept < 2.0:
+                    if self.stop_requested:
+                        self.logger.info("Replay aborted during pre-run pause.")
+                        return
+                    time.sleep(0.1)
+                    slept += 0.1
+                    
+                # 3. Play start chime and delay physical execution by 1.0 second
+                EventBus.publish("replay_started")
+                self.logger.info("Replay start chime played, waiting 1.0s warning countdown before execution...")
+                slept = 0.0
+                while slept < 1.0:
+                    if self.stop_requested:
+                        self.logger.info("Replay aborted during pre-execution warning delay.")
+                        return
+                    time.sleep(0.1)
+                    slept += 0.1
+            else:
+                self.logger.info("skip_pre_default=True: Skipping built-in homing & pauses. Starting sequence directly...")
+                EventBus.publish("replay_started")
 
             self.logger.info("Replay sequence starting...")
 

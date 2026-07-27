@@ -18,11 +18,14 @@ class ConnectionDialog(ctk.CTk):
         self.pass_var = ctk.StringVar(value=default_pass)
         self.pid_var = ctk.StringVar(value="")
         self.review_var = ctk.BooleanVar(value=False)
+        self.replay_all_var = ctk.BooleanVar(value=False)
+        self.exclude_pids_var = ctk.StringVar(value="")
 
         self.ip_var.trace_add("write", self.validate_inputs)
         self.user_var.trace_add("write", self.validate_inputs)
         self.pass_var.trace_add("write", self.validate_inputs)
         self.pid_var.trace_add("write", self.validate_pid_change)
+        self.replay_all_var.trace_add("write", self.on_replay_all_change)
 
         # ----------------- HEADER AREA -----------------
         header_frame = ctk.CTkFrame(self, fg_color=theme.BG_HEADER, corner_radius=0)
@@ -81,13 +84,25 @@ class ConnectionDialog(ctk.CTk):
         
         # Checkbox for review mode
         self.chk_review = ctk.CTkCheckBox(
-            card, text="Review Mode", variable=self.review_var,
+            card, text="Review Mode (Single Participant)", variable=self.review_var,
             font=(theme.FONT_NORMAL[0], 9, "bold"), fg_color=theme.ACCENT_CYBER,
             text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR,
             corner_radius=4, hover_color=theme.ACCENT_CYBER
         )
-        self.chk_review.pack(anchor="w", padx=20, pady=(0, 10))
+        self.chk_review.pack(anchor="w", padx=20, pady=(0, 8))
         self.chk_review.configure(state="disabled")
+
+        # Checkbox for Replay All
+        self.chk_replay_all = ctk.CTkCheckBox(
+            card, text="Replay All (Automatic Study Replay)", variable=self.replay_all_var,
+            font=(theme.FONT_NORMAL[0], 9, "bold"), fg_color=theme.ACCENT_GREEN,
+            text_color=theme.TEXT_PRIMARY, border_color=theme.BORDER_COLOR,
+            corner_radius=4, hover_color=theme.ACCENT_GREEN
+        )
+        self.chk_replay_all.pack(anchor="w", padx=20, pady=(0, 10))
+
+        # Exclude PIDs field (optional)
+        self.ent_exclude_pids = build_field(card, "Exclude PIDs (Comma-separated, optional)", self.exclude_pids_var)
 
         # Helpful notice badge
         notice_frame = ctk.CTkFrame(
@@ -97,11 +112,11 @@ class ConnectionDialog(ctk.CTk):
         notice_frame.pack(fill="x", pady=15, padx=20)
         
         theme.make_label(
-            notice_frame, text=" Leave Participant ID empty to launch in Expert Mode.",
+            notice_frame, text=" Leave Participant ID empty to launch in Expert Mode, or check Replay All for automated review.",
             image=theme.get_icon("lightbulb"), compound="left",
             font=(theme.FONT_NORMAL[0], 10, "normal"), fg_color=theme.BG_INPUT, text_color=theme.TEXT_MUTED,
             wraplength=280, justify="left"
-        ).pack(fill="x", padx=10, pady=8)
+        ).pack(side="left", padx=10, pady=8)
 
         # ----------------- ACTION BUTTONS -----------------
         btn_frame = ctk.CTkFrame(self, fg_color=theme.BG_MAIN, corner_radius=0)
@@ -167,8 +182,21 @@ class ConnectionDialog(ctk.CTk):
         else:
             self.btn_connect.configure(state="disabled", fg_color=theme.BORDER_COLOR, text_color=theme.TEXT_MUTED)
 
+    def on_replay_all_change(self, *args):
+        """Disables Review Mode checkbox when Replay All is selected."""
+        if self.replay_all_var.get():
+            self.review_var.set(True)
+            self.chk_review.configure(state="disabled")
+            self.ent_pid.configure(state="disabled", fg_color=theme.BORDER_COLOR)
+        else:
+            self.ent_pid.configure(state="normal", fg_color=theme.BG_INPUT)
+            self.validate_pid_change()
+        self.validate_inputs()
+
     def validate_pid_change(self, *args):
         """Enables/Disables the Review Mode checkbox dynamically based on PID textbox content."""
+        if self.replay_all_var.get():
+            return
         pid = self.pid_var.get().strip()
         if pid:
             self.chk_review.configure(state="normal")
@@ -183,8 +211,10 @@ class ConnectionDialog(ctk.CTk):
         
         pid = self.pid_var.get().strip()
         is_review = self.review_var.get()
+        is_replay_all = self.replay_all_var.get()
+        exclude_pids = self.exclude_pids_var.get().strip()
         
-        if is_review and pid:
+        if is_review and not is_replay_all and pid:
             possible_path = os.path.join("study_results", pid)
             if not os.path.isdir(possible_path):
                 messagebox.showerror(
@@ -193,13 +223,23 @@ class ConnectionDialog(ctk.CTk):
                     "Please verify the folder name matches an existing participant directory."
                 )
                 return
+
+        if is_replay_all:
+            if not os.path.isdir("study_results"):
+                messagebox.showerror(
+                    "Study Results Not Found",
+                    "The 'study_results/' directory does not exist in the project root."
+                )
+                return
                 
         self.result = (
             self.ip_var.get().strip(), 
             self.user_var.get().strip(), 
             self.pass_var.get().strip(),
             pid,
-            is_review
+            is_review,
+            is_replay_all,
+            exclude_pids
         )
         self.destroy()
 

@@ -4,18 +4,20 @@ import threading
 import logging
 import json
 from .replay_engine import ReplayEngine
+from .replay_all_manager import ReplayAllManager
 from utils.event_bus import EventBus
 from model import StudyManager
 from view import theme
 
 class RobotController:
     """Orchestrates application logic, linking View panels to Model and Hardware layers."""
-    def __init__(self, root, view, model, hardware, participant_id="", is_review_mode=False):
+    def __init__(self, root, view, model, hardware, participant_id="", is_review_mode=False, is_replay_all=False, exclude_pids=""):
         self.root = root
         self.view = view
         self.model = model
         self.hardware = hardware
         self._is_initial_connection = True
+        self.is_replay_all = is_replay_all
         
         # Instantiate encapsulated study manager
         self.study_manager = StudyManager(participant_id, is_review_mode=is_review_mode)
@@ -23,6 +25,9 @@ class RobotController:
         self.logger = logging.getLogger("Controller")
         self.replay_engine = ReplayEngine(self.hardware, self.study_manager)
         self.clipboard = []
+        
+        # Instantiate ReplayAllManager if in Replay All mode
+        self.replay_all_manager = ReplayAllManager(self, exclude_pids=exclude_pids) if self.is_replay_all else None
         
         # Load default gripper settings from config
         self.default_gripper_duration = "fast"
@@ -48,39 +53,57 @@ class RobotController:
         EventBus.subscribe("play_predefined_gesture", self.handle_play_predefined_gesture)
         EventBus.subscribe("robot_connected", self.handle_robot_connected)
         
+        if self.replay_all_manager:
+            EventBus.subscribe("fault", self.replay_all_manager.on_fault_detected)
+            EventBus.subscribe("fault_cleared", self.replay_all_manager.on_fault_cleared)
+
         # Bind abstract intents from the View to Controller actions
-        self.view.bind_commands({
-            "reconnect": self.handle_reconnect,
-            "clear_faults": self.handle_clear_faults,
-            "set_admittance": self.handle_set_admittance,
-            "capture_pose": self.handle_append_pose,
-            "save_waypoint": self.handle_save_waypoint_changes,
-            "preview_pose": self.handle_preview_inspector_pose,
-            "preview_gripper": self.handle_preview_gripper,
-            "append_inspector_pose": self.handle_append_inspector_pose,
-            "move_up": self.handle_move_up,
-            "move_down": self.handle_move_down,
-            "delete_poses": self.handle_delete_poses,
-            "undo": self.handle_undo,
-            "redo": self.handle_redo,
-            "tree_select": self.handle_tree_select,
-            "save_json": self.handle_save_json,
-            "load_json": self.model.load_from_json,
-            "clear_list": self.model.clear,
-            "replay": self.handle_start_replay,
-            "replay_selection": self.handle_start_replay_selection,
-            "estop": self.handle_emergency_stop,
-            "stop_media": self.handle_media_stop,
-            "pause_media": self.handle_media_pause,
-            "copy": self.handle_copy_poses,
-            "paste": self.handle_paste_poses,
-            "duplicate": self.handle_duplicate_poses,
-            "move_entry": self.handle_move_entry,
-            "apply_min_durations": self.handle_apply_min_durations,
-            "move_default": self.handle_move_default,
-            "add_pause": self.handle_add_pause,
-            "add_gripper": self.handle_add_gripper
-        })
+        if self.is_replay_all:
+            self.view.bind_commands({
+                "reconnect": self.handle_reconnect,
+                "clear_faults": self.handle_clear_faults,
+                "estop": self.handle_emergency_stop,
+                "start_referent": self.replay_all_manager.start_referent if self.replay_all_manager else None,
+                "pause": self.replay_all_manager.pause if self.replay_all_manager else None,
+                "resume": self.replay_all_manager.resume if self.replay_all_manager else None,
+                "skip_gesture": self.replay_all_manager.skip_gesture if self.replay_all_manager else None,
+                "previous_gesture": self.replay_all_manager.previous_gesture if self.replay_all_manager else None,
+                "restart_current_gesture": self.replay_all_manager.restart_current_gesture if self.replay_all_manager else None,
+                "stop": self.replay_all_manager.stop if self.replay_all_manager else None
+            })
+        else:
+            self.view.bind_commands({
+                "reconnect": self.handle_reconnect,
+                "clear_faults": self.handle_clear_faults,
+                "set_admittance": self.handle_set_admittance,
+                "capture_pose": self.handle_append_pose,
+                "save_waypoint": self.handle_save_waypoint_changes,
+                "preview_pose": self.handle_preview_inspector_pose,
+                "preview_gripper": self.handle_preview_gripper,
+                "append_inspector_pose": self.handle_append_inspector_pose,
+                "move_up": self.handle_move_up,
+                "move_down": self.handle_move_down,
+                "delete_poses": self.handle_delete_poses,
+                "undo": self.handle_undo,
+                "redo": self.handle_redo,
+                "tree_select": self.handle_tree_select,
+                "save_json": self.handle_save_json,
+                "load_json": self.model.load_from_json,
+                "clear_list": self.model.clear,
+                "replay": self.handle_start_replay,
+                "replay_selection": self.handle_start_replay_selection,
+                "estop": self.handle_emergency_stop,
+                "stop_media": self.handle_media_stop,
+                "pause_media": self.handle_media_pause,
+                "copy": self.handle_copy_poses,
+                "paste": self.handle_paste_poses,
+                "duplicate": self.handle_duplicate_poses,
+                "move_entry": self.handle_move_entry,
+                "apply_min_durations": self.handle_apply_min_durations,
+                "move_default": self.handle_move_default,
+                "add_pause": self.handle_add_pause,
+                "add_gripper": self.handle_add_gripper
+            })
 
         # Study Mode Setup
         if self.study_manager.study_mode:
@@ -134,6 +157,12 @@ class RobotController:
         is_initial = self._is_initial_connection
         self._is_initial_connection = False
         
+        if self.is_replay_all:
+            self.logger.info("Replay All mode active: skipping initial homing and starting automated study review sequence.")
+            if self.replay_all_manager:
+                self.replay_all_manager.start()
+            return
+
         if self.study_manager.study_mode:
             if getattr(self.study_manager, "review_mode", False):
                 # Review Mode: Never move to default or save initial pose

@@ -597,6 +597,7 @@ class KinovaHardware:
             try:
                 self._estop_active = False
                 self.base.ClearFaults()
+                self.trigger_fault_cleared()
                 self.logger.info("Clear Faults command dispatched to robot controller.")
             except Exception as e:
                 self.logger.error(f"Failed to clear faults: {e}")
