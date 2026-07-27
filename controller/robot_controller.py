@@ -108,6 +108,10 @@ class RobotController:
                 self.handle_task_completed
             )
             
+            if active_task and isinstance(active_task, dict):
+                gaze_pos = active_task.get("default_gaze") or active_task.get("gaze") or active_task.get("eye_position") or "center"
+                EventBus.publish("set_eye_gaze", gaze_pos)
+            
             # If in Review Mode, load recorded gesture if a file exists, but NEVER move to default or save initial pose
             if getattr(self.study_manager, "review_mode", False):
                 filepath = self.study_manager.current_task_filepath
@@ -142,7 +146,7 @@ class RobotController:
             if active_task:
                 custom_pose = active_task.get("default_pose")
                 custom_gripper = active_task.get("default_gripper_pos")
-                gaze_pos = active_task.get("eye_position", "center")
+                gaze_pos = active_task.get("default_gaze") or active_task.get("gaze") or active_task.get("eye_position") or "center"
                 EventBus.publish("set_eye_gaze", gaze_pos)
                 
             if is_initial:
@@ -575,7 +579,7 @@ class RobotController:
             self.logger.info(f"Transitioned to study task index {self.study_manager.current_task_index + 1}/{self.study_manager.get_total_tasks()} ({counter_text}).")
             
             # Sync robot face eye gaze position for the new referent task
-            gaze_pos = next_task.get("eye_position", "center") if isinstance(next_task, dict) else "center"
+            gaze_pos = (next_task.get("default_gaze") or next_task.get("gaze") or next_task.get("eye_position") or "center") if isinstance(next_task, dict) else "center"
             EventBus.publish("set_eye_gaze", gaze_pos)
             
             # If in Review Mode, load recorded gesture if a file exists, but NEVER move to default or save initial pose
@@ -611,6 +615,8 @@ class RobotController:
             if active_task:
                 custom_pose = active_task.get("default_pose")
                 custom_gripper = active_task.get("default_gripper_pos")
+                gaze_pos = active_task.get("default_gaze") or active_task.get("gaze") or active_task.get("eye_position") or "center"
+                EventBus.publish("set_eye_gaze", gaze_pos)
         threading.Thread(target=self.hardware.move_to_default, kwargs={"custom_pose": custom_pose, "custom_gripper_pos": custom_gripper}, daemon=True).start()
 
     def _move_to_default_and_save_pose(self, custom_pose=None, custom_gripper_pos=None):

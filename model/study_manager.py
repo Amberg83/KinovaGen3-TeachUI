@@ -92,13 +92,21 @@ class StudyManager:
                                 else:
                                     default_gripper_pos = config_task.get("default_gripper_pos", "pickup")
                                 
+                                # Default gaze lookup
+                                default_gaze = row.get("default_gaze") or row.get("DefaultGaze") or row.get("eye_position")
+                                if default_gaze is not None:
+                                    default_gaze = default_gaze.strip()
+                                else:
+                                    default_gaze = config_task.get("default_gaze", config_task.get("gaze", config_task.get("eye_position", "center")))
+                                
                                 loaded_tasks.append({
                                     "id": rid,
                                     "name": rname,
                                     "instructions": rinstructions,
                                     "gesture_file": gesture_file,
                                     "default_pose": default_pose,
-                                    "default_gripper_pos": default_gripper_pos
+                                    "default_gripper_pos": default_gripper_pos,
+                                    "default_gaze": default_gaze
                                 })
                         if loaded_tasks:
                             self.tasks = loaded_tasks
@@ -242,13 +250,15 @@ class StudyManager:
                         "presentation_order",
                         "gesture_file",
                         "default_pose",
-                        "default_gripper_pos"
+                        "default_gripper_pos",
+                        "default_gaze"
                     ])
                 
                 instructions = active_task.get("instructions", "")
                 default_pose = active_task.get("default_pose", [0.0, 70.0, 264.0, 0.0, 58.0, 90.0])
                 default_pose_json = json.dumps(default_pose)
                 default_gripper_pos = active_task.get("default_gripper_pos", "pickup")
+                default_gaze = active_task.get("default_gaze") or active_task.get("gaze") or active_task.get("eye_position") or "center"
                 
                 writer.writerow([
                     self.participant_id,
@@ -260,7 +270,8 @@ class StudyManager:
                     presentation_order,
                     backup_filename,
                     default_pose_json,
-                    default_gripper_pos
+                    default_gripper_pos,
+                    default_gaze
                 ])
             self.logger.info(f"Logged task {presentation_order} metrics to {log_path}")
         except Exception as e:
