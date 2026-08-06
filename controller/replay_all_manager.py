@@ -487,11 +487,11 @@ class ReplayAllManager:
         if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
             return
 
-        # 3. Wait another 5.0 seconds (NOT logged to CSV)
-        logger.info(f"[{entry['id']}] Stage 3: Waiting 5.0s post-reset pause...")
+        # 3. Wait another 5.0 seconds before starting gesture trajectory (NOT logged to CSV)
+        logger.info(f"[{entry['id']}] Stage 3: Waiting 5.0s pre-gesture stabilization pause...")
         if self.view:
             self.controller.root.after(0, lambda: self.view.update_status(
-                phase=f"Stage 3/3: Waiting 5.0s Post-Reset Pause ({entry['id']})...",
+                phase=f"Stage 3/3: Waiting 5.0s Pre-Gesture Pause ({entry['id']})...",
                 progress=progress_pct, counter_str=counter_str, active_gesture=entry
             ))
         if not self._sleep_interruptible(5.0):
