@@ -273,13 +273,18 @@ class ReplayAllManager:
         completed_before = sum(len(self.gestures_by_rid[self.rids[i]]) for i in range(self.current_r_idx))
         progress_pct = (completed_before / max(1, self.total_gestures)) * 100.0
         
+        # Get upcoming gesture metadata for telemetry display
+        gestures_for_rid = self.gestures_by_rid.get(current_rid, [])
+        first_gesture = gestures_for_rid[self.current_g_idx] if (self.current_g_idx < len(gestures_for_rid)) else (gestures_for_rid[0] if gestures_for_rid else None)
+
         self.view.show_referent_prompt(
             rid=current_rid,
             name=ref_name,
             instructions=ref_instructions,
             phase=f"Ready for Referent R{current_rid}. Press [ Start Referent R{current_rid} ] after physical setup.",
             progress=progress_pct,
-            counter_str=f"{completed_before} / {self.total_gestures} completed ({progress_pct:.1f}%)"
+            counter_str=f"{completed_before} / {self.total_gestures} completed ({progress_pct:.1f}%)",
+            active_gesture=first_gesture
         )
 
     def start_referent(self):

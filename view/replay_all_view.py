@@ -183,13 +183,13 @@ class ReplayAllView(ctk.CTkFrame):
         ).pack(anchor="w")
 
         self.lbl_clip_id = theme.make_label(
-            left_box, text="Clip ID: P1_R1_A (Participant 1, Version A)",
+            left_box, text="Clip ID: -",
             font=(theme.FONT_TITLE[0], 14, "bold"), fg_color="transparent", text_color=theme.TEXT_PRIMARY
         )
         self.lbl_clip_id.pack(anchor="w", pady=(4, 2))
 
         self.lbl_clip_path = theme.make_label(
-            left_box, text="File: study_results/1-.../task_1_1781695201.json",
+            left_box, text="File: -",
             font=theme.FONT_MONO_SMALL, fg_color="transparent", text_color=theme.TEXT_MUTED
         )
         self.lbl_clip_path.pack(anchor="w", pady=(0, 10))
@@ -298,7 +298,7 @@ class ReplayAllView(ctk.CTkFrame):
         elif hasattr(state, 'is_connected') and not state.is_connected:
             self.lbl_robot_status.configure(text="ROBOT DISCONNECTED", text_color=theme.ACCENT_ORANGE)
 
-    def show_referent_prompt(self, rid, name, instructions, phase, progress, counter_str):
+    def show_referent_prompt(self, rid, name, instructions, phase, progress, counter_str, active_gesture=None):
         """Displays the setup readjustment prompt for the specified referent (`RID`)."""
         self.lbl_setup_banner.configure(
             text=f"SETUP READJUSTMENT REQUIRED: Verify physical study setup for R{rid} below.",
@@ -313,6 +313,14 @@ class ReplayAllView(ctk.CTkFrame):
         self.lbl_phase.configure(text=f"Phase: {phase}", text_color=theme.ACCENT_CYBER)
         self.lbl_progress_counter.configure(text=counter_str)
         self.progress_bar.set(progress / 100.0)
+
+        if active_gesture:
+            gid = active_gesture.get("id", "-")
+            gpid = active_gesture.get("pid", "-")
+            gver = active_gesture.get("version", "-")
+            gpath = active_gesture.get("filepath", "-")
+            self.lbl_clip_id.configure(text=f"Next Clip: {gid} (Participant {gpid}, Version {gver})")
+            self.lbl_clip_path.configure(text=f"File: {os.path.basename(gpath)}")
 
     def update_status(self, phase=None, progress=None, counter_str=None, active_gesture=None):
         """Updates live phase status and progress during automated playback."""
