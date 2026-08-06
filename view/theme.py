@@ -114,6 +114,8 @@ def clear_icon_cache():
     except Exception:
         pass
 
+
+def configure_flat_styles():
     """Sets up flat, modern styling across all TTK widgets."""
     style = ttk.Style()
     style.theme_use('clam')
