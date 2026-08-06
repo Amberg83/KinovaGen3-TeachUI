@@ -242,7 +242,10 @@ class ReplayAllManager:
 
     def _update_view_for_referent_prompt(self):
         """Updates ReplayAllView to display instructions for the current RID and wait for operator confirmation."""
-        if not self.view or self.current_r_idx >= len(self.rids):
+        if not self.view:
+            self.view = getattr(self.controller, "view", None)
+            
+        if not self.rids or self.current_r_idx >= len(self.rids):
             return
         current_rid = self.rids[self.current_r_idx]
         ref_info = self.referents_map.get(current_rid, {})

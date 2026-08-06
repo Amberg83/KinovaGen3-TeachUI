@@ -28,6 +28,8 @@ class RobotController:
         
         # Instantiate ReplayAllManager if in Replay All mode
         self.replay_all_manager = ReplayAllManager(self, exclude_pids=exclude_pids) if self.is_replay_all else None
+        if self.replay_all_manager:
+            self.replay_all_manager.set_view(self.view)
         
         # Load default gripper settings from config
         self.default_gripper_duration = "fast"
