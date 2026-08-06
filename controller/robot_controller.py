@@ -53,10 +53,6 @@ class RobotController:
         EventBus.subscribe("play_predefined_gesture", self.handle_play_predefined_gesture)
         EventBus.subscribe("robot_connected", self.handle_robot_connected)
         
-        if self.replay_all_manager:
-            EventBus.subscribe("fault", self.replay_all_manager.on_fault_detected)
-            EventBus.subscribe("fault_cleared", self.replay_all_manager.on_fault_cleared)
-
         # Bind abstract intents from the View to Controller actions
         if self.is_replay_all:
             self.view.bind_commands({
