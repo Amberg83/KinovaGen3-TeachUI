@@ -249,12 +249,22 @@ class ReplayAllManager:
         ref_name = ref_info.get("name", f"Referent {current_rid}")
         ref_instructions = ref_info.get("instructions", "Please arrange the physical environment for this referent.")
         
-        # Publish gaze state for the current referent so the robot face interface updates
+        # 1. Publish gaze state for the current referent so the robot face interface updates
         gaze_pos = ref_info.get("default_gaze") or ref_info.get("gaze") or ref_info.get("eye_position") or "center"
         try:
             EventBus.publish("set_eye_gaze", gaze_pos)
         except Exception as e:
             logger.error(f"Error publishing set_eye_gaze in ReplayAllManager: {e}")
+
+        # 2. Command hardware to prepare the default arm pose and gripper position for this referent
+        def_pose = ref_info.get("default_pose")
+        def_gripper = ref_info.get("default_gripper_pos", "pickup")
+        if self.controller and self.controller.hardware:
+            try:
+                logger.info(f"Preparing robot default pose & gripper for Referent R{current_rid}...")
+                self.controller.hardware.move_to_default(custom_pose=def_pose, custom_gripper_pos=def_gripper)
+            except Exception as e:
+                logger.error(f"Error preparing default position for Referent R{current_rid}: {e}")
 
         # Calculate overall gesture index
         completed_before = sum(len(self.gestures_by_rid[self.rids[i]]) for i in range(self.current_r_idx))
@@ -399,6 +409,10 @@ class ReplayAllManager:
                 progress=progress_pct, counter_str=counter_str, active_gesture=entry
             ))
         try:
+            ref_info = self.referents_map.get(entry["rid"], {})
+            gaze_pos = ref_info.get("default_gaze") or ref_info.get("gaze") or ref_info.get("eye_position") or "center"
+            EventBus.publish("set_eye_gaze", gaze_pos)
+
             completion_event = self.controller.hardware.move_to_default(
                 custom_pose=entry["default_pose"],
                 custom_gripper_pos=entry["default_gripper_pos"]
