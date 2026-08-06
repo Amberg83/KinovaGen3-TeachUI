@@ -348,15 +348,8 @@ class ReplayAllManager:
         # Check if this is the VERY FIRST gesture across the entire Replay All run
         is_very_first = (self.current_r_idx == 0 and self.current_g_idx == 0)
         if is_very_first:
-            self.start_time_epoch = time.time()  # Reset timer exactly when the first fault beep sounds for video synchronization!
-            logger.info("Triggering initial clapperboard emergency sound at start of very first referent!")
-            try:
-                EventBus.publish("fault")
-                # Clear initial clapperboard fault state on face display after 1.2s so eyes return to default referent gaze
-                if self.controller and self.controller.root:
-                    self.controller.root.after(1200, lambda: EventBus.publish("fault_cleared"))
-            except Exception as e:
-                logger.error(f"Error playing initial clapperboard sound: {e}")
+            self.start_time_epoch = time.time()
+            logger.info("Replay All benchmark start time initialized.")
 
         # Start pre-gesture sequence worker thread
         self._worker_thread = threading.Thread(target=self._pre_gesture_worker, daemon=True)
