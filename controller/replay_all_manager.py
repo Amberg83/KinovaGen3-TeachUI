@@ -130,9 +130,10 @@ class ReplayAllManager:
                             reader = csv.DictReader(f)
                             for row in reader:
                                 rid_str = str(row.get("ID") or row.get("id") or row.get("RID") or row.get("rid") or "0").strip()
-                                if not rid_str.isdigit():
+                                rid_match = re.match(r'^(\d+)', rid_str)
+                                if not rid_match:
                                     continue
-                                rid = int(rid_str)
+                                rid = int(rid_match.group(1))
                                 # STRICT FILTER: Skip tutorials (RID > 100)
                                 if rid <= 0 or rid > 100:
                                     continue
@@ -148,14 +149,14 @@ class ReplayAllManager:
                     except Exception as e:
                         logger.warning(f"Could not read study_log CSV '{csv_p}': {e}")
 
-            # Also scan for any task_<RID>_<timestamp>.json files inside root not covered by CSV
+            # Also scan for any task_<RID>_<timestamp>.json or task_<RID>-<attempt>_<timestamp>.json files inside root not covered by CSV
             for f in files:
                 if f.startswith("task_") and f.endswith(".json"):
                     full_p = os.path.abspath(os.path.join(root, f))
                     if full_p in seen_files:
                         continue
-                    # Parse RID from filename (e.g. task_3_1781695201.json or task_3_2_1781695201.json -> RID=3)
-                    m = re.match(r'^task_(\d+)_(?:.*_)?\d+\.json$', f)
+                    # Parse RID from filename (e.g. task_3_1781695201.json, task_3_2_1781695201.json, task_1-2_1781695201.json -> RID=3)
+                    m = re.match(r'^task_(\d+)(?:[_-].*)?\.json$', f)
                     if m:
                         rid = int(m.group(1))
                         # STRICT FILTER: Skip tutorials (RID > 100)

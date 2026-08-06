@@ -160,7 +160,7 @@ class StudyManager:
                     return
             # Fallback to scanning if gesture_file is missing or not found
             for filename in os.listdir(pid_dir):
-                if filename.startswith(f"task_{task_id}_") and filename.endswith(".json"):
+                if (filename.startswith(f"task_{task_id}_") or filename.startswith(f"task_{task_id}-")) and filename.endswith(".json"):
                     self.current_task_filepath = os.path.join(pid_dir, filename)
                     return
         
