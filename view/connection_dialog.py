@@ -243,6 +243,15 @@ class ConnectionDialog(ctk.CTk):
         )
         self.destroy()
 
+    def destroy(self):
+        """Safely clears icon cache while Tcl interpreter is still active before destroying root window."""
+        try:
+            theme.clear_icon_cache()
+        except Exception:
+            pass
+        super().destroy()
+
     def on_cancel(self):
         """Destroys the dialog upon cancellation."""
         self.destroy()
+

@@ -107,7 +107,13 @@ def get_icon(name, tint=None, size=(24, 24)):
     return _icon_cache[cache_key]
 
 
-def configure_flat_styles():
+def clear_icon_cache():
+    """Safely clears cached Tkinter SvgImage instances while preventing Tcl deallocator exceptions."""
+    try:
+        _icon_cache.clear()
+    except Exception:
+        pass
+
     """Sets up flat, modern styling across all TTK widgets."""
     style = ttk.Style()
     style.theme_use('clam')

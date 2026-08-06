@@ -137,7 +137,7 @@ def main():
 
     # Clear theme's icon cache to prevent _tkinter.TclError: image "pyimageX" doesn't exist
     # which is caused by recreating Tkinter root windows (ConnectionDialog -> Main Root)
-    theme._icon_cache.clear()
+    theme.clear_icon_cache()
 
     # Initialize main dashboard application root
     root = ctk.CTk()
