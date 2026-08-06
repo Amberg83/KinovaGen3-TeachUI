@@ -9,7 +9,7 @@ import tkinter as tk
 import customtkinter as ctk
 from hardware import KinovaHardware, MockKinovaHardware
 from model import SequenceModel
-from view import RobotView, ConnectionDialog
+from view import RobotView, ConnectionDialog, ReplayAllView
 from controller import RobotController
 from utils.sound_coordinator import SoundCoordinator
 from utils.udp_transmitter import UDPTransmitter
