@@ -44,6 +44,7 @@ class ReplayAllManager:
         self.is_paused = True
         self.is_waiting_for_referent_start = True
         self._worker_thread = None
+        self._referent_homing_thread = None
         
         self.csv_file_path = None
         self.start_time_epoch = time.time()
@@ -240,6 +241,17 @@ class ReplayAllManager:
 
         self._update_view_for_referent_prompt()
 
+    def _is_robot_at_pose(self, target_pose, max_diff=2.5):
+        """Returns True if current robot joint angles match target_pose within max_diff degrees."""
+        if not target_pose or len(target_pose) != 6:
+            return False
+        if not self.controller or not self.controller.hardware:
+            return False
+        current_angles = getattr(self.controller.hardware.state, 'joint_angles_deg', None)
+        if not current_angles or len(current_angles) != 6:
+            return False
+        return all(abs(a - b) <= max_diff for a, b in zip(current_angles, target_pose))
+
     def _update_view_for_referent_prompt(self):
         """Updates ReplayAllView to display instructions for the current RID and wait for operator confirmation."""
         if not self.view:
@@ -252,22 +264,18 @@ class ReplayAllManager:
         ref_name = ref_info.get("name", f"Referent {current_rid}")
         ref_instructions = ref_info.get("instructions", "Please arrange the physical environment for this referent.")
         
-        # 1. Publish gaze state for the current referent so the robot face interface updates
         gaze_pos = ref_info.get("default_gaze") or ref_info.get("gaze") or ref_info.get("eye_position") or "center"
-        try:
-            EventBus.publish("set_eye_gaze", gaze_pos)
-        except Exception as e:
-            logger.error(f"Error publishing set_eye_gaze in ReplayAllManager: {e}")
-
-        # 2. Command hardware to prepare the default arm pose and gripper position for this referent
         def_pose = ref_info.get("default_pose")
         def_gripper = ref_info.get("default_gripper_pos", "pickup")
+
+        # Command background worker to execute 5s timer BEFORE eye gaze adjustment and start position homing
         if self.controller and self.controller.hardware:
-            try:
-                logger.info(f"Preparing robot default pose & gripper for Referent R{current_rid}...")
-                self.controller.hardware.move_to_default(custom_pose=def_pose, custom_gripper_pos=def_gripper)
-            except Exception as e:
-                logger.error(f"Error preparing default position for Referent R{current_rid}: {e}")
+            self._referent_homing_thread = threading.Thread(
+                target=self._referent_homing_worker,
+                args=(current_rid, def_pose, def_gripper, gaze_pos),
+                daemon=True
+            )
+            self._referent_homing_thread.start()
 
         # Calculate overall gesture index
         completed_before = sum(len(self.gestures_by_rid[self.rids[i]]) for i in range(self.current_r_idx))
@@ -281,11 +289,47 @@ class ReplayAllManager:
             rid=current_rid,
             name=ref_name,
             instructions=ref_instructions,
-            phase=f"Ready for Referent R{current_rid}. Press [ Start Referent R{current_rid} ] after physical setup.",
+            phase=f"Referent R{current_rid} loaded. Waiting 5.0s pause before eye gaze & position homing...",
             progress=progress_pct,
             counter_str=f"{completed_before} / {self.total_gestures} completed ({progress_pct:.1f}%)",
             active_gesture=first_gesture
         )
+
+    def _referent_homing_worker(self, current_rid, def_pose, def_gripper, gaze_pos):
+        """Worker thread that waits 5.0 seconds BEFORE updating eye gaze and executing referent default pose homing."""
+        logger.info(f"Referent R{current_rid} loaded. Holding 5.0s pre-homing pause timer...")
+        for i in range(50):
+            slept_secs = round(5.0 - (i * 0.1), 1)
+            if self.view and self.controller and self.controller.root and i % 5 == 0:
+                self.controller.root.after(0, lambda s=slept_secs: self.view.update_status(
+                    phase=f"Referent R{current_rid} loaded. Waiting 5.0s pause before homing ({s:.1f}s remaining)..."
+                ))
+            time.sleep(0.1)
+
+        # Update eye gaze position AFTER the 5s timer completes
+        try:
+            logger.info(f"Setting eye gaze position to '{gaze_pos}' for Referent R{current_rid}...")
+            EventBus.publish("set_eye_gaze", gaze_pos)
+        except Exception as e:
+            logger.error(f"Error publishing set_eye_gaze in ReplayAllManager: {e}")
+
+        logger.info(f"Preparing robot default pose & gripper for Referent R{current_rid}...")
+        if self.view and self.controller and self.controller.root:
+            self.controller.root.after(0, lambda: self.view.update_status(
+                phase=f"Homing robot to default pose for Referent R{current_rid}..."
+            ))
+        try:
+            completion_event = self.controller.hardware.move_to_default(custom_pose=def_pose, custom_gripper_pos=def_gripper)
+            if completion_event:
+                completion_event.wait(timeout=18.0)
+        except Exception as e:
+            logger.error(f"Error preparing default position for Referent R{current_rid}: {e}")
+
+        logger.info(f"Referent R{current_rid} default pose homing finished. Ready for operator start.")
+        if self.view and self.controller and self.controller.root:
+            self.controller.root.after(0, lambda: self.view.update_status(
+                phase=f"Ready for Referent R{current_rid}. Press [ Start Referent R{current_rid} ] after physical setup."
+            ))
 
     def start_referent(self):
         """Called when the operator presses the [ Start Referent R<rid> ] button after physical setup."""
@@ -295,6 +339,11 @@ class ReplayAllManager:
         self.is_waiting_for_referent_start = False
         self.is_paused = False
         self.is_running = True
+
+        # Ensure any background referent setup homing worker thread completes before launching sequence
+        if self._referent_homing_thread and self._referent_homing_thread.is_alive():
+            logger.info("Waiting for background referent setup homing to finish before launching replay worker...")
+            self._referent_homing_thread.join(timeout=15.0)
 
         # Check if this is the VERY FIRST gesture across the entire Replay All run
         is_very_first = (self.current_r_idx == 0 and self.current_g_idx == 0)
@@ -410,25 +459,31 @@ class ReplayAllManager:
             return
 
         # 2. Move to Default Pose (NOT logged to CSV)
-        logger.info(f"[{entry['id']}] Stage 2: Moving robot to default pose...")
-        if self.view:
-            self.controller.root.after(0, lambda: self.view.update_status(
-                phase=f"Stage 2/3: Homing to Default Pose ({entry['id']})...",
-                progress=progress_pct, counter_str=counter_str, active_gesture=entry
-            ))
+        ref_info = self.referents_map.get(entry["rid"], {})
+        gaze_pos = ref_info.get("default_gaze") or ref_info.get("gaze") or ref_info.get("eye_position") or "center"
         try:
-            ref_info = self.referents_map.get(entry["rid"], {})
-            gaze_pos = ref_info.get("default_gaze") or ref_info.get("gaze") or ref_info.get("eye_position") or "center"
             EventBus.publish("set_eye_gaze", gaze_pos)
+        except Exception:
+            pass
 
-            completion_event = self.controller.hardware.move_to_default(
-                custom_pose=entry["default_pose"],
-                custom_gripper_pos=entry["default_gripper_pos"]
-            )
-            if completion_event:
-                completion_event.wait(timeout=18.0)
-        except Exception as e:
-            logger.error(f"Error during move_to_default in ReplayAll: {e}")
+        if self._is_robot_at_pose(entry["default_pose"], max_diff=2.5):
+            logger.info(f"[{entry['id']}] Stage 2: Robot already at target default pose. Skipping redundant move_to_default.")
+        else:
+            logger.info(f"[{entry['id']}] Stage 2: Moving robot to default pose...")
+            if self.view:
+                self.controller.root.after(0, lambda: self.view.update_status(
+                    phase=f"Stage 2/3: Homing to Default Pose ({entry['id']})...",
+                    progress=progress_pct, counter_str=counter_str, active_gesture=entry
+                ))
+            try:
+                completion_event = self.controller.hardware.move_to_default(
+                    custom_pose=entry["default_pose"],
+                    custom_gripper_pos=entry["default_gripper_pos"]
+                )
+                if completion_event:
+                    completion_event.wait(timeout=18.0)
+            except Exception as e:
+                logger.error(f"Error during move_to_default in ReplayAll: {e}")
         if not self.is_running or self.is_paused or getattr(self, 'fault_active', False):
             return
 
